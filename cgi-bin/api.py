@@ -1,0 +1,429 @@
+#!/usr/bin/env python3
+"""
+SIGNAL News Trading Terminal — Backend API
+Routes via PATH_INFO:
+  GET  /news     — Latest news (supports ?limit=50&source=all&sentiment=all&q=keyword)
+  GET  /sources  — Active sources and status
+  GET  /stats    — Feed statistics
+  POST /refresh  — Force refresh all feeds
+  GET  /docs     — API documentation
+"""
+
+import json
+import os
+import re
+import sqlite3
+import sys
+import time
+import urllib.request
+import urllib.error
+import xml.etree.ElementTree as ET
+from datetime import datetime, timezone, timedelta
+from urllib.parse import parse_qs
+import threading
+
+# ---------------------------------------------------------------------------
+# Configuration
+# ---------------------------------------------------------------------------
+
+DB_PATH = "news_terminal.db"
+STALE_SECONDS = 30
+FETCH_TIMEOUT = 3  # Reduced for faster initial load
+
+FEEDS = {
+    "CNBC": "https://search.cnbc.com/rs/search/combinedcms/view.xml?partnerId=wrss01&id=100003114",
+    "CNBC_World": "https://search.cnbc.com/rs/search/combinedcms/view.xml?partnerId=wrss01&id=100727362",
+    "Reuters_Business": "https://www.reutersagency.com/feed/?best-topics=business-finance",
+    "MarketWatch": "https://feeds.content.dowjones.io/public/rss/mw_topstories",
+    "MarketWatch_Markets": "https://feeds.content.dowjones.io/public/rss/mw_marketpulse",
+    "Investing_com": "https://www.investing.com/rss/news.rss",
+    "Yahoo_Finance": "https://finance.yahoo.com/news/rssindex",
+    "Nasdaq": "https://www.nasdaq.com/feed/rssoutbound?category=Markets",
+    "SeekingAlpha": "https://seekingalpha.com/market_currents.xml",
+    "Benzinga": "https://www.benzinga.com/feeds/all",
+    "AP_News": "https://rsshub.app/apnews/topics/business",
+    "BBC_Business": "http://feeds.bbci.co.uk/news/business/rss.xml",
+    "Google_News_Business": "https://news.google.com/rss/topics/CAAqJggKIiBDQkFTRWdvSUwyMHZNRGx6TVdZU0FtVnVHZ0pWVXlnQVAB",
+}
+
+BULLISH_WORDS = [
+    "surge", "soar", "rally", "gain", "jump", "rise", "bull", "record high",
+    "upgrade", "beat", "exceed", "profit", "growth", "boom", "breakout",
+    "outperform", "buy", "accelerate", "expand", "bullish", "uptick", "climb",
+    "recover", "rebound", "strong", "positive", "upbeat", "optimis"
+]
+
+BEARISH_WORDS = [
+    "crash", "plunge", "drop", "fall", "decline", "bear", "loss", "downgrade",
+    "miss", "deficit", "recession", "layoff", "bankruptcy", "sell-off",
+    "warning", "cut", "sink", "tumble", "slump", "bearish", "downturn",
+    "weak", "negative", "pessimis", "fear", "risk", "volatil", "concern"
+]
+
+USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+
+# ---------------------------------------------------------------------------
+# Database
+# ---------------------------------------------------------------------------
+
+def get_db():
+    db = sqlite3.connect(DB_PATH, timeout=10)
+    db.row_factory = sqlite3.Row
+    db.execute("PRAGMA journal_mode=WAL")
+    db.execute("PRAGMA busy_timeout=5000")
+    db.execute("""
+        CREATE TABLE IF NOT EXISTS news (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            title TEXT NOT NULL,
+            link TEXT UNIQUE,
+            source TEXT,
+            published TEXT,
+            fetched_at TEXT DEFAULT CURRENT_TIMESTAMP,
+            summary TEXT,
+            sentiment_score REAL DEFAULT 0,
+            sentiment_label TEXT DEFAULT 'neutral',
+            tags TEXT DEFAULT ''
+        )
+    """)
+    db.execute("CREATE INDEX IF NOT EXISTS idx_fetched ON news(fetched_at DESC)")
+    db.execute("CREATE INDEX IF NOT EXISTS idx_source ON news(source)")
+    db.execute("CREATE INDEX IF NOT EXISTS idx_sentiment ON news(sentiment_label)")
+    db.execute("""
+        CREATE TABLE IF NOT EXISTS meta (
+            key TEXT PRIMARY KEY,
+            value TEXT
+        )
+    """)
+    db.commit()
+    return db
+
+# ---------------------------------------------------------------------------
+# Sentiment Scoring
+# ---------------------------------------------------------------------------
+
+def score_sentiment(text):
+    if not text:
+        return 0.0, "neutral"
+    text_lower = text.lower()
+    bullish = sum(1 for w in BULLISH_WORDS if w in text_lower)
+    bearish = sum(1 for w in BEARISH_WORDS if w in text_lower)
+    total = bullish + bearish
+    if total == 0:
+        return 0.0, "neutral"
+    raw = (bullish - bearish) / total
+    score = max(-1.0, min(1.0, raw))
+    if score > 0.1:
+        label = "bullish"
+    elif score < -0.1:
+        label = "bearish"
+    else:
+        label = "neutral"
+    return round(score, 3), label
+
+# ---------------------------------------------------------------------------
+# RSS Feed Fetching
+# ---------------------------------------------------------------------------
+
+def strip_html(text):
+    if not text:
+        return ""
+    # Add space before block tags so they don't concatenate
+    text = re.sub(r'<(br|p|div|li|h[1-6]|tr|td|th)[^>]*>', ' ', text, flags=re.IGNORECASE)
+    text = re.sub(r'<[^>]+>', ' ', text)
+    text = re.sub(r'&[a-zA-Z]+;', ' ', text)
+    text = re.sub(r'&#\d+;', ' ', text)
+    # Collapse multiple spaces
+    text = re.sub(r'\s+', ' ', text)
+    return text.strip()[:500]
+
+def parse_date(date_str):
+    if not date_str:
+        return datetime.now(timezone.utc).isoformat()
+    formats = [
+        "%a, %d %b %Y %H:%M:%S %z",
+        "%a, %d %b %Y %H:%M:%S %Z",
+        "%Y-%m-%dT%H:%M:%S%z",
+        "%Y-%m-%dT%H:%M:%SZ",
+        "%Y-%m-%d %H:%M:%S",
+        "%a, %d %b %Y %H:%M:%S",
+    ]
+    for fmt in formats:
+        try:
+            dt = datetime.strptime(date_str.strip(), fmt)
+            return dt.isoformat()
+        except ValueError:
+            continue
+    return date_str.strip()
+
+def fetch_feed(source_name, url):
+    """Fetch and parse a single RSS feed. Returns list of item dicts."""
+    items = []
+    try:
+        req = urllib.request.Request(url, headers={
+            "User-Agent": USER_AGENT,
+            "Accept": "application/rss+xml, application/xml, text/xml, */*",
+        })
+        with urllib.request.urlopen(req, timeout=FETCH_TIMEOUT) as resp:
+            data = resp.read()
+        root = ET.fromstring(data)
+        ns = {'atom': 'http://www.w3.org/2005/Atom'}
+        # RSS 2.0
+        for item in root.findall('.//item'):
+            title = item.findtext('title', '').strip()
+            link = item.findtext('link', '').strip()
+            pub_date = item.findtext('pubDate', '') or item.findtext('published', '')
+            description = item.findtext('description', '')
+            if not title or not link:
+                continue
+            summary = strip_html(description)
+            combined = f"{title} {summary}"
+            score, label = score_sentiment(combined)
+            items.append({
+                "title": title, "link": link, "source": source_name,
+                "published": parse_date(pub_date), "summary": summary,
+                "sentiment_score": score, "sentiment_label": label,
+            })
+        # Atom
+        for entry in root.findall('atom:entry', ns):
+            title = entry.findtext('atom:title', '', ns).strip()
+            link_el = entry.find('atom:link', ns)
+            link = link_el.get('href', '') if link_el is not None else ''
+            pub_date = entry.findtext('atom:published', '', ns) or entry.findtext('atom:updated', '', ns)
+            description = entry.findtext('atom:summary', '', ns) or entry.findtext('atom:content', '', ns)
+            if not title or not link:
+                continue
+            summary = strip_html(description)
+            combined = f"{title} {summary}"
+            score, label = score_sentiment(combined)
+            items.append({
+                "title": title, "link": link, "source": source_name,
+                "published": parse_date(pub_date), "summary": summary,
+                "sentiment_score": score, "sentiment_label": label,
+            })
+    except Exception:
+        pass
+    return items
+
+def fetch_single_feed_to_db(source_name, url, db_path):
+    """Fetch a single feed and store results directly to DB."""
+    items = fetch_feed(source_name, url)
+    if not items:
+        return source_name, 0
+    try:
+        db = sqlite3.connect(db_path, timeout=10)
+        db.execute("PRAGMA journal_mode=WAL")
+        db.execute("PRAGMA busy_timeout=5000")
+        count = 0
+        for item in items:
+            try:
+                db.execute("""
+                    INSERT OR IGNORE INTO news (title, link, source, published, summary, sentiment_score, sentiment_label)
+                    VALUES (?, ?, ?, ?, ?, ?, ?)
+                """, (
+                    item["title"], item["link"], item["source"],
+                    item["published"], item["summary"],
+                    item["sentiment_score"], item["sentiment_label"]
+                ))
+                if db.execute("SELECT changes()").fetchone()[0] > 0:
+                    count += 1
+            except Exception:
+                pass
+        db.commit()
+        db.close()
+        return source_name, count
+    except Exception:
+        return source_name, 0
+
+def refresh_feeds_parallel(db):
+    """Fetch all feeds in parallel using threads for speed."""
+    results = {}
+    threads = []
+    result_lock = threading.Lock()
+
+    def worker(name, url):
+        src, count = fetch_single_feed_to_db(name, url, DB_PATH)
+        with result_lock:
+            results[src] = count
+
+    for name, url in FEEDS.items():
+        t = threading.Thread(target=worker, args=(name, url))
+        t.daemon = True
+        threads.append(t)
+        t.start()
+
+    # Wait with a total timeout of 20 seconds
+    deadline = time.time() + 20
+    for t in threads:
+        remaining = max(0.1, deadline - time.time())
+        t.join(timeout=remaining)
+
+    total_new = sum(results.values())
+    db.execute("INSERT OR REPLACE INTO meta (key, value) VALUES (?, ?)",
+               ("last_refresh", datetime.now(timezone.utc).isoformat()))
+    db.execute("INSERT OR REPLACE INTO meta (key, value) VALUES (?, ?)",
+               ("source_status", json.dumps(results)))
+    db.commit()
+    return total_new, results
+
+def maybe_refresh(db):
+    """Refresh if data is stale (older than STALE_SECONDS)."""
+    row = db.execute("SELECT value FROM meta WHERE key='last_refresh'").fetchone()
+    if row:
+        try:
+            last = datetime.fromisoformat(row[0])
+            now = datetime.now(timezone.utc)
+            if (now - last).total_seconds() < STALE_SECONDS:
+                return False
+        except Exception:
+            pass
+    refresh_feeds_parallel(db)
+    return True
+
+# ---------------------------------------------------------------------------
+# API Routes
+# ---------------------------------------------------------------------------
+
+def route_news(db, params):
+    maybe_refresh(db)
+    limit = int(params.get("limit", ["200"])[0])
+    source = params.get("source", ["all"])[0]
+    sentiment = params.get("sentiment", ["all"])[0]
+    query = params.get("q", [""])[0]
+    limit = max(1, min(limit, 500))
+
+    sql = "SELECT * FROM news WHERE 1=1"
+    bind = []
+    if source and source != "all":
+        sql += " AND source = ?"
+        bind.append(source)
+    if sentiment and sentiment != "all":
+        sql += " AND sentiment_label = ?"
+        bind.append(sentiment)
+    if query:
+        sql += " AND (title LIKE ? OR summary LIKE ?)"
+        bind.extend([f"%{query}%", f"%{query}%"])
+    sql += " ORDER BY fetched_at DESC, id DESC LIMIT ?"
+    bind.append(limit)
+
+    rows = db.execute(sql, bind).fetchall()
+    items = [dict(r) for r in rows]
+    return {"count": len(items), "items": items}
+
+def route_sources(db):
+    maybe_refresh(db)
+    row = db.execute("SELECT value FROM meta WHERE key='source_status'").fetchone()
+    status = json.loads(row[0]) if row else {}
+    sources = []
+    for name, url in FEEDS.items():
+        count = db.execute("SELECT COUNT(*) FROM news WHERE source=?", (name,)).fetchone()[0]
+        sources.append({
+            "name": name, "url": url,
+            "last_fetch_items": status.get(name, 0),
+            "total_items": count, "active": True
+        })
+    return {"sources": sources}
+
+def route_stats(db):
+    maybe_refresh(db)
+    total = db.execute("SELECT COUNT(*) FROM news").fetchone()[0]
+    by_source = {}
+    for row in db.execute("SELECT source, COUNT(*) as cnt FROM news GROUP BY source ORDER BY cnt DESC"):
+        by_source[row[0]] = row[1]
+    by_sentiment = {}
+    for row in db.execute("SELECT sentiment_label, COUNT(*) as cnt FROM news GROUP BY sentiment_label"):
+        by_sentiment[row[0]] = row[1]
+    avg_score = db.execute("SELECT AVG(sentiment_score) FROM news").fetchone()[0] or 0
+    last_refresh_row = db.execute("SELECT value FROM meta WHERE key='last_refresh'").fetchone()
+    last_refresh = last_refresh_row[0] if last_refresh_row else None
+    return {
+        "total_items": total,
+        "by_source": by_source,
+        "by_sentiment": by_sentiment,
+        "avg_sentiment_score": round(avg_score, 4),
+        "last_refresh": last_refresh,
+        "feed_count": len(FEEDS)
+    }
+
+def route_refresh(db):
+    new_count, status = refresh_feeds_parallel(db)
+    return {
+        "refreshed": True,
+        "new_items": new_count,
+        "source_status": status,
+        "timestamp": datetime.now(timezone.utc).isoformat()
+    }
+
+def route_docs():
+    return {
+        "api": "SIGNAL News Trading Terminal API",
+        "version": "1.0",
+        "endpoints": [
+            {
+                "method": "GET", "path": "/news",
+                "description": "Get latest news items",
+                "params": {
+                    "limit": "Number of items (default 50, max 500)",
+                    "source": "Filter by source name (default 'all')",
+                    "sentiment": "Filter by sentiment: bullish, bearish, neutral (default 'all')",
+                    "q": "Keyword search in title and summary"
+                }
+            },
+            {"method": "GET", "path": "/sources", "description": "List all active feed sources with item counts"},
+            {"method": "GET", "path": "/stats", "description": "Aggregated feed statistics"},
+            {"method": "POST", "path": "/refresh", "description": "Force refresh all feeds immediately"},
+            {"method": "GET", "path": "/docs", "description": "This API documentation"}
+        ],
+        "examples": [
+            "curl \"<base>/cgi-bin/api.py/news?limit=10&sentiment=bullish\"",
+            "curl \"<base>/cgi-bin/api.py/sources\"",
+            "curl \"<base>/cgi-bin/api.py/stats\"",
+            "curl -X POST \"<base>/cgi-bin/api.py/refresh\""
+        ]
+    }
+
+# ---------------------------------------------------------------------------
+# Main CGI Handler
+# ---------------------------------------------------------------------------
+
+def main():
+    method = os.environ.get("REQUEST_METHOD", "GET")
+    path_info = os.environ.get("PATH_INFO", "").rstrip("/")
+    query_string = os.environ.get("QUERY_STRING", "")
+    params = parse_qs(query_string)
+
+    print("Content-Type: application/json")
+    print("Access-Control-Allow-Origin: *")
+    print("Access-Control-Allow-Methods: GET, POST, OPTIONS")
+    print("Access-Control-Allow-Headers: Content-Type")
+    print("Cache-Control: no-cache, no-store")
+    print()
+
+    if method == "OPTIONS":
+        print("{}")
+        return
+
+    try:
+        db = get_db()
+
+        if path_info == "/news" and method == "GET":
+            result = route_news(db, params)
+        elif path_info == "/sources" and method == "GET":
+            result = route_sources(db)
+        elif path_info == "/stats" and method == "GET":
+            result = route_stats(db)
+        elif path_info == "/refresh" and method == "POST":
+            result = route_refresh(db)
+        elif path_info == "/docs" and method == "GET":
+            result = route_docs()
+        elif path_info == "" or path_info == "/":
+            result = {"status": "ok", "message": "SIGNAL API v1.0", "endpoints": ["/news", "/sources", "/stats", "/refresh", "/docs"]}
+        else:
+            result = {"error": "Not found", "path": path_info}
+
+        print(json.dumps(result, default=str))
+        db.close()
+    except Exception as e:
+        print(json.dumps({"error": str(e)}))
+
+if __name__ == "__main__":
+    main()
