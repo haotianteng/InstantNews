@@ -1,0 +1,21 @@
+services:
+  signal:
+    build: .
+    container_name: signal-news
+    ports:
+      - "8000:8000"
+    volumes:
+      - signal-data:/app/data    # Persist SQLite across restarts
+    environment:
+      - PORT=8000
+      - STALE_SECONDS=30
+      - FETCH_TIMEOUT=5
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/stats"]
+      interval: 60s
+      timeout: 10s
+      retries: 3
+
+volumes:
+  signal-data:
