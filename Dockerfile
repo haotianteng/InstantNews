@@ -1,4 +1,4 @@
-FROM python:3.12-slim
+FROM python:3.12-slim AS base
 
 WORKDIR /app
 
@@ -8,15 +8,16 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy application
 COPY server.py .
+COPY app/ app/
 COPY static/ static/
+COPY alembic.ini .
+COPY migrations/ migrations/
 
-# Create data directory for SQLite
+# Create data directory for SQLite (dev fallback)
 RUN mkdir -p data
 
-# Environment
 ENV PORT=8000
-ENV DB_PATH=data/news_terminal.db
 EXPOSE 8000
 
-# Run with gunicorn (4 workers, 120s timeout for slow RSS fetches)
-CMD ["gunicorn", "--bind", "0.0.0.0:8000", "--workers", "4", "--timeout", "120", "--access-logfile", "-", "server:app"]
+# Default: run migrations then start gunicorn
+CMD ["sh", "-c", "alembic upgrade head && gunicorn --bind 0.0.0.0:${PORT} --workers 4 --timeout 120 --access-logfile - server:app"]

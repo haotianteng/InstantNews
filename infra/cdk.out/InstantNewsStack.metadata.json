@@ -1,0 +1,444 @@
+{
+  "/InstantNewsStack/WorkerService": [
+    {
+      "type": "aws:cdk:warning",
+      "data": "minHealthyPercent has not been configured so the default value of 50% is used. The number of running tasks will decrease below the desired count during deployments etc. See https://github.com/aws/aws-cdk/issues/31705 [ack: @aws-cdk/aws-ecs:minHealthyPercent]",
+      "trace": [
+        "Annotations.addMessage (/tmp/jsii-kernel-4qIDmF/node_modules/aws-cdk-lib/core/lib/annotations.js:1:2270)",
+        "Annotations.addWarningV2 (/tmp/jsii-kernel-4qIDmF/node_modules/aws-cdk-lib/core/lib/annotations.js:1:984)",
+        "new BaseService2 (/tmp/jsii-kernel-4qIDmF/node_modules/aws-cdk-lib/aws-ecs/lib/base/base-service.js:1:12546)",
+        "new FargateService2 (/tmp/jsii-kernel-4qIDmF/node_modules/aws-cdk-lib/aws-ecs/lib/fargate/fargate-service.js:1:6556)",
+        "new FargateService2 (/tmp/jsii-kernel-4qIDmF/node_modules/aws-cdk-lib/core/lib/prop-injectable.js:1:726)",
+        "Kernel._Kernel_create (/tmp/tmpwt_1cnf0/lib/program.js:4012:25)",
+        "Kernel.create (/tmp/tmpwt_1cnf0/lib/program.js:3682:93)",
+        "KernelHost.processRequest (/tmp/tmpwt_1cnf0/lib/program.js:17342:36)",
+        "KernelHost.run (/tmp/tmpwt_1cnf0/lib/program.js:17302:22)",
+        "Immediate._onImmediate (/tmp/tmpwt_1cnf0/lib/program.js:17303:45)",
+        "process.processImmediate (node:internal/timers:504:21)"
+      ]
+    }
+  ],
+  "/InstantNewsStack/AlbDns": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "AlbDns"
+    }
+  ],
+  "/InstantNewsStack/EcrRepoUri": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "EcrRepoUri"
+    }
+  ],
+  "/InstantNewsStack/DbEndpoint": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "DbEndpoint"
+    }
+  ],
+  "/InstantNewsStack/DbSecretArn": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "DbSecretArn"
+    }
+  ],
+  "/InstantNewsStack/AppSecretsArn": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "AppSecretsArn"
+    }
+  ],
+  "/InstantNewsStack/WebUrl": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "WebUrl"
+    }
+  ],
+  "/InstantNewsStack/BootstrapVersion": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "BootstrapVersion"
+    }
+  ],
+  "/InstantNewsStack/CheckBootstrapVersion": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "CheckBootstrapVersion"
+    }
+  ],
+  "/InstantNewsStack/Vpc/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "Vpc8378EB38"
+    }
+  ],
+  "/InstantNewsStack/Vpc/IGW": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "VpcIGWD7BA715C"
+    }
+  ],
+  "/InstantNewsStack/Vpc/VPCGW": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "VpcVPCGWBF912B6E"
+    }
+  ],
+  "/InstantNewsStack/DbSecret/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "DbSecret685A0FA5"
+    }
+  ],
+  "/InstantNewsStack/AppSecrets/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "AppSecretsA1997F2A"
+    }
+  ],
+  "/InstantNewsStack/Database/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "DatabaseB269D8BB"
+    }
+  ],
+  "/InstantNewsStack/Cluster/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "ClusterEB0386A7"
+    }
+  ],
+  "/InstantNewsStack/Cert/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "Cert5C9FAEC1"
+    }
+  ],
+  "/InstantNewsStack/WebLogs/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "WebLogs48A7C011"
+    }
+  ],
+  "/InstantNewsStack/WebTask/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "WebTask51ED7374"
+    }
+  ],
+  "/InstantNewsStack/WebService/LoadBalancerDNS": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "WebServiceLoadBalancerDNSE01F32A9"
+    }
+  ],
+  "/InstantNewsStack/WebService/ServiceURL": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "WebServiceServiceURL970B691A"
+    }
+  ],
+  "/InstantNewsStack/WebService/Service": [
+    {
+      "type": "aws:cdk:warning",
+      "data": "minHealthyPercent has not been configured so the default value of 50% is used. The number of running tasks will decrease below the desired count during deployments etc. See https://github.com/aws/aws-cdk/issues/31705 [ack: @aws-cdk/aws-ecs:minHealthyPercent]",
+      "trace": [
+        "Annotations.addMessage (/tmp/jsii-kernel-4qIDmF/node_modules/aws-cdk-lib/core/lib/annotations.js:1:2270)",
+        "Annotations.addWarningV2 (/tmp/jsii-kernel-4qIDmF/node_modules/aws-cdk-lib/core/lib/annotations.js:1:984)",
+        "new BaseService2 (/tmp/jsii-kernel-4qIDmF/node_modules/aws-cdk-lib/aws-ecs/lib/base/base-service.js:1:12546)",
+        "new FargateService2 (/tmp/jsii-kernel-4qIDmF/node_modules/aws-cdk-lib/aws-ecs/lib/fargate/fargate-service.js:1:6556)",
+        "new FargateService2 (/tmp/jsii-kernel-4qIDmF/node_modules/aws-cdk-lib/core/lib/prop-injectable.js:1:726)",
+        "new ApplicationLoadBalancedFargateService2 (/tmp/jsii-kernel-4qIDmF/node_modules/aws-cdk-lib/aws-ecs-patterns/lib/fargate/application-load-balanced-fargate-service.js:1:6195)",
+        "new ApplicationLoadBalancedFargateService2 (/tmp/jsii-kernel-4qIDmF/node_modules/aws-cdk-lib/core/lib/prop-injectable.js:1:726)",
+        "Kernel._Kernel_create (/tmp/tmpwt_1cnf0/lib/program.js:4012:25)",
+        "Kernel.create (/tmp/tmpwt_1cnf0/lib/program.js:3682:93)",
+        "KernelHost.processRequest (/tmp/tmpwt_1cnf0/lib/program.js:17342:36)",
+        "KernelHost.run (/tmp/tmpwt_1cnf0/lib/program.js:17302:22)",
+        "Immediate._onImmediate (/tmp/tmpwt_1cnf0/lib/program.js:17303:45)",
+        "process.processImmediate (node:internal/timers:504:21)"
+      ]
+    }
+  ],
+  "/InstantNewsStack/WorkerLogs/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "WorkerLogsC1193B08"
+    }
+  ],
+  "/InstantNewsStack/WorkerTask/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "WorkerTaskCBB1FEE3"
+    }
+  ],
+  "/InstantNewsStack/WorkerService/Service": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "WorkerService99815FA9"
+    }
+  ],
+  "/InstantNewsStack/CDKMetadata/Default": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "CDKMetadata"
+    }
+  ],
+  "/InstantNewsStack/Vpc/PublicSubnet1/Subnet": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "VpcPublicSubnet1Subnet5C2D37C4"
+    }
+  ],
+  "/InstantNewsStack/Vpc/PublicSubnet1/RouteTable": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "VpcPublicSubnet1RouteTable6C95E38E"
+    }
+  ],
+  "/InstantNewsStack/Vpc/PublicSubnet1/RouteTableAssociation": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "VpcPublicSubnet1RouteTableAssociation97140677"
+    }
+  ],
+  "/InstantNewsStack/Vpc/PublicSubnet1/DefaultRoute": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "VpcPublicSubnet1DefaultRoute3DA9E72A"
+    }
+  ],
+  "/InstantNewsStack/Vpc/PublicSubnet1/EIP": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "VpcPublicSubnet1EIPD7E02669"
+    }
+  ],
+  "/InstantNewsStack/Vpc/PublicSubnet1/NATGateway": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "VpcPublicSubnet1NATGateway4D7517AA"
+    }
+  ],
+  "/InstantNewsStack/Vpc/PublicSubnet2/Subnet": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "VpcPublicSubnet2Subnet691E08A3"
+    }
+  ],
+  "/InstantNewsStack/Vpc/PublicSubnet2/RouteTable": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "VpcPublicSubnet2RouteTable94F7E489"
+    }
+  ],
+  "/InstantNewsStack/Vpc/PublicSubnet2/RouteTableAssociation": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "VpcPublicSubnet2RouteTableAssociationDD5762D8"
+    }
+  ],
+  "/InstantNewsStack/Vpc/PublicSubnet2/DefaultRoute": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "VpcPublicSubnet2DefaultRoute97F91067"
+    }
+  ],
+  "/InstantNewsStack/Vpc/PrivateSubnet1/Subnet": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "VpcPrivateSubnet1Subnet536B997A"
+    }
+  ],
+  "/InstantNewsStack/Vpc/PrivateSubnet1/RouteTable": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "VpcPrivateSubnet1RouteTableB2C5B500"
+    }
+  ],
+  "/InstantNewsStack/Vpc/PrivateSubnet1/RouteTableAssociation": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "VpcPrivateSubnet1RouteTableAssociation70C59FA6"
+    }
+  ],
+  "/InstantNewsStack/Vpc/PrivateSubnet1/DefaultRoute": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "VpcPrivateSubnet1DefaultRouteBE02A9ED"
+    }
+  ],
+  "/InstantNewsStack/Vpc/PrivateSubnet2/Subnet": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "VpcPrivateSubnet2Subnet3788AAA1"
+    }
+  ],
+  "/InstantNewsStack/Vpc/PrivateSubnet2/RouteTable": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "VpcPrivateSubnet2RouteTableA678073B"
+    }
+  ],
+  "/InstantNewsStack/Vpc/PrivateSubnet2/RouteTableAssociation": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "VpcPrivateSubnet2RouteTableAssociationA89CAD56"
+    }
+  ],
+  "/InstantNewsStack/Vpc/PrivateSubnet2/DefaultRoute": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "VpcPrivateSubnet2DefaultRoute060D2087"
+    }
+  ],
+  "/InstantNewsStack/DbSecret/Attachment/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "DbSecretAttachment0609CE05"
+    }
+  ],
+  "/InstantNewsStack/Database/SubnetGroup/Default": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "DatabaseSubnetGroup7D60F180"
+    }
+  ],
+  "/InstantNewsStack/Database/SecurityGroup/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "DatabaseSecurityGroup5C91FDCB"
+    }
+  ],
+  "/InstantNewsStack/Database/SecurityGroup/from InstantNewsStackWebServiceSecurityGroup0D20432A:5432": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "DatabaseSecurityGroupfromInstantNewsStackWebServiceSecurityGroup0D20432A5432CE6284A9"
+    }
+  ],
+  "/InstantNewsStack/Database/SecurityGroup/from InstantNewsStackWorkerServiceSecurityGroup7F465C27:5432": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "DatabaseSecurityGroupfromInstantNewsStackWorkerServiceSecurityGroup7F465C275432F127E578"
+    }
+  ],
+  "/InstantNewsStack/WebTask/TaskRole/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "WebTaskTaskRole6A095794"
+    }
+  ],
+  "/InstantNewsStack/WebTask/ExecutionRole/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "WebTaskExecutionRole28FA0566"
+    }
+  ],
+  "/InstantNewsStack/WebService/LB/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "WebServiceLB9CAD0C10"
+    }
+  ],
+  "/InstantNewsStack/WebService/DNS/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "WebServiceDNS2BC6D2B6"
+    }
+  ],
+  "/InstantNewsStack/WebService/Service/Service": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "WebService5EA589E6"
+    }
+  ],
+  "/InstantNewsStack/WorkerTask/TaskRole/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "WorkerTaskTaskRoleC4141168"
+    }
+  ],
+  "/InstantNewsStack/WorkerTask/ExecutionRole/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "WorkerTaskExecutionRole9C03D68C"
+    }
+  ],
+  "/InstantNewsStack/WorkerService/SecurityGroup/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "WorkerServiceSecurityGroup254DBA6E"
+    }
+  ],
+  "/InstantNewsStack/WebTask/ExecutionRole/DefaultPolicy/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "WebTaskExecutionRoleDefaultPolicy20822D46"
+    }
+  ],
+  "/InstantNewsStack/WebService/LB/SecurityGroup/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "WebServiceLBSecurityGroup66424F28"
+    }
+  ],
+  "/InstantNewsStack/WebService/LB/SecurityGroup/to InstantNewsStackWebServiceSecurityGroup0D20432A:8000": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "WebServiceLBSecurityGrouptoInstantNewsStackWebServiceSecurityGroup0D20432A8000456612BF"
+    }
+  ],
+  "/InstantNewsStack/WebService/LB/PublicListener/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "WebServiceLBPublicListenerEA62BC7F"
+    }
+  ],
+  "/InstantNewsStack/WebService/LB/PublicRedirectListener/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "WebServiceLBPublicRedirectListener0D5B9C79"
+    }
+  ],
+  "/InstantNewsStack/WebService/Service/SecurityGroup/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "WebServiceSecurityGroup7A3EB149"
+    }
+  ],
+  "/InstantNewsStack/WebService/Service/SecurityGroup/from InstantNewsStackWebServiceLBSecurityGroupDEC6E26F:8000": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "WebServiceSecurityGroupfromInstantNewsStackWebServiceLBSecurityGroupDEC6E26F8000EF35C132"
+    }
+  ],
+  "/InstantNewsStack/WorkerTask/ExecutionRole/DefaultPolicy/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "WorkerTaskExecutionRoleDefaultPolicyAF6178D4"
+    }
+  ],
+  "/InstantNewsStack/WebService/LB/PublicListener/ECSGroup/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "WebServiceLBPublicListenerECSGroup909B7188"
+    }
+  ],
+  "/InstantNewsStack/WebService/Service/TaskCount/Target/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "WebServiceTaskCountTargetD0215E6E"
+    }
+  ],
+  "/InstantNewsStack/WebService/Service/TaskCount/Target/CpuScaling/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "WebServiceTaskCountTargetCpuScaling29F758B1"
+    }
+  ],
+  "/InstantNewsStack/WebService/Service/TaskCount/Target/RequestScaling/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "WebServiceTaskCountTargetRequestScaling60BB1385"
+    }
+  ]
+}

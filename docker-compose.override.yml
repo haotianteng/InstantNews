@@ -1,0 +1,20 @@
+# Dev override: use SQLite, no PostgreSQL needed.
+# Active by default when running `docker compose up`.
+# For production: docker compose -f docker-compose.yml up
+services:
+  postgres:
+    profiles: ["prod"]  # disabled in dev
+
+  signal:
+    environment:
+      - DATABASE_URL=sqlite:///data/news_terminal.db
+      - WORKER_ENABLED=true
+    volumes:
+      - signal-data:/app/data
+    depends_on: {}
+
+  feed-worker:
+    profiles: ["prod"]  # single-process in dev (worker runs in-app)
+
+volumes:
+  signal-data:

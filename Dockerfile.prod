@@ -1,0 +1,44 @@
+# Production Dockerfile: Nginx + Gunicorn in a single container
+# Nginx serves static files directly and proxies API requests to Gunicorn
+
+FROM python:3.12-slim
+
+# Install nginx and supervisor
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends nginx supervisor curl && \
+    rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+
+# Install Python dependencies
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Copy application
+COPY server.py .
+COPY app/ app/
+COPY static/ static/
+COPY alembic.ini .
+COPY migrations/ migrations/
+
+# Create data directory
+RUN mkdir -p data
+
+# Nginx config: serve static files, proxy /api to gunicorn
+COPY deploy/nginx.conf /etc/nginx/sites-available/default
+
+# Supervisor config: manage nginx + gunicorn
+COPY deploy/supervisord.conf /etc/supervisor/conf.d/signal.conf
+
+# Startup script: run migrations then start supervisor
+COPY deploy/entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
+
+ENV PORT=8000
+ENV GUNICORN_PORT=8001
+EXPOSE 8000
+
+HEALTHCHECK --interval=30s --timeout=5s --retries=3 \
+    CMD curl -f http://localhost:8000/api/stats || exit 1
+
+ENTRYPOINT ["/entrypoint.sh"]

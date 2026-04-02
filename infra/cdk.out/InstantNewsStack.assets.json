@@ -1,0 +1,21 @@
+{
+  "version": "52.0.0",
+  "files": {
+    "01954c8ff9c21055c54b444d46598385b1d4ca53b77bf85748bed43a78251384": {
+      "displayName": "InstantNewsStack Template",
+      "source": {
+        "path": "InstantNewsStack.template.json",
+        "packaging": "file"
+      },
+      "destinations": {
+        "596080539716-us-east-1-4a430150": {
+          "bucketName": "cdk-hnb659fds-assets-596080539716-us-east-1",
+          "objectKey": "01954c8ff9c21055c54b444d46598385b1d4ca53b77bf85748bed43a78251384.json",
+          "region": "us-east-1",
+          "assumeRoleArn": "arn:${AWS::Partition}:iam::596080539716:role/cdk-hnb659fds-file-publishing-role-596080539716-us-east-1"
+        }
+      }
+    }
+  },
+  "dockerImages": {}
+}

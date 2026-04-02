@@ -125,7 +125,7 @@
       const params = new URLSearchParams({ limit: DEFAULT_LIMIT });
       if (state.filter.dateFrom) params.set("from", state.filter.dateFrom);
       if (state.filter.dateTo) params.set("to", state.filter.dateTo);
-      const res = await fetch(`${API}/news?${params}`);
+      const res = await SignalAuth.fetch(`${API}/news?${params}`);
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
       state.connected = true;
@@ -172,7 +172,7 @@
 
   async function fetchSources() {
     try {
-      const res = await fetch(`${API}/sources`);
+      const res = await SignalAuth.fetch(`${API}/sources`);
       if (!res.ok) return;
       const data = await res.json();
       state.sources = data.sources || [];
@@ -184,7 +184,7 @@
 
   async function fetchStats() {
     try {
-      const res = await fetch(`${API}/stats`);
+      const res = await SignalAuth.fetch(`${API}/stats`);
       if (!res.ok) return;
       state.stats = await res.json();
       updateHeaderStats();
@@ -200,7 +200,7 @@
         btn.disabled = true;
         btn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="spinning"><path d="M21 12a9 9 0 11-6.219-8.56"/></svg>Refreshing`;
       }
-      await fetch(`${API}/refresh`, { method: "POST" });
+      await SignalAuth.fetch(`${API}/refresh`, { method: "POST" });
       await fetchNews();
       await fetchStats();
       if (btn) {
@@ -721,11 +721,112 @@
   // Initialize
   // ---------------------------------------------------------------------------
 
+  // ---------------------------------------------------------------------------
+  // Auth UI
+  // ---------------------------------------------------------------------------
+
+  function initAuth() {
+    if (typeof SignalAuth === "undefined") return;
+
+    SignalAuth.init();
+
+    // Sign in button
+    const btnSignin = $("#btn-signin");
+    if (btnSignin) {
+      btnSignin.addEventListener("click", () => {
+        SignalAuth.signIn().catch((err) => {
+          if (err.code !== "auth/popup-closed-by-user") {
+            console.error("Sign-in error:", err);
+          }
+        });
+      });
+    }
+
+    // Sign out button
+    const btnSignout = $("#btn-signout");
+    if (btnSignout) {
+      btnSignout.addEventListener("click", () => {
+        SignalAuth.signOut();
+      });
+    }
+
+    // User menu toggle
+    const btnUser = $("#btn-user");
+    const dropdown = $("#user-dropdown");
+    if (btnUser && dropdown) {
+      btnUser.addEventListener("click", (e) => {
+        e.stopPropagation();
+        dropdown.classList.toggle("open");
+      });
+      document.addEventListener("click", () => {
+        dropdown.classList.remove("open");
+      });
+    }
+
+    // Listen for auth state changes
+    SignalAuth.onAuthChange((user) => {
+      updateAuthUI(user);
+    });
+  }
+
+  function updateAuthUI(user) {
+    const btnSignin = $("#btn-signin");
+    const userMenu = $("#user-menu");
+
+    if (user) {
+      // Signed in
+      if (btnSignin) btnSignin.style.display = "none";
+      if (userMenu) userMenu.style.display = "flex";
+
+      const avatar = $("#user-avatar");
+      const userName = $("#user-name");
+      const dropdownEmail = $("#dropdown-email");
+
+      if (avatar && user.photoURL) {
+        avatar.src = user.photoURL;
+        avatar.alt = user.displayName || "";
+      }
+      if (userName) userName.textContent = user.displayName || user.email || "";
+      if (dropdownEmail) dropdownEmail.textContent = user.email || "";
+
+      // Fetch tier info
+      fetchTier();
+    } else {
+      // Signed out
+      if (btnSignin) btnSignin.style.display = "flex";
+      if (userMenu) userMenu.style.display = "none";
+    }
+  }
+
+  async function fetchTier() {
+    try {
+      const res = await SignalAuth.fetch(`${API}/auth/tier`);
+      if (!res.ok) return;
+      const data = await res.json();
+      const tier = data.tier || "free";
+
+      const badge = $("#tier-badge");
+      const dropdownTier = $("#dropdown-tier");
+
+      if (badge) {
+        badge.textContent = tier.toUpperCase();
+        badge.className = "tier-badge" + (tier !== "free" ? " " + tier : "");
+      }
+      if (dropdownTier) {
+        const labels = { free: "Free Plan", plus: "Plus Plan", max: "Max Plan" };
+        dropdownTier.textContent = labels[tier] || "Free Plan";
+      }
+    } catch {
+      // silent
+    }
+  }
+
   function init() {
     renderSkeleton();
     renderSources();
     bindEvents();
     updateClock();
+    initAuth();
 
     // Start clock
     setInterval(updateClock, 1000);

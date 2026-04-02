@@ -1,0 +1,17 @@
+"""Register all route blueprints."""
+
+from app.routes.news import news_bp
+from app.routes.sources import sources_bp
+from app.routes.stats import stats_bp
+from app.routes.refresh import refresh_bp
+from app.routes.docs import docs_bp
+from app.routes.static_pages import static_bp
+
+
+def register_routes(app):
+    app.register_blueprint(news_bp)
+    app.register_blueprint(sources_bp)
+    app.register_blueprint(stats_bp)
+    app.register_blueprint(refresh_bp)
+    app.register_blueprint(docs_bp)
+    app.register_blueprint(static_bp)

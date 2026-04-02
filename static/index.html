@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>SIGNAL — News Trading Terminal</title>
-  <meta name="description" content="Real-time financial news aggregation terminal with sentiment analysis for quantitative trading">
+  <title>InstNews — SIGNAL News Trading Terminal</title>
+  <meta name="description" content="InstNews aggregates 15+ financial news sources in real time with sentiment analysis, duplicate detection, and a dark-themed trading terminal UI.">
 
   <!-- Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -14,6 +14,10 @@
   <!-- Styles -->
   <link rel="stylesheet" href="./base.css">
   <link rel="stylesheet" href="./style.css">
+
+  <!-- Firebase SDK (compat mode for vanilla JS) -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
 
   <!-- Favicon -->
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='12' fill='%230d1117'/><path d='M20 65 L35 40 L50 55 L65 25 L80 45' stroke='%233fb950' stroke-width='6' fill='none' stroke-linecap='round' stroke-linejoin='round'/><circle cx='80' cy='45' r='5' fill='%233fb950'/></svg>">
@@ -42,7 +46,7 @@
               <circle cx="21" cy="11" r="2" fill="#3fb950" stroke="none"/>
             </svg>
           </span>
-          <span>SIGNAL</span>
+          <span>InstNews <span style="opacity:0.5;font-weight:400">SIGNAL</span></span>
         </div>
 
         <span class="header-divider"></span>
@@ -100,6 +104,34 @@
           </svg>
           <span class="desktop-only">API Docs</span>
         </button>
+
+        <span class="header-divider"></span>
+
+        <!-- Auth: Sign In (shown when logged out) -->
+        <button class="btn-header btn-signin" id="btn-signin">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/>
+            <circle cx="12" cy="7" r="4"/>
+          </svg>
+          <span>Sign In</span>
+        </button>
+
+        <!-- Auth: User Menu (shown when logged in) -->
+        <div class="user-menu" id="user-menu" style="display:none">
+          <button class="btn-header btn-user" id="btn-user">
+            <img class="user-avatar" id="user-avatar" src="" alt="" width="20" height="20">
+            <span class="user-name desktop-only" id="user-name"></span>
+            <span class="tier-badge" id="tier-badge">FREE</span>
+          </button>
+          <div class="user-dropdown" id="user-dropdown">
+            <div class="user-dropdown-header">
+              <span id="dropdown-email"></span>
+              <span class="tier-label" id="dropdown-tier">Free Plan</span>
+            </div>
+            <a class="user-dropdown-item" href="/pricing" id="btn-upgrade">Upgrade Plan</a>
+            <button class="user-dropdown-item" id="btn-signout">Sign Out</button>
+          </div>
+        </div>
       </div>
     </header>
 
@@ -246,6 +278,11 @@
         </div>
       </div>
       <div class="statusbar-right">
+        <span class="statusbar-item site-links">
+          <a href="/pricing">Pricing</a>
+          <a href="/privacy">Privacy Policy</a>
+          <a href="/terms">Terms of Service</a>
+        </span>
         <span class="api-url" id="api-url" title="Click to copy API endpoint">/api/news</span>
       </div>
     </footer>
@@ -341,6 +378,8 @@
     </div>
   </div>
 
+  <!-- Auth JS (must load before app.js) -->
+  <script src="./auth.js" defer></script>
   <!-- App JS -->
   <script src="./app.js" defer></script>
 </body>
