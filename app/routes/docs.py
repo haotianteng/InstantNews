@@ -15,7 +15,7 @@ def api_docs():
                 "method": "GET", "path": "/api/news",
                 "description": "Get latest news items",
                 "params": {
-                    "limit": "Number of items (default 200, max 500)",
+                    "limit": "Number of items (Free: max 50, Pro: max 200)",
                     "source": "Filter by source name (default 'all')",
                     "sentiment": "Filter by sentiment: bullish, bearish, neutral (default 'all')",
                     "q": "Keyword search in title and summary",

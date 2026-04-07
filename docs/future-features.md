@@ -10,15 +10,15 @@ Features listed in `app/billing/tiers.py` that are flagged but **not yet impleme
 |-----------|---------------|
 | `app/billing/stripe_client.py` | Stripe SDK wrapper |
 | `app/billing/routes.py` | `POST /api/billing/checkout`, `POST /api/billing/portal`, `POST /api/billing/webhook` |
-| `static/pricing.html` | Three-column pricing page with Subscribe buttons |
+| `static/pricing.html` | Two-column pricing page (Free/Pro) with Subscribe buttons |
 | `migrations/003_add_subscriptions.py` | Subscriptions table (stripe_customer_id, stripe_subscription_id, status, etc.) |
-| Stripe Dashboard | Create Products and Prices for Plus ($14.99/mo) and Max ($39.99/mo) |
+| Stripe Dashboard | Create Products and Prices for Pro ($14.99/mo with 30-day trial). Max tier hidden for now. |
 
 **Blocked by:** Company registration → Stripe account creation. Can develop in Stripe test mode.
 
 ---
 
-## Plus Tier Features (Not Yet Implemented)
+## Pro Tier Features (Not Yet Implemented)
 
 ### 1. Extended Sources
 **What:** Additional premium RSS feeds beyond the 15 free ones.
@@ -102,12 +102,12 @@ Features listed in `app/billing/tiers.py` that are flagged but **not yet impleme
 | Priority | Feature | Effort | Revenue Impact |
 |----------|---------|--------|----------------|
 | 1 | Stripe integration | Medium | Enables all paid tiers |
-| 2 | Watchlist | Low | Core Plus differentiator |
-| 3 | CSV Export | Low | Easy Plus value-add |
+| 2 | Watchlist | Low | Core Pro differentiator |
+| 3 | CSV Export | Low | Easy Pro value-add |
 | 4 | API Key Access | Medium | Developer/bot audience |
-| 5 | AI Ticker Recommendations | High | Core Max differentiator |
+| 5 | AI Ticker Recommendations | High | Core Max differentiator (hidden) |
 | 6 | Price Analysis | Medium | High perceived value |
-| 7 | Advanced Analytics | Medium | Visual appeal for Max |
+| 7 | Advanced Analytics | Medium | Visual appeal for Max (hidden) |
 | 8 | Custom Alerts | High | Sticky retention feature |
 | 9 | Extended Sources | Low | Depends on feed availability |
 
@@ -116,5 +116,5 @@ Features listed in `app/billing/tiers.py` that are flagged but **not yet impleme
 Rate limiting per tier is defined in `tiers.py` but not enforced yet. Implementation requires:
 - Redis (ElastiCache) for sliding window counters
 - `flask-limiter` with Redis backend, or custom middleware in `app/middleware/rate_limit.py`
-- Different limits per tier: 10/min (free), 60/min (plus), 120/min (max)
+- Different limits per tier: 10/min (free), 60/min (pro), 120/min (max)
 - Return `429 Too Many Requests` with `Retry-After` header

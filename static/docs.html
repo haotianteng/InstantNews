@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Documentation — InstNews API</title>
+  <meta name="description" content="InstNews API documentation — endpoints, code examples, getting started guide, and subscription tiers.">
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+  <!-- Favicon -->
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='12' fill='%230d1117'/><path d='M20 65 L35 40 L50 55 L65 25 L80 45' stroke='%233fb950' stroke-width='6' fill='none' stroke-linecap='round' stroke-linejoin='round'/><circle cx='80' cy='45' r='5' fill='%233fb950'/></svg>">
+
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #0a0e14; --bg-surface: #12171f; --bg-surface-2: #1a2030; --bg-surface-3: #222c3c;
+      --border: #1e2a3a; --text: #e6edf3; --text-secondary: #8b949e; --text-muted: #6e7681;
+      --green: #3fb950; --red: #f85149; --yellow: #d29922; --blue: #58a6ff; --cyan: #00bfff;
+    }
+    html, body { height: 100%; overflow: hidden; margin: 0; -webkit-font-smoothing: antialiased; }
+    body { font-family: 'Inter', -apple-system, sans-serif; font-size: 15px; line-height: 1.7; color: var(--text); background: var(--bg); display: flex; flex-direction: column; }
+    a { color: var(--blue); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    button { cursor: pointer; border: none; background: none; font: inherit; color: inherit; }
+
+    /* Topbar */
+    .docs-topbar {
+      height: 56px; display: flex; align-items: center; gap: 16px; padding: 0 24px;
+      background: rgba(10,14,20,0.95); border-bottom: 1px solid var(--border); flex-shrink: 0;
+      backdrop-filter: blur(12px);
+    }
+    .docs-topbar-logo { display: flex; align-items: center; gap: 8px; font-weight: 700; font-size: 16px; color: var(--text); text-decoration: none; }
+    .docs-topbar-logo img { border-radius: 5px; }
+    .docs-topbar-sep { width: 1px; height: 20px; background: var(--border); }
+    .docs-topbar-title { font-size: 14px; color: var(--text-secondary); font-weight: 500; }
+    .docs-topbar-links { margin-left: auto; display: flex; gap: 16px; font-size: 13px; }
+    .docs-topbar-links a { color: var(--text-muted); text-decoration: none; }
+    .docs-topbar-links a:hover { color: var(--text); }
+
+    /* Layout */
+    .docs-layout { display: flex; flex: 1; overflow: hidden; }
+
+    /* Sidebar */
+    .docs-sidebar {
+      width: 260px; flex-shrink: 0; border-right: 1px solid var(--border);
+      background: var(--bg-surface); overflow-y: auto; padding: 20px 0;
+    }
+    .docs-sidebar-section { padding: 0 20px; margin-bottom: 20px; }
+    .docs-sidebar-label {
+      font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em;
+      color: var(--text-muted); margin-bottom: 8px;
+    }
+    .docs-sidebar-link {
+      display: block; padding: 6px 16px; font-size: 13px; color: var(--text-secondary);
+      border-radius: 6px; margin: 2px 0; text-decoration: none; transition: all 0.15s;
+    }
+    .docs-sidebar-link:hover { background: rgba(255,255,255,0.04); color: var(--text); text-decoration: none; }
+    .docs-sidebar-link.active { background: rgba(0,191,255,0.08); color: var(--cyan); font-weight: 500; }
+
+    /* Content */
+    .docs-content { flex: 1; overflow-y: auto; padding: 40px 48px; max-width: 860px; }
+    .docs-content h1 { font-size: 32px; font-weight: 800; letter-spacing: -0.02em; margin-bottom: 8px; }
+    .docs-content h2 { font-size: 22px; font-weight: 700; margin-top: 40px; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px solid var(--border); }
+    .docs-content h3 { font-size: 17px; font-weight: 600; margin-top: 28px; margin-bottom: 8px; }
+    .docs-content p { margin-bottom: 16px; color: var(--text-secondary); }
+    .docs-content ul, .docs-content ol { margin-bottom: 16px; padding-left: 20px; }
+    .docs-content li { margin-bottom: 6px; color: var(--text-secondary); list-style: disc; }
+    .docs-content ol li { list-style: decimal; }
+    .docs-content strong { color: var(--text); font-weight: 600; }
+    .docs-content code {
+      font-family: 'JetBrains Mono', monospace; font-size: 13px;
+      background: var(--bg-surface-2); padding: 2px 6px; border-radius: 4px; color: var(--cyan);
+    }
+    .docs-content pre {
+      background: var(--bg-surface); border: 1px solid var(--border); border-radius: 8px;
+      padding: 16px 20px; margin-bottom: 20px; overflow-x: auto;
+      font-family: 'JetBrains Mono', monospace; font-size: 13px; line-height: 1.7;
+      color: var(--text-secondary); position: relative;
+    }
+    .docs-content pre code { background: none; padding: 0; color: inherit; }
+    .docs-content table {
+      width: 100%; margin-bottom: 20px; border-collapse: collapse;
+      font-size: 14px;
+    }
+    .docs-content th {
+      text-align: left; padding: 10px 12px; border-bottom: 2px solid var(--border);
+      font-weight: 600; color: var(--text); font-size: 13px;
+    }
+    .docs-content td {
+      padding: 8px 12px; border-bottom: 1px solid var(--border);
+      color: var(--text-secondary);
+    }
+    .docs-content td code { font-size: 12px; }
+    .docs-content .endpoint-header {
+      display: flex; align-items: center; gap: 10px; margin-top: 28px; margin-bottom: 12px;
+    }
+    .docs-content .method {
+      display: inline-block; padding: 3px 10px; border-radius: 4px;
+      font-family: 'JetBrains Mono', monospace; font-size: 12px; font-weight: 700;
+    }
+    .method-get { background: rgba(88,166,255,0.15); color: var(--blue); }
+    .method-post { background: rgba(63,185,80,0.15); color: var(--green); }
+    .docs-content .path {
+      font-family: 'JetBrains Mono', monospace; font-size: 16px; font-weight: 600; color: var(--text);
+    }
+    .copy-btn {
+      position: absolute; top: 8px; right: 8px; padding: 4px 10px; font-size: 11px;
+      background: var(--bg-surface-2); border: 1px solid var(--border); border-radius: 4px;
+      color: var(--text-muted); cursor: pointer; transition: all 0.15s;
+    }
+    .copy-btn:hover { color: var(--text); border-color: var(--text-muted); }
+
+    /* Mobile sidebar toggle */
+    .docs-sidebar-toggle {
+      display: none; position: fixed; bottom: 20px; right: 20px; z-index: 50;
+      width: 48px; height: 48px; border-radius: 50%; background: var(--cyan); color: #000;
+      align-items: center; justify-content: center; box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+    }
+    @media (max-width: 768px) {
+      .docs-sidebar { display: none; position: fixed; top: 56px; left: 0; bottom: 0; z-index: 40; width: 280px; }
+      .docs-sidebar.open { display: block; }
+      .docs-sidebar-toggle { display: flex; }
+      .docs-content { padding: 24px 20px; }
+      .docs-topbar-links { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <!-- Topbar -->
+  <div class="docs-topbar">
+    <a href="/" class="docs-topbar-logo">
+      <img src="/assets/ClearBackgroundAppLogo.png" alt="InstNews" width="28" height="28">
+      <span>InstNews</span>
+    </a>
+    <div class="docs-topbar-sep"></div>
+    <span class="docs-topbar-title">Documentation</span>
+    <div class="docs-topbar-links">
+      <a href="/">Home</a>
+      <a href="/terminal">Terminal</a>
+      <a href="/pricing">Pricing</a>
+    </div>
+  </div>
+
+  <div class="docs-layout">
+    <!-- Sidebar -->
+    <nav class="docs-sidebar" id="docs-sidebar">
+      <div class="docs-sidebar-section">
+        <div class="docs-sidebar-label">Getting Started</div>
+        <a class="docs-sidebar-link active" href="#" data-page="getting-started">Quick Start</a>
+        <a class="docs-sidebar-link" href="#" data-page="subscription-tiers">Subscription Tiers</a>
+      </div>
+      <div class="docs-sidebar-section">
+        <div class="docs-sidebar-label">API Reference</div>
+        <a class="docs-sidebar-link" href="#" data-page="api-reference">Endpoints</a>
+        <a class="docs-sidebar-link" href="#" data-page="code-examples">Code Examples</a>
+      </div>
+      <div class="docs-sidebar-section">
+        <div class="docs-sidebar-label">User Guide</div>
+        <a class="docs-sidebar-link" href="#" data-page="dashboard-guide">Dashboard UI</a>
+      </div>
+    </nav>
+
+    <!-- Content -->
+    <main class="docs-content" id="docs-content">
+      <!-- Populated by JS -->
+    </main>
+  </div>
+
+  <!-- Mobile toggle -->
+  <button class="docs-sidebar-toggle" id="docs-sidebar-toggle">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+  </button>
+
+  <script>
+  (function() {
+    "use strict";
+
+    // ─── Documentation content ───────────────────────────────────
+    var PAGES = {
+      "getting-started": {
+        title: "Getting Started",
+        html: '<h1>Getting Started</h1>' +
+          '<p>InstNews provides real-time financial news aggregation with sentiment analysis. Get started in minutes.</p>' +
+          '<h2>1. Browse the Terminal</h2>' +
+          '<p>Visit <a href="/terminal">/terminal</a> to access the SIGNAL news terminal. No account required for the free tier.</p>' +
+          '<h2>2. Sign In for More Features</h2>' +
+          '<p>Click <strong>Sign In</strong> in the header to authenticate with Google. This unlocks your account and enables subscription upgrades.</p>' +
+          '<h2>3. Use the API</h2>' +
+          '<p>The REST API is available at <code>https://www.instnews.net/api/</code>. Free-tier users can browse the terminal without signing in. Authenticated API access requires a Pro subscription.</p>' +
+          '<pre><code>curl -s "https://www.instnews.net/api/news?limit=5" | jq .<button class="copy-btn" onclick="copyCode(this)">Copy</button></code></pre>' +
+          '<h2>4. Upgrade Your Plan</h2>' +
+          '<p>Free tier provides basic news access. Upgrade to <strong>Pro</strong> for sentiment analysis, duplicate detection, API access, and more. Includes a 30-day free trial.</p>' +
+          '<p>See <a href="#" onclick="navigateTo(\'subscription-tiers\');return false">Subscription Tiers</a> for a full comparison.</p>' +
+          '<h2>Authentication</h2>' +
+          '<p>For authenticated API requests, include a Firebase ID token:</p>' +
+          '<pre><code>Authorization: Bearer &lt;firebase_id_token&gt;<button class="copy-btn" onclick="copyCode(this)">Copy</button></code></pre>' +
+          '<p>Without this header, all requests receive free-tier access (anonymous).</p>'
+      },
+      "subscription-tiers": {
+        title: "Subscription Tiers",
+        html: '<h1>Subscription Tiers</h1>' +
+          '<p>InstNews offers two tiers designed for different levels of market engagement.</p>' +
+          '<h2>Tier Comparison</h2>' +
+          '<table><thead><tr><th>Feature</th><th>Free</th><th>Pro ($14.99/mo)</th></tr></thead><tbody>' +
+          '<tr><td>Real-time news feed</td><td>&#10003;</td><td>&#10003;</td></tr>' +
+          '<tr><td>Keyword search</td><td>&#10003;</td><td>&#10003;</td></tr>' +
+          '<tr><td>Source filtering</td><td>&#10003;</td><td>&#10003;</td></tr>' +
+          '<tr><td>Sentiment analysis</td><td>&#10007;</td><td>&#10003;</td></tr>' +
+          '<tr><td>Duplicate detection</td><td>&#10007;</td><td>&#10003;</td></tr>' +
+          '<tr><td>Date range filtering</td><td>&#10007;</td><td>&#10003;</td></tr>' +
+          '<tr><td>API access</td><td>&#10007;</td><td>&#10003;</td></tr>' +
+          '<tr><td>CSV export</td><td>&#10007;</td><td>&#10003;</td></tr>' +
+          '<tr><td>Watchlist</td><td>&#10007;</td><td>&#10003;</td></tr>' +
+          '</tbody></table>' +
+          '<h2>Rate Limits</h2>' +
+          '<table><thead><tr><th>Limit</th><th>Free</th><th>Pro</th></tr></thead><tbody>' +
+          '<tr><td>Items per request</td><td>50</td><td>200</td></tr>' +
+          '<tr><td>Requests per minute</td><td>10</td><td>60</td></tr>' +
+          '<tr><td>History depth</td><td>7 days</td><td>1 year</td></tr>' +
+          '</tbody></table>' +
+          '<h2>Free Trial</h2>' +
+          '<p>The Pro plan includes a <strong>30-day free trial</strong>. You can cancel at any time during the trial with no charge.</p>' +
+          '<h2>Upgrade</h2>' +
+          '<p>Visit <a href="/pricing">/pricing</a> to start your free trial.</p>'
+      },
+      "api-reference": {
+        title: "API Reference",
+        html: '<h1>API Reference</h1>' +
+          '<p><strong>Base URL:</strong> <code>https://www.instnews.net</code></p>' +
+          '<p>All responses are JSON. Authentication is optional — unauthenticated requests receive free-tier access.</p>' +
+          '<div class="endpoint-header"><span class="method method-get">GET</span><span class="path">/api/news</span></div>' +
+          '<p>Returns news items with optional filtering.</p>' +
+          '<table><thead><tr><th>Parameter</th><th>Type</th><th>Default</th><th>Description</th></tr></thead><tbody>' +
+          '<tr><td><code>limit</code></td><td>int</td><td>tier max</td><td>Number of items (Free: 50, Pro: 200)</td></tr>' +
+          '<tr><td><code>source</code></td><td>string</td><td><code>all</code></td><td>Filter by source name</td></tr>' +
+          '<tr><td><code>sentiment</code></td><td>string</td><td><code>all</code></td><td>Filter: <code>bullish</code>, <code>bearish</code>, <code>neutral</code></td></tr>' +
+          '<tr><td><code>q</code></td><td>string</td><td>—</td><td>Keyword search in title and summary</td></tr>' +
+          '<tr><td><code>from</code></td><td>string</td><td>—</td><td>Start date (ISO 8601). <strong>Pro only</strong></td></tr>' +
+          '<tr><td><code>to</code></td><td>string</td><td>—</td><td>End date (ISO 8601). <strong>Pro only</strong></td></tr>' +
+          '</tbody></table>' +
+          '<pre><code>curl -s "https://www.instnews.net/api/news?sentiment=bullish&amp;limit=10" | jq .<button class="copy-btn" onclick="copyCode(this)">Copy</button></code></pre>' +
+          '<h3>Response Fields</h3>' +
+          '<table><thead><tr><th>Field</th><th>Free</th><th>Pro</th><th>Description</th></tr></thead><tbody>' +
+          '<tr><td><code>id</code></td><td>&#10003;</td><td>&#10003;</td><td>Unique item ID</td></tr>' +
+          '<tr><td><code>title</code></td><td>&#10003;</td><td>&#10003;</td><td>Headline text</td></tr>' +
+          '<tr><td><code>link</code></td><td>&#10003;</td><td>&#10003;</td><td>URL to original article</td></tr>' +
+          '<tr><td><code>source</code></td><td>&#10003;</td><td>&#10003;</td><td>Feed source name</td></tr>' +
+          '<tr><td><code>published</code></td><td>&#10003;</td><td>&#10003;</td><td>Publication time (ISO 8601)</td></tr>' +
+          '<tr><td><code>summary</code></td><td>&#10003;</td><td>&#10003;</td><td>Article excerpt (max 500 chars)</td></tr>' +
+          '<tr><td><code>sentiment_score</code></td><td>&#10007;</td><td>&#10003;</td><td>Score from -1.0 to 1.0</td></tr>' +
+          '<tr><td><code>sentiment_label</code></td><td>&#10007;</td><td>&#10003;</td><td><code>bullish</code>, <code>bearish</code>, or <code>neutral</code></td></tr>' +
+          '<tr><td><code>duplicate</code></td><td>&#10007;</td><td>&#10003;</td><td>1 if duplicate, 0 if original</td></tr>' +
+          '</tbody></table>' +
+          '<div class="endpoint-header"><span class="method method-get">GET</span><span class="path">/api/sources</span></div>' +
+          '<p>Returns all active feed sources with item counts.</p>' +
+          '<pre><code>curl -s "https://www.instnews.net/api/sources" | jq .<button class="copy-btn" onclick="copyCode(this)">Copy</button></code></pre>' +
+          '<div class="endpoint-header"><span class="method method-get">GET</span><span class="path">/api/stats</span></div>' +
+          '<p>Returns aggregated statistics: total items, by source, by sentiment, average score.</p>' +
+          '<pre><code>curl -s "https://www.instnews.net/api/stats" | jq .<button class="copy-btn" onclick="copyCode(this)">Copy</button></code></pre>' +
+          '<div class="endpoint-header"><span class="method method-post">POST</span><span class="path">/api/refresh</span></div>' +
+          '<p>Force refresh all feeds immediately. Returns count of new items found.</p>' +
+          '<pre><code>curl -s -X POST "https://www.instnews.net/api/refresh" | jq .<button class="copy-btn" onclick="copyCode(this)">Copy</button></code></pre>' +
+          '<div class="endpoint-header"><span class="method method-get">GET</span><span class="path">/api/auth/me</span></div>' +
+          '<p><strong>Requires authentication.</strong> Returns the current user\'s profile.</p>' +
+          '<div class="endpoint-header"><span class="method method-get">GET</span><span class="path">/api/auth/tier</span></div>' +
+          '<p>Returns the current user\'s tier, feature flags, and limits. Works for anonymous users.</p>' +
+          '<div class="endpoint-header"><span class="method method-post">POST</span><span class="path">/api/billing/checkout</span></div>' +
+          '<p><strong>Requires authentication.</strong> Creates a Stripe Checkout session for upgrading.</p>' +
+          '<pre><code>// Request body\n{"tier": "pro"}\n\n// Response\n{"url": "https://checkout.stripe.com/c/pay/cs_..."}<button class="copy-btn" onclick="copyCode(this)">Copy</button></code></pre>' +
+          '<h2>Error Responses</h2>' +
+          '<table><thead><tr><th>Status</th><th>Meaning</th></tr></thead><tbody>' +
+          '<tr><td><code>400</code></td><td>Bad request (invalid parameters)</td></tr>' +
+          '<tr><td><code>401</code></td><td>Authentication required</td></tr>' +
+          '<tr><td><code>403</code></td><td>Feature not available on your tier</td></tr>' +
+          '<tr><td><code>429</code></td><td>Rate limit exceeded</td></tr>' +
+          '<tr><td><code>503</code></td><td>Service unavailable (e.g. Stripe not configured)</td></tr>' +
+          '</tbody></table>'
+      },
+      "code-examples": {
+        title: "Code Examples",
+        html: '<h1>Code Examples</h1>' +
+          '<p>API usage examples in multiple languages. All examples use the public endpoint without authentication.</p>' +
+          '<h2>cURL</h2>' +
+          '<pre><code># Get latest 10 news items\ncurl -s "https://www.instnews.net/api/news?limit=10" | jq .\n\n# Search for NVIDIA news\ncurl -s "https://www.instnews.net/api/news?q=nvidia&amp;limit=5" | jq .\n\n# Get bullish headlines only\ncurl -s "https://www.instnews.net/api/news?sentiment=bullish&amp;limit=10" | jq .<button class="copy-btn" onclick="copyCode(this)">Copy</button></code></pre>' +
+          '<h2>Python</h2>' +
+          '<pre><code>import requests\n\nBASE_URL = "https://www.instnews.net"\n\n# Get latest bullish news\nresponse = requests.get(f"{BASE_URL}/api/news", params={\n    "sentiment": "bullish",\n    "limit": 10,\n})\n\nfor item in response.json()["items"]:\n    score = item.get("sentiment_score", "N/A")\n    print(f"[{score:+.2f}] {item[\'title\']}")<button class="copy-btn" onclick="copyCode(this)">Copy</button></code></pre>' +
+          '<h2>JavaScript / Node.js</h2>' +
+          '<pre><code>const BASE_URL = "https://www.instnews.net";\n\nasync function getNews(params = {}) {\n  const query = new URLSearchParams(params);\n  const res = await fetch(`${BASE_URL}/api/news?${query}`);\n  return res.json();\n}\n\nconst data = await getNews({ sentiment: "bullish", limit: 10 });\ndata.items.forEach(item =>\n  console.log(`[${item.source}] ${item.title}`)\n);<button class="copy-btn" onclick="copyCode(this)">Copy</button></code></pre>' +
+          '<h2>Go</h2>' +
+          '<pre><code>package main\n\nimport (\n    "encoding/json"\n    "fmt"\n    "net/http"\n)\n\ntype NewsResponse struct {\n    Count int        `json:"count"`\n    Items []NewsItem `json:"items"`\n}\ntype NewsItem struct {\n    Title  string  `json:"title"`\n    Source string  `json:"source"`\n    Score  float64 `json:"sentiment_score"`\n}\n\nfunc main() {\n    resp, _ := http.Get("https://www.instnews.net/api/news?limit=5")\n    defer resp.Body.Close()\n    var result NewsResponse\n    json.NewDecoder(resp.Body).Decode(&amp;result)\n    for _, item := range result.Items {\n        fmt.Printf("[%s] %s\\n", item.Source, item.Title)\n    }\n}<button class="copy-btn" onclick="copyCode(this)">Copy</button></code></pre>' +
+          '<h2>R</h2>' +
+          '<pre><code>library(httr)\nlibrary(jsonlite)\n\nbase_url &lt;- "https://www.instnews.net"\n\nresponse &lt;- GET(\n  paste0(base_url, "/api/news"),\n  query = list(sentiment = "bullish", limit = 20)\n)\n\ndata &lt;- fromJSON(content(response, "text"))\ndf &lt;- data$items\nprint(df[, c("source", "title", "sentiment_score")])<button class="copy-btn" onclick="copyCode(this)">Copy</button></code></pre>' +
+          '<h2>Rust</h2>' +
+          '<pre><code>use reqwest;\nuse serde::Deserialize;\n\n#[derive(Debug, Deserialize)]\nstruct NewsResponse {\n    count: u32,\n    items: Vec&lt;NewsItem&gt;,\n}\n#[derive(Debug, Deserialize)]\nstruct NewsItem {\n    title: String,\n    source: String,\n}\n\n#[tokio::main]\nasync fn main() -> Result&lt;(), Box&lt;dyn std::error::Error&gt;&gt; {\n    let url = "https://www.instnews.net/api/news?limit=5";\n    let resp: NewsResponse = reqwest::get(url).await?.json().await?;\n    for item in &amp;resp.items {\n        println!("[{}] {}", item.source, item.title);\n    }\n    Ok(())\n}<button class="copy-btn" onclick="copyCode(this)">Copy</button></code></pre>' +
+          '<h2>Trading Bot Pattern (Python)</h2>' +
+          '<pre><code>import time\nimport requests\n\nBASE_URL = "https://www.instnews.net"\nseen_ids = set()\n\nwhile True:\n    try:\n        response = requests.get(f"{BASE_URL}/api/news", params={"limit": 50})\n        data = response.json()\n        for item in data["items"]:\n            if item["id"] not in seen_ids:\n                seen_ids.add(item["id"])\n                print(f"NEW: [{item[\'source\']}] {item[\'title\']}")\n                # trigger your trading logic here\n    except requests.RequestException as e:\n        print(f"Error: {e}")\n    time.sleep(5)<button class="copy-btn" onclick="copyCode(this)">Copy</button></code></pre>'
+      },
+      "dashboard-guide": {
+        title: "Dashboard UI Guide",
+        html: '<h1>Dashboard UI Guide</h1>' +
+          '<p>The SIGNAL terminal at <a href="/terminal">/terminal</a> is a real-time financial news dashboard.</p>' +
+          '<h2>Layout</h2>' +
+          '<ul>' +
+          '<li><strong>Header:</strong> Logo, live clock, connection status, aggregate statistics, user menu</li>' +
+          '<li><strong>Sidebar:</strong> Search, date range filter, sentiment filter, source filter, refresh interval</li>' +
+          '<li><strong>Main Feed:</strong> Scrollable table of news items with time, sentiment, source, headline, and summary</li>' +
+          '<li><strong>Status Bar:</strong> Last refresh time, items/second rate</li>' +
+          '</ul>' +
+          '<h2>Keyboard Shortcuts</h2>' +
+          '<table><thead><tr><th>Key</th><th>Action</th></tr></thead><tbody>' +
+          '<tr><td><code>R</code></td><td>Force refresh all feeds</td></tr>' +
+          '<tr><td><code>F</code></td><td>Focus search input</td></tr>' +
+          '<tr><td><code>1</code></td><td>Show all sentiments</td></tr>' +
+          '<tr><td><code>2</code></td><td>Filter to bullish</td></tr>' +
+          '<tr><td><code>3</code></td><td>Filter to bearish</td></tr>' +
+          '<tr><td><code>4</code></td><td>Filter to neutral</td></tr>' +
+          '<tr><td><code>ESC</code></td><td>Close modal / sidebar</td></tr>' +
+          '</tbody></table>' +
+          '<h2>Filtering</h2>' +
+          '<p>All filters combine — you can search for "NVIDIA" + bullish sentiment + CNBC source simultaneously.</p>' +
+          '<h2>Auto-Refresh</h2>' +
+          '<p>The feed auto-refreshes at the interval you select (3s to 60s). New items appear at the top with a green flash animation.</p>' +
+          '<h2>Sound Alerts</h2>' +
+          '<p>Toggle the Sound button to hear a notification when new items arrive. Useful for passive monitoring.</p>'
+      }
+    };
+
+    // ─── Navigation ──────────────────────────────────────────────
+    var currentPage = "getting-started";
+
+    window.navigateTo = function(page) {
+      if (!PAGES[page]) return;
+      currentPage = page;
+      document.getElementById("docs-content").innerHTML = PAGES[page].html;
+      document.querySelectorAll(".docs-sidebar-link").forEach(function(link) {
+        link.classList.toggle("active", link.getAttribute("data-page") === page);
+      });
+      document.getElementById("docs-content").scrollTop = 0;
+      history.replaceState(null, "", "/docs/" + page);
+      // Close mobile sidebar
+      document.getElementById("docs-sidebar").classList.remove("open");
+    };
+
+    // Sidebar link clicks
+    document.querySelectorAll(".docs-sidebar-link").forEach(function(link) {
+      link.addEventListener("click", function(e) {
+        e.preventDefault();
+        navigateTo(link.getAttribute("data-page"));
+      });
+    });
+
+    // Mobile toggle
+    document.getElementById("docs-sidebar-toggle").addEventListener("click", function() {
+      document.getElementById("docs-sidebar").classList.toggle("open");
+    });
+
+    // ─── Copy to clipboard ───────────────────────────────────────
+    window.copyCode = function(btn) {
+      var pre = btn.closest("pre");
+      var code = pre.querySelector("code");
+      var text = code.textContent.replace("Copy", "").trim();
+      navigator.clipboard.writeText(text).then(function() {
+        btn.textContent = "Copied!";
+        setTimeout(function() { btn.textContent = "Copy"; }, 1500);
+      });
+    };
+
+    // ─── Init from URL ───────────────────────────────────────────
+    var path = window.location.pathname.replace("/docs/", "").replace("/docs", "");
+    if (path && PAGES[path]) {
+      navigateTo(path);
+    } else {
+      navigateTo("getting-started");
+    }
+  })();
+  </script>
+</body>
+</html>

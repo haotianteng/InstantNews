@@ -425,7 +425,7 @@
   "AppSecretsA1997F2A": {
    "Type": "AWS::SecretsManager::Secret",
    "Properties": {
-    "Description": "Application secrets (Stripe, Firebase, etc.)",
+    "Description": "Application secrets (Stripe, Firebase, AI, etc.)",
     "GenerateSecretString": {},
     "Name": "instantnews/app"
    },
@@ -474,7 +474,7 @@
   "DatabaseSecurityGroupfromInstantNewsStackWebServiceSecurityGroup0D20432A5432CE6284A9": {
    "Type": "AWS::EC2::SecurityGroupIngress",
    "Properties": {
-    "Description": "Web service to RDS",
+    "Description": "from InstantNewsStackWebServiceSecurityGroup0D20432A:5432",
     "FromPort": 5432,
     "GroupId": {
      "Fn::GetAtt": [
@@ -495,10 +495,34 @@
     "aws:cdk:path": "InstantNewsStack/Database/SecurityGroup/from InstantNewsStackWebServiceSecurityGroup0D20432A:5432"
    }
   },
+  "DatabaseSecurityGroupfromInstantNewsStackAdminServiceSecurityGroupED352E0254327818D403": {
+   "Type": "AWS::EC2::SecurityGroupIngress",
+   "Properties": {
+    "Description": "from InstantNewsStackAdminServiceSecurityGroupED352E02:5432",
+    "FromPort": 5432,
+    "GroupId": {
+     "Fn::GetAtt": [
+      "DatabaseSecurityGroup5C91FDCB",
+      "GroupId"
+     ]
+    },
+    "IpProtocol": "tcp",
+    "SourceSecurityGroupId": {
+     "Fn::GetAtt": [
+      "AdminServiceSecurityGroup1797293A",
+      "GroupId"
+     ]
+    },
+    "ToPort": 5432
+   },
+   "Metadata": {
+    "aws:cdk:path": "InstantNewsStack/Database/SecurityGroup/from InstantNewsStackAdminServiceSecurityGroupED352E02:5432"
+   }
+  },
   "DatabaseSecurityGroupfromInstantNewsStackWorkerServiceSecurityGroup7F465C275432F127E578": {
    "Type": "AWS::EC2::SecurityGroupIngress",
    "Properties": {
-    "Description": "Worker to RDS",
+    "Description": "from InstantNewsStackWorkerServiceSecurityGroup7F465C27:5432",
     "FromPort": 5432,
     "GroupId": {
      "Fn::GetAtt": [
@@ -525,12 +549,12 @@
     "AllocatedStorage": "20",
     "BackupRetentionPeriod": 7,
     "CopyTagsToSnapshot": true,
-    "DBInstanceClass": "db.t3.micro",
+    "DBInstanceClass": "db.t3.small",
     "DBName": "signal_news",
     "DBSubnetGroupName": {
      "Ref": "DatabaseSubnetGroup7D60F180"
     },
-    "DeletionProtection": false,
+    "DeletionProtection": true,
     "Engine": "postgres",
     "EngineVersion": "16",
     "MasterUserPassword": {
@@ -558,7 +582,7 @@
      ]
     },
     "MaxAllocatedStorage": 100,
-    "MultiAZ": false,
+    "MultiAZ": true,
     "PubliclyAccessible": false,
     "StorageType": "gp2",
     "VPCSecurityGroups": [
@@ -574,6 +598,106 @@
    "DeletionPolicy": "Snapshot",
    "Metadata": {
     "aws:cdk:path": "InstantNewsStack/Database/Resource"
+   }
+  },
+  "DatabaseReplicaSubnetGroup30CDD0E3": {
+   "Type": "AWS::RDS::DBSubnetGroup",
+   "Properties": {
+    "DBSubnetGroupDescription": "Subnet group for DatabaseReplica database",
+    "SubnetIds": [
+     {
+      "Ref": "VpcPrivateSubnet1Subnet536B997A"
+     },
+     {
+      "Ref": "VpcPrivateSubnet2Subnet3788AAA1"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "InstantNewsStack/DatabaseReplica/SubnetGroup/Default"
+   }
+  },
+  "DatabaseReplicaSecurityGroup953160EC": {
+   "Type": "AWS::EC2::SecurityGroup",
+   "Properties": {
+    "GroupDescription": "Security group for DatabaseReplica database",
+    "SecurityGroupEgress": [
+     {
+      "CidrIp": "0.0.0.0/0",
+      "Description": "Allow all outbound traffic by default",
+      "IpProtocol": "-1"
+     }
+    ],
+    "VpcId": {
+     "Ref": "Vpc8378EB38"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "InstantNewsStack/DatabaseReplica/SecurityGroup/Resource"
+   }
+  },
+  "DatabaseReplicaSecurityGroupfromInstantNewsStackAdminServiceSecurityGroupED352E025432D1677AE3": {
+   "Type": "AWS::EC2::SecurityGroupIngress",
+   "Properties": {
+    "Description": "from InstantNewsStackAdminServiceSecurityGroupED352E02:5432",
+    "FromPort": 5432,
+    "GroupId": {
+     "Fn::GetAtt": [
+      "DatabaseReplicaSecurityGroup953160EC",
+      "GroupId"
+     ]
+    },
+    "IpProtocol": "tcp",
+    "SourceSecurityGroupId": {
+     "Fn::GetAtt": [
+      "AdminServiceSecurityGroup1797293A",
+      "GroupId"
+     ]
+    },
+    "ToPort": 5432
+   },
+   "Metadata": {
+    "aws:cdk:path": "InstantNewsStack/DatabaseReplica/SecurityGroup/from InstantNewsStackAdminServiceSecurityGroupED352E02:5432"
+   }
+  },
+  "DatabaseReplicaFD06AB0D": {
+   "Type": "AWS::RDS::DBInstance",
+   "Properties": {
+    "CopyTagsToSnapshot": true,
+    "DBInstanceClass": "db.t3.micro",
+    "DBSubnetGroupName": {
+     "Ref": "DatabaseReplicaSubnetGroup30CDD0E3"
+    },
+    "PubliclyAccessible": false,
+    "SourceDBInstanceIdentifier": {
+     "Fn::Join": [
+      "",
+      [
+       "arn:",
+       {
+        "Ref": "AWS::Partition"
+       },
+       ":rds:us-east-1:596080539716:db:",
+       {
+        "Ref": "DatabaseB269D8BB"
+       }
+      ]
+     ]
+    },
+    "StorageType": "gp2",
+    "VPCSecurityGroups": [
+     {
+      "Fn::GetAtt": [
+       "DatabaseReplicaSecurityGroup953160EC",
+       "GroupId"
+      ]
+     }
+    ]
+   },
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete",
+   "Metadata": {
+    "aws:cdk:path": "InstantNewsStack/DatabaseReplica/Resource"
    }
   },
   "ClusterEB0386A7": {
@@ -620,6 +744,45 @@
     "aws:cdk:path": "InstantNewsStack/Cert/Resource"
    }
   },
+  "AdminCert78FC845D": {
+   "Type": "AWS::CertificateManager::Certificate",
+   "Properties": {
+    "DomainName": "admin.instnews.net",
+    "DomainValidationOptions": [
+     {
+      "DomainName": "admin.instnews.net",
+      "HostedZoneId": "Z03718532307U3AUJEOBX"
+     }
+    ],
+    "Tags": [
+     {
+      "Key": "Name",
+      "Value": "InstantNewsStack/AdminCert"
+     }
+    ],
+    "ValidationMethod": "DNS"
+   },
+   "Metadata": {
+    "aws:cdk:path": "InstantNewsStack/AdminCert/Resource"
+   }
+  },
+  "PrivateZone27242E85": {
+   "Type": "AWS::Route53::HostedZone",
+   "Properties": {
+    "Name": "instnews.net.",
+    "VPCs": [
+     {
+      "VPCId": {
+       "Ref": "Vpc8378EB38"
+      },
+      "VPCRegion": "us-east-1"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "InstantNewsStack/PrivateZone/Resource"
+   }
+  },
   "WebLogs48A7C011": {
    "Type": "AWS::Logs::LogGroup",
    "Properties": {
@@ -659,14 +822,6 @@
      {
       "Environment": [
        {
-        "Name": "PORT",
-        "Value": "8000"
-       },
-       {
-        "Name": "GUNICORN_PORT",
-        "Value": "8001"
-       },
-       {
         "Name": "STALE_SECONDS",
         "Value": "30"
        },
@@ -675,12 +830,16 @@
         "Value": "5"
        },
        {
-        "Name": "WORKER_ENABLED",
-        "Value": "false"
-       },
-       {
         "Name": "DEDUP_THRESHOLD",
         "Value": "0.85"
+       },
+       {
+        "Name": "BEDROCK_ENABLED",
+        "Value": "true"
+       },
+       {
+        "Name": "BEDROCK_REGION",
+        "Value": "us-east-1"
        },
        {
         "Name": "DB_HOST",
@@ -707,6 +866,22 @@
        {
         "Name": "DB_USER",
         "Value": "signal"
+       },
+       {
+        "Name": "PORT",
+        "Value": "8000"
+       },
+       {
+        "Name": "GUNICORN_PORT",
+        "Value": "8001"
+       },
+       {
+        "Name": "WORKER_ENABLED",
+        "Value": "false"
+       },
+       {
+        "Name": "ADMIN_ENABLED",
+        "Value": "false"
        }
       ],
       "Essential": true,
@@ -765,6 +940,62 @@
         }
        },
        {
+        "Name": "FIREBASE_CREDENTIALS_JSON",
+        "ValueFrom": {
+         "Fn::Join": [
+          "",
+          [
+           {
+            "Ref": "AppSecretsA1997F2A"
+           },
+           ":FIREBASE_CREDENTIALS_JSON::"
+          ]
+         ]
+        }
+       },
+       {
+        "Name": "MINIMAX_API_KEY",
+        "ValueFrom": {
+         "Fn::Join": [
+          "",
+          [
+           {
+            "Ref": "AppSecretsA1997F2A"
+           },
+           ":MINIMAX_API_KEY::"
+          ]
+         ]
+        }
+       },
+       {
+        "Name": "MINIMAX_BASE_URL",
+        "ValueFrom": {
+         "Fn::Join": [
+          "",
+          [
+           {
+            "Ref": "AppSecretsA1997F2A"
+           },
+           ":MINIMAX_BASE_URL::"
+          ]
+         ]
+        }
+       },
+       {
+        "Name": "ANTHROPIC_API_KEY",
+        "ValueFrom": {
+         "Fn::Join": [
+          "",
+          [
+           {
+            "Ref": "AppSecretsA1997F2A"
+           },
+           ":ANTHROPIC_API_KEY::"
+          ]
+         ]
+        }
+       },
+       {
         "Name": "STRIPE_SECRET_KEY",
         "ValueFrom": {
          "Fn::Join": [
@@ -788,6 +1019,20 @@
             "Ref": "AppSecretsA1997F2A"
            },
            ":STRIPE_WEBHOOK_SECRET::"
+          ]
+         ]
+        }
+       },
+       {
+        "Name": "STRIPE_PUBLISHABLE_KEY",
+        "ValueFrom": {
+         "Fn::Join": [
+          "",
+          [
+           {
+            "Ref": "AppSecretsA1997F2A"
+           },
+           ":STRIPE_PUBLISHABLE_KEY::"
           ]
          ]
         }
@@ -1407,6 +1652,698 @@
     "aws:cdk:path": "InstantNewsStack/WebService/Service/TaskCount/Target/RequestScaling/Resource"
    }
   },
+  "AdminLogs4026B555": {
+   "Type": "AWS::Logs::LogGroup",
+   "Properties": {
+    "LogGroupName": "/ecs/instantnews-admin",
+    "RetentionInDays": 90
+   },
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete",
+   "Metadata": {
+    "aws:cdk:path": "InstantNewsStack/AdminLogs/Resource"
+   }
+  },
+  "AdminTaskTaskRole229B8B1F": {
+   "Type": "AWS::IAM::Role",
+   "Properties": {
+    "AssumeRolePolicyDocument": {
+     "Statement": [
+      {
+       "Action": "sts:AssumeRole",
+       "Effect": "Allow",
+       "Principal": {
+        "Service": "ecs-tasks.amazonaws.com"
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "InstantNewsStack/AdminTask/TaskRole/Resource"
+   }
+  },
+  "AdminTaskD8C87731": {
+   "Type": "AWS::ECS::TaskDefinition",
+   "Properties": {
+    "ContainerDefinitions": [
+     {
+      "Environment": [
+       {
+        "Name": "STALE_SECONDS",
+        "Value": "30"
+       },
+       {
+        "Name": "FETCH_TIMEOUT",
+        "Value": "5"
+       },
+       {
+        "Name": "DEDUP_THRESHOLD",
+        "Value": "0.85"
+       },
+       {
+        "Name": "BEDROCK_ENABLED",
+        "Value": "true"
+       },
+       {
+        "Name": "BEDROCK_REGION",
+        "Value": "us-east-1"
+       },
+       {
+        "Name": "DB_HOST",
+        "Value": {
+         "Fn::GetAtt": [
+          "DatabaseB269D8BB",
+          "Endpoint.Address"
+         ]
+        }
+       },
+       {
+        "Name": "DB_PORT",
+        "Value": {
+         "Fn::GetAtt": [
+          "DatabaseB269D8BB",
+          "Endpoint.Port"
+         ]
+        }
+       },
+       {
+        "Name": "DB_NAME",
+        "Value": "signal_news"
+       },
+       {
+        "Name": "DB_USER",
+        "Value": "signal"
+       },
+       {
+        "Name": "PORT",
+        "Value": "8000"
+       },
+       {
+        "Name": "GUNICORN_PORT",
+        "Value": "8001"
+       },
+       {
+        "Name": "WORKER_ENABLED",
+        "Value": "false"
+       },
+       {
+        "Name": "ADMIN_ENABLED",
+        "Value": "true"
+       },
+       {
+        "Name": "DB_REPLICA_HOST",
+        "Value": {
+         "Fn::GetAtt": [
+          "DatabaseReplicaFD06AB0D",
+          "Endpoint.Address"
+         ]
+        }
+       }
+      ],
+      "Essential": true,
+      "HealthCheck": {
+       "Command": [
+        "CMD-SHELL",
+        "curl -f http://localhost:8000/api/stats || exit 1"
+       ],
+       "Interval": 30,
+       "Retries": 3,
+       "StartPeriod": 60,
+       "Timeout": 5
+      },
+      "Image": {
+       "Fn::Join": [
+        "",
+        [
+         "596080539716.dkr.ecr.us-east-1.",
+         {
+          "Ref": "AWS::URLSuffix"
+         },
+         "/instantnews:latest"
+        ]
+       ]
+      },
+      "LogConfiguration": {
+       "LogDriver": "awslogs",
+       "Options": {
+        "awslogs-group": {
+         "Ref": "AdminLogs4026B555"
+        },
+        "awslogs-stream-prefix": "admin",
+        "awslogs-region": "us-east-1"
+       }
+      },
+      "Name": "admin",
+      "PortMappings": [
+       {
+        "ContainerPort": 8000,
+        "Protocol": "tcp"
+       }
+      ],
+      "Secrets": [
+       {
+        "Name": "DB_PASSWORD",
+        "ValueFrom": {
+         "Fn::Join": [
+          "",
+          [
+           {
+            "Ref": "DbSecret685A0FA5"
+           },
+           ":password::"
+          ]
+         ]
+        }
+       },
+       {
+        "Name": "FIREBASE_CREDENTIALS_JSON",
+        "ValueFrom": {
+         "Fn::Join": [
+          "",
+          [
+           {
+            "Ref": "AppSecretsA1997F2A"
+           },
+           ":FIREBASE_CREDENTIALS_JSON::"
+          ]
+         ]
+        }
+       },
+       {
+        "Name": "MINIMAX_API_KEY",
+        "ValueFrom": {
+         "Fn::Join": [
+          "",
+          [
+           {
+            "Ref": "AppSecretsA1997F2A"
+           },
+           ":MINIMAX_API_KEY::"
+          ]
+         ]
+        }
+       },
+       {
+        "Name": "MINIMAX_BASE_URL",
+        "ValueFrom": {
+         "Fn::Join": [
+          "",
+          [
+           {
+            "Ref": "AppSecretsA1997F2A"
+           },
+           ":MINIMAX_BASE_URL::"
+          ]
+         ]
+        }
+       },
+       {
+        "Name": "ANTHROPIC_API_KEY",
+        "ValueFrom": {
+         "Fn::Join": [
+          "",
+          [
+           {
+            "Ref": "AppSecretsA1997F2A"
+           },
+           ":ANTHROPIC_API_KEY::"
+          ]
+         ]
+        }
+       },
+       {
+        "Name": "STRIPE_SECRET_KEY",
+        "ValueFrom": {
+         "Fn::Join": [
+          "",
+          [
+           {
+            "Ref": "AppSecretsA1997F2A"
+           },
+           ":STRIPE_SECRET_KEY::"
+          ]
+         ]
+        }
+       },
+       {
+        "Name": "STRIPE_WEBHOOK_SECRET",
+        "ValueFrom": {
+         "Fn::Join": [
+          "",
+          [
+           {
+            "Ref": "AppSecretsA1997F2A"
+           },
+           ":STRIPE_WEBHOOK_SECRET::"
+          ]
+         ]
+        }
+       },
+       {
+        "Name": "STRIPE_PUBLISHABLE_KEY",
+        "ValueFrom": {
+         "Fn::Join": [
+          "",
+          [
+           {
+            "Ref": "AppSecretsA1997F2A"
+           },
+           ":STRIPE_PUBLISHABLE_KEY::"
+          ]
+         ]
+        }
+       },
+       {
+        "Name": "STRIPE_PRICE_PLUS",
+        "ValueFrom": {
+         "Fn::Join": [
+          "",
+          [
+           {
+            "Ref": "AppSecretsA1997F2A"
+           },
+           ":STRIPE_PRICE_PLUS::"
+          ]
+         ]
+        }
+       },
+       {
+        "Name": "STRIPE_PRICE_MAX",
+        "ValueFrom": {
+         "Fn::Join": [
+          "",
+          [
+           {
+            "Ref": "AppSecretsA1997F2A"
+           },
+           ":STRIPE_PRICE_MAX::"
+          ]
+         ]
+        }
+       }
+      ]
+     }
+    ],
+    "Cpu": "256",
+    "ExecutionRoleArn": {
+     "Fn::GetAtt": [
+      "AdminTaskExecutionRole324B07C4",
+      "Arn"
+     ]
+    },
+    "Family": "InstantNewsStackAdminTaskD47806AE",
+    "Memory": "512",
+    "NetworkMode": "awsvpc",
+    "RequiresCompatibilities": [
+     "FARGATE"
+    ],
+    "TaskRoleArn": {
+     "Fn::GetAtt": [
+      "AdminTaskTaskRole229B8B1F",
+      "Arn"
+     ]
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "InstantNewsStack/AdminTask/Resource"
+   }
+  },
+  "AdminTaskExecutionRole324B07C4": {
+   "Type": "AWS::IAM::Role",
+   "Properties": {
+    "AssumeRolePolicyDocument": {
+     "Statement": [
+      {
+       "Action": "sts:AssumeRole",
+       "Effect": "Allow",
+       "Principal": {
+        "Service": "ecs-tasks.amazonaws.com"
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "InstantNewsStack/AdminTask/ExecutionRole/Resource"
+   }
+  },
+  "AdminTaskExecutionRoleDefaultPolicyB22E73D9": {
+   "Type": "AWS::IAM::Policy",
+   "Properties": {
+    "PolicyDocument": {
+     "Statement": [
+      {
+       "Action": [
+        "ecr:BatchCheckLayerAvailability",
+        "ecr:GetDownloadUrlForLayer",
+        "ecr:BatchGetImage"
+       ],
+       "Effect": "Allow",
+       "Resource": {
+        "Fn::Join": [
+         "",
+         [
+          "arn:",
+          {
+           "Ref": "AWS::Partition"
+          },
+          ":ecr:us-east-1:596080539716:repository/instantnews"
+         ]
+        ]
+       }
+      },
+      {
+       "Action": "ecr:GetAuthorizationToken",
+       "Effect": "Allow",
+       "Resource": "*"
+      },
+      {
+       "Action": [
+        "logs:CreateLogStream",
+        "logs:PutLogEvents"
+       ],
+       "Effect": "Allow",
+       "Resource": {
+        "Fn::GetAtt": [
+         "AdminLogs4026B555",
+         "Arn"
+        ]
+       }
+      },
+      {
+       "Action": [
+        "secretsmanager:GetSecretValue",
+        "secretsmanager:DescribeSecret"
+       ],
+       "Effect": "Allow",
+       "Resource": {
+        "Ref": "DbSecret685A0FA5"
+       }
+      },
+      {
+       "Action": [
+        "secretsmanager:GetSecretValue",
+        "secretsmanager:DescribeSecret"
+       ],
+       "Effect": "Allow",
+       "Resource": {
+        "Ref": "AppSecretsA1997F2A"
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "PolicyName": "AdminTaskExecutionRoleDefaultPolicyB22E73D9",
+    "Roles": [
+     {
+      "Ref": "AdminTaskExecutionRole324B07C4"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "InstantNewsStack/AdminTask/ExecutionRole/DefaultPolicy/Resource"
+   }
+  },
+  "AdminServiceLBEB88CDDB": {
+   "Type": "AWS::ElasticLoadBalancingV2::LoadBalancer",
+   "Properties": {
+    "LoadBalancerAttributes": [
+     {
+      "Key": "deletion_protection.enabled",
+      "Value": "false"
+     }
+    ],
+    "Scheme": "internal",
+    "SecurityGroups": [
+     {
+      "Fn::GetAtt": [
+       "AdminServiceLBSecurityGroup48B4C545",
+       "GroupId"
+      ]
+     }
+    ],
+    "Subnets": [
+     {
+      "Ref": "VpcPrivateSubnet1Subnet536B997A"
+     },
+     {
+      "Ref": "VpcPrivateSubnet2Subnet3788AAA1"
+     }
+    ],
+    "Type": "application"
+   },
+   "Metadata": {
+    "aws:cdk:path": "InstantNewsStack/AdminService/LB/Resource"
+   }
+  },
+  "AdminServiceLBSecurityGroup48B4C545": {
+   "Type": "AWS::EC2::SecurityGroup",
+   "Properties": {
+    "GroupDescription": "Automatically created Security Group for ELB InstantNewsStackAdminServiceLB37EA33CB",
+    "SecurityGroupIngress": [
+     {
+      "CidrIp": "0.0.0.0/0",
+      "Description": "Allow from anyone on port 443",
+      "FromPort": 443,
+      "IpProtocol": "tcp",
+      "ToPort": 443
+     }
+    ],
+    "VpcId": {
+     "Ref": "Vpc8378EB38"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "InstantNewsStack/AdminService/LB/SecurityGroup/Resource"
+   }
+  },
+  "AdminServiceLBSecurityGrouptoInstantNewsStackAdminServiceSecurityGroupED352E028000F2F36D32": {
+   "Type": "AWS::EC2::SecurityGroupEgress",
+   "Properties": {
+    "Description": "Load balancer to target",
+    "DestinationSecurityGroupId": {
+     "Fn::GetAtt": [
+      "AdminServiceSecurityGroup1797293A",
+      "GroupId"
+     ]
+    },
+    "FromPort": 8000,
+    "GroupId": {
+     "Fn::GetAtt": [
+      "AdminServiceLBSecurityGroup48B4C545",
+      "GroupId"
+     ]
+    },
+    "IpProtocol": "tcp",
+    "ToPort": 8000
+   },
+   "Metadata": {
+    "aws:cdk:path": "InstantNewsStack/AdminService/LB/SecurityGroup/to InstantNewsStackAdminServiceSecurityGroupED352E02:8000"
+   }
+  },
+  "AdminServiceLBPublicListener13810D66": {
+   "Type": "AWS::ElasticLoadBalancingV2::Listener",
+   "Properties": {
+    "Certificates": [
+     {
+      "CertificateArn": {
+       "Ref": "AdminCert78FC845D"
+      }
+     }
+    ],
+    "DefaultActions": [
+     {
+      "TargetGroupArn": {
+       "Ref": "AdminServiceLBPublicListenerECSGroup1498466E"
+      },
+      "Type": "forward"
+     }
+    ],
+    "LoadBalancerArn": {
+     "Ref": "AdminServiceLBEB88CDDB"
+    },
+    "Port": 443,
+    "Protocol": "HTTPS"
+   },
+   "Metadata": {
+    "aws:cdk:path": "InstantNewsStack/AdminService/LB/PublicListener/Resource"
+   }
+  },
+  "AdminServiceLBPublicListenerECSGroup1498466E": {
+   "Type": "AWS::ElasticLoadBalancingV2::TargetGroup",
+   "Properties": {
+    "HealthCheckIntervalSeconds": 30,
+    "HealthCheckPath": "/api/stats",
+    "HealthCheckTimeoutSeconds": 10,
+    "Matcher": {
+     "HttpCode": "200"
+    },
+    "Port": 80,
+    "Protocol": "HTTP",
+    "TargetGroupAttributes": [
+     {
+      "Key": "stickiness.enabled",
+      "Value": "false"
+     }
+    ],
+    "TargetType": "ip",
+    "VpcId": {
+     "Ref": "Vpc8378EB38"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "InstantNewsStack/AdminService/LB/PublicListener/ECSGroup/Resource"
+   }
+  },
+  "AdminServiceFA17513E": {
+   "Type": "AWS::ECS::Service",
+   "Properties": {
+    "Cluster": {
+     "Ref": "ClusterEB0386A7"
+    },
+    "DeploymentConfiguration": {
+     "Alarms": {
+      "AlarmNames": [],
+      "Enable": false,
+      "Rollback": false
+     },
+     "MaximumPercent": 200,
+     "MinimumHealthyPercent": 50
+    },
+    "DesiredCount": 1,
+    "EnableECSManagedTags": false,
+    "HealthCheckGracePeriodSeconds": 120,
+    "LaunchType": "FARGATE",
+    "LoadBalancers": [
+     {
+      "ContainerName": "admin",
+      "ContainerPort": 8000,
+      "TargetGroupArn": {
+       "Ref": "AdminServiceLBPublicListenerECSGroup1498466E"
+      }
+     }
+    ],
+    "NetworkConfiguration": {
+     "AwsvpcConfiguration": {
+      "AssignPublicIp": "DISABLED",
+      "SecurityGroups": [
+       {
+        "Fn::GetAtt": [
+         "AdminServiceSecurityGroup1797293A",
+         "GroupId"
+        ]
+       }
+      ],
+      "Subnets": [
+       {
+        "Ref": "VpcPrivateSubnet1Subnet536B997A"
+       },
+       {
+        "Ref": "VpcPrivateSubnet2Subnet3788AAA1"
+       }
+      ]
+     }
+    },
+    "TaskDefinition": {
+     "Ref": "AdminTaskD8C87731"
+    }
+   },
+   "DependsOn": [
+    "AdminServiceLBPublicListenerECSGroup1498466E",
+    "AdminServiceLBPublicListener13810D66",
+    "AdminTaskTaskRole229B8B1F"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "InstantNewsStack/AdminService/Service/Service"
+   }
+  },
+  "AdminServiceSecurityGroup1797293A": {
+   "Type": "AWS::EC2::SecurityGroup",
+   "Properties": {
+    "GroupDescription": "InstantNewsStack/AdminService/Service/SecurityGroup",
+    "SecurityGroupEgress": [
+     {
+      "CidrIp": "0.0.0.0/0",
+      "Description": "Allow all outbound traffic by default",
+      "IpProtocol": "-1"
+     }
+    ],
+    "VpcId": {
+     "Ref": "Vpc8378EB38"
+    }
+   },
+   "DependsOn": [
+    "AdminTaskTaskRole229B8B1F"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "InstantNewsStack/AdminService/Service/SecurityGroup/Resource"
+   }
+  },
+  "AdminServiceSecurityGroupfromInstantNewsStackAdminServiceLBSecurityGroup71D9FF5880000F944CAF": {
+   "Type": "AWS::EC2::SecurityGroupIngress",
+   "Properties": {
+    "Description": "Load balancer to target",
+    "FromPort": 8000,
+    "GroupId": {
+     "Fn::GetAtt": [
+      "AdminServiceSecurityGroup1797293A",
+      "GroupId"
+     ]
+    },
+    "IpProtocol": "tcp",
+    "SourceSecurityGroupId": {
+     "Fn::GetAtt": [
+      "AdminServiceLBSecurityGroup48B4C545",
+      "GroupId"
+     ]
+    },
+    "ToPort": 8000
+   },
+   "DependsOn": [
+    "AdminTaskTaskRole229B8B1F"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "InstantNewsStack/AdminService/Service/SecurityGroup/from InstantNewsStackAdminServiceLBSecurityGroup71D9FF58:8000"
+   }
+  },
+  "AdminDns43A7B8A7": {
+   "Type": "AWS::Route53::RecordSet",
+   "Properties": {
+    "AliasTarget": {
+     "DNSName": {
+      "Fn::Join": [
+       "",
+       [
+        "dualstack.",
+        {
+         "Fn::GetAtt": [
+          "AdminServiceLBEB88CDDB",
+          "DNSName"
+         ]
+        }
+       ]
+      ]
+     },
+     "HostedZoneId": {
+      "Fn::GetAtt": [
+       "AdminServiceLBEB88CDDB",
+       "CanonicalHostedZoneID"
+      ]
+     }
+    },
+    "HostedZoneId": {
+     "Ref": "PrivateZone27242E85"
+    },
+    "Name": "admin.instnews.net.",
+    "Type": "A"
+   },
+   "Metadata": {
+    "aws:cdk:path": "InstantNewsStack/AdminDns/Resource"
+   }
+  },
   "WorkerLogsC1193B08": {
    "Type": "AWS::Logs::LogGroup",
    "Properties": {
@@ -1459,12 +2396,16 @@
         "Value": "5"
        },
        {
-        "Name": "WORKER_INTERVAL_SECONDS",
-        "Value": "30"
-       },
-       {
         "Name": "DEDUP_THRESHOLD",
         "Value": "0.85"
+       },
+       {
+        "Name": "BEDROCK_ENABLED",
+        "Value": "true"
+       },
+       {
+        "Name": "BEDROCK_REGION",
+        "Value": "us-east-1"
        },
        {
         "Name": "DB_HOST",
@@ -1491,6 +2432,10 @@
        {
         "Name": "DB_USER",
         "Value": "signal"
+       },
+       {
+        "Name": "WORKER_INTERVAL_SECONDS",
+        "Value": "30"
        }
       ],
       "Essential": true,
@@ -1528,6 +2473,62 @@
             "Ref": "DbSecret685A0FA5"
            },
            ":password::"
+          ]
+         ]
+        }
+       },
+       {
+        "Name": "FIREBASE_CREDENTIALS_JSON",
+        "ValueFrom": {
+         "Fn::Join": [
+          "",
+          [
+           {
+            "Ref": "AppSecretsA1997F2A"
+           },
+           ":FIREBASE_CREDENTIALS_JSON::"
+          ]
+         ]
+        }
+       },
+       {
+        "Name": "MINIMAX_API_KEY",
+        "ValueFrom": {
+         "Fn::Join": [
+          "",
+          [
+           {
+            "Ref": "AppSecretsA1997F2A"
+           },
+           ":MINIMAX_API_KEY::"
+          ]
+         ]
+        }
+       },
+       {
+        "Name": "MINIMAX_BASE_URL",
+        "ValueFrom": {
+         "Fn::Join": [
+          "",
+          [
+           {
+            "Ref": "AppSecretsA1997F2A"
+           },
+           ":MINIMAX_BASE_URL::"
+          ]
+         ]
+        }
+       },
+       {
+        "Name": "ANTHROPIC_API_KEY",
+        "ValueFrom": {
+         "Fn::Join": [
+          "",
+          [
+           {
+            "Ref": "AppSecretsA1997F2A"
+           },
+           ":ANTHROPIC_API_KEY::"
           ]
          ]
         }
@@ -1631,6 +2632,16 @@
        "Resource": {
         "Ref": "DbSecret685A0FA5"
        }
+      },
+      {
+       "Action": [
+        "secretsmanager:GetSecretValue",
+        "secretsmanager:DescribeSecret"
+       ],
+       "Effect": "Allow",
+       "Resource": {
+        "Ref": "AppSecretsA1997F2A"
+       }
       }
      ],
      "Version": "2012-10-17"
@@ -1718,10 +2729,148 @@
     "aws:cdk:path": "InstantNewsStack/WorkerService/SecurityGroup/Resource"
    }
   },
+  "VpnLogsC6601F45": {
+   "Type": "AWS::Logs::LogGroup",
+   "Properties": {
+    "LogGroupName": "/vpn/instantnews-admin",
+    "RetentionInDays": 90
+   },
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete",
+   "Metadata": {
+    "aws:cdk:path": "InstantNewsStack/VpnLogs/Resource"
+   }
+  },
+  "VpnEndpointSecurityGroup2D6B91C5": {
+   "Type": "AWS::EC2::SecurityGroup",
+   "Properties": {
+    "GroupDescription": "InstantNewsStack/VpnEndpoint/SecurityGroup",
+    "SecurityGroupEgress": [
+     {
+      "CidrIp": "0.0.0.0/0",
+      "Description": "Allow all outbound traffic by default",
+      "IpProtocol": "-1"
+     }
+    ],
+    "SecurityGroupIngress": [
+     {
+      "CidrIp": "0.0.0.0/0",
+      "Description": "from 0.0.0.0/0:UDP 443",
+      "FromPort": 443,
+      "IpProtocol": "udp",
+      "ToPort": 443
+     }
+    ],
+    "VpcId": {
+     "Ref": "Vpc8378EB38"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "InstantNewsStack/VpnEndpoint/SecurityGroup/Resource"
+   }
+  },
+  "VpnEndpointB49A1A88": {
+   "Type": "AWS::EC2::ClientVpnEndpoint",
+   "Properties": {
+    "AuthenticationOptions": [
+     {
+      "MutualAuthentication": {
+       "ClientRootCertificateChainArn": "arn:aws:acm:us-east-1:596080539716:certificate/2ac9ae7a-c3f4-4171-97a3-b866b4396d5e"
+      },
+      "Type": "certificate-authentication"
+     }
+    ],
+    "ClientCidrBlock": "10.100.0.0/22",
+    "ConnectionLogOptions": {
+     "CloudwatchLogGroup": {
+      "Ref": "VpnLogsC6601F45"
+     },
+     "Enabled": true
+    },
+    "DnsServers": [
+     "10.0.0.2"
+    ],
+    "SecurityGroupIds": [
+     {
+      "Fn::GetAtt": [
+       "VpnEndpointSecurityGroup2D6B91C5",
+       "GroupId"
+      ]
+     }
+    ],
+    "ServerCertificateArn": "arn:aws:acm:us-east-1:596080539716:certificate/8ffaef3f-3cb6-478c-ac23-14a806cffc70",
+    "SplitTunnel": true,
+    "VpcId": {
+     "Ref": "Vpc8378EB38"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "InstantNewsStack/VpnEndpoint/Resource"
+   }
+  },
+  "VpnEndpointAssociation0B17848D4": {
+   "Type": "AWS::EC2::ClientVpnTargetNetworkAssociation",
+   "Properties": {
+    "ClientVpnEndpointId": {
+     "Ref": "VpnEndpointB49A1A88"
+    },
+    "SubnetId": {
+     "Ref": "VpcPrivateSubnet1Subnet536B997A"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "InstantNewsStack/VpnEndpoint/Association0"
+   }
+  },
+  "VpnEndpointAssociation1F06CE7C8": {
+   "Type": "AWS::EC2::ClientVpnTargetNetworkAssociation",
+   "Properties": {
+    "ClientVpnEndpointId": {
+     "Ref": "VpnEndpointB49A1A88"
+    },
+    "SubnetId": {
+     "Ref": "VpcPrivateSubnet2Subnet3788AAA1"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "InstantNewsStack/VpnEndpoint/Association1"
+   }
+  },
+  "VpnEndpointAuthorizeAllD69620A3": {
+   "Type": "AWS::EC2::ClientVpnAuthorizationRule",
+   "Properties": {
+    "AuthorizeAllGroups": true,
+    "ClientVpnEndpointId": {
+     "Ref": "VpnEndpointB49A1A88"
+    },
+    "TargetNetworkCidr": {
+     "Fn::GetAtt": [
+      "Vpc8378EB38",
+      "CidrBlock"
+     ]
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "InstantNewsStack/VpnEndpoint/AuthorizeAll/Resource"
+   }
+  },
+  "VpnEndpointAllowallVPNusers1879FB71": {
+   "Type": "AWS::EC2::ClientVpnAuthorizationRule",
+   "Properties": {
+    "AuthorizeAllGroups": true,
+    "ClientVpnEndpointId": {
+     "Ref": "VpnEndpointB49A1A88"
+    },
+    "TargetNetworkCidr": "0.0.0.0/0"
+   },
+   "Metadata": {
+    "aws:cdk:path": "InstantNewsStack/VpnEndpoint/Allow all VPN users/Resource"
+   }
+  },
   "CDKMetadata": {
    "Type": "AWS::CDK::Metadata",
    "Properties": {
-    "Analytics": "v2:deflate64:H4sIAAAAAAAA/31S227bMAz9lr4rWpZ2H5BLVwQoNsMO+lrQMuNyUSRDohIEhv99kJXYbjrsiYeHFHEOqYVcPD3J+QOc/UxVh5mmUrYFgzoIOPv3FtVCtm+NEuu9ecvWIgulJlWE0iBHbkS5DYw7KDWO/MgtvbeKgMmaoTmC520Wwy/gF2A8w0Vkjk7AOA7eGkZncGhISq7ZkhnUxxENiwJVcMSXF2dD02v4L7E1tUPvv/DPPd0JVE7m2FhPbN1lBR6FR+WQ/REM1OhkW/T5dUJEKezA1cgTZUPDfaUTrvKy3QBDCR63xjMYhSKZH3RvVl+IW2vU6WW71sEzuli7wZ/gaojb94cN7snQbff3jDUMZNBNuOvbAt2JVLrnFRYKdLxnHLK2IVpQ6Jj2pIBx2Mx65HpNY9oJbWsv21dbD3ZuuBMER9nmNv2hPmZWk+qPnlBv+L0Bjp/Cy2XT6DiXrHm1UK1Ax61UdwZQg2dS2kJV9h1k6tNCtv9+7ZKmST7tI89orj03PKmnEw/WJmknXPz1Px5lu8xRWVf1JntUIHcCxikQ2HoFmkwt23HncVZ/jc9MCjsH6kCmLtK7cXGfiK4TOXobXLrr78BN4E5kF/6w5tuj/D6Xi/nDH080c8EwHVHmKf4F/elXGSsEAAA="
+    "Analytics": "v2:deflate64:H4sIAAAAAAAA/31S207jMBD9Ft6NdynwAaWwbCXEVgniYV/Q1BnCbF07ssdU3Sj/vrKdJmlheZozx2esuZyZnF1dye9nsPPnqtqca1rLtmRQGwE7/9Kimsn2uVFi8WqeVwuxCmtNqgxrgxy5ERU2MD7BWuPIj9zce6sImKwZxBHcLVcxPALfA+MO9mLl6B0Yx4+XhtEZHAS5kz6bM4N626JhUaIKjnh/72xoUg9fEktTO/T+A3/X05rQ8HNj7kzVWDKpla/JJ3A18iPyzrrN0cAHxTzwm3X0N9FFyKv6/2snUDlZYGM9sXX7G/AoPCqH7LdgoEYn2zLl/RgR5ZCbmaxnEJy+dMJVXra3wLAGj0vjGYxCkS8wLO/25gMxSE9rC4SqwEaTgjiDl+1CB8/o8rwZ/gBXQ7SH39ziKxk6mOOUsYaBDLoJ19eW6N5JZcP1sFSgo+HiJwsb4ngKHdMrKWActrYYudTTmHbCRXNeX8q2t+JP6xmr39Yk6SSbF6isq5KhEyqRO6Ft7WX7YOthUwfcCYKtbAubD5/iympSydQZpX29NMDR9F7Om7TFOPSDheoGdNxvdTI/avBMSluo1klBpn6fyfbzapd7muRTHXlG02sOePKe3TOMNkk7AaMMAluvQJOpZTveJIrTtY6ZHJ4cqA2Zusx142aOiK4TBXobXL77r8BN4E6s9vxmzbdLeXEhr8/+eKJzFwzTFmWR4z9R1UWj6wQAAA=="
    },
    "Metadata": {
     "aws:cdk:path": "InstantNewsStack/CDKMetadata/Default"
@@ -1750,10 +2899,47 @@
     ]
    }
   },
+  "AdminServiceLoadBalancerDNSBFC91C5E": {
+   "Value": {
+    "Fn::GetAtt": [
+     "AdminServiceLBEB88CDDB",
+     "DNSName"
+    ]
+   }
+  },
+  "AdminServiceServiceURLB28C8F0A": {
+   "Value": {
+    "Fn::Join": [
+     "",
+     [
+      "https://",
+      {
+       "Fn::GetAtt": [
+        "AdminServiceLBEB88CDDB",
+        "DNSName"
+       ]
+      }
+     ]
+    ]
+   }
+  },
+  "VpnEndpointId": {
+   "Value": {
+    "Ref": "VpnEndpointB49A1A88"
+   }
+  },
   "AlbDns": {
    "Value": {
     "Fn::GetAtt": [
      "WebServiceLB9CAD0C10",
+     "DNSName"
+    ]
+   }
+  },
+  "AdminAlbDns": {
+   "Value": {
+    "Fn::GetAtt": [
+     "AdminServiceLBEB88CDDB",
      "DNSName"
     ]
    }
@@ -1780,6 +2966,14 @@
     ]
    }
   },
+  "DbReplicaEndpoint": {
+   "Value": {
+    "Fn::GetAtt": [
+     "DatabaseReplicaFD06AB0D",
+     "Endpoint.Address"
+    ]
+   }
+  },
   "DbSecretArn": {
    "Value": {
     "Ref": "DbSecret685A0FA5"
@@ -1792,6 +2986,9 @@
   },
   "WebUrl": {
    "Value": "https://www.instnews.net"
+  },
+  "AdminUrl": {
+   "Value": "https://admin.instnews.net (VPN required)"
   }
  },
  "Parameters": {

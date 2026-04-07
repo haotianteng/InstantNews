@@ -3,384 +3,455 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>InstNews — SIGNAL News Trading Terminal</title>
-  <meta name="description" content="InstNews aggregates 15+ financial news sources in real time with sentiment analysis, duplicate detection, and a dark-themed trading terminal UI.">
+  <title>InstNews — Real-Time Financial News Intelligence</title>
+  <meta name="description" content="InstNews aggregates 15+ financial news sources in real time with AI sentiment analysis, duplicate detection, and tradeable signal detection. Free to start.">
+  <meta property="og:title" content="InstNews — Real-Time Financial News Intelligence">
+  <meta property="og:description" content="Aggregate 15+ financial news sources with sentiment analysis and tradeable signal detection.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://www.instnews.net">
 
   <!-- Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 
-  <!-- Styles -->
-  <link rel="stylesheet" href="./base.css">
-  <link rel="stylesheet" href="./style.css">
-
-  <!-- Firebase SDK (compat mode for vanilla JS) -->
+  <!-- Firebase SDK -->
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
 
   <!-- Favicon -->
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='12' fill='%230d1117'/><path d='M20 65 L35 40 L50 55 L65 25 L80 45' stroke='%233fb950' stroke-width='6' fill='none' stroke-linecap='round' stroke-linejoin='round'/><circle cx='80' cy='45' r='5' fill='%233fb950'/></svg>">
+  <script type="module" crossorigin src="/assets/landing-DQXlHpS_.js"></script>
+  <link rel="modulepreload" crossorigin href="/assets/auth-DHFAXTYz.js">
+  <link rel="modulepreload" crossorigin href="/assets/checkout-9iIPNsE9.js">
+  <link rel="stylesheet" crossorigin href="/assets/checkout-D93VMLs_.css">
 </head>
 <body>
-  <div class="dashboard">
-    <!-- ================================================================= -->
-    <!-- Header                                                            -->
-    <!-- ================================================================= -->
-    <header class="header">
-      <div class="header-left">
-        <!-- Hamburger (mobile) -->
-        <button class="hamburger-btn" id="hamburger-btn" aria-label="Toggle sidebar">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
-            <line x1="3" y1="6" x2="21" y2="6"/>
-            <line x1="3" y1="12" x2="21" y2="12"/>
-            <line x1="3" y1="18" x2="21" y2="18"/>
-          </svg>
-        </button>
-
-        <!-- Logo -->
-        <div class="logo">
-          <span class="logo-icon">
-            <svg viewBox="0 0 24 24" fill="none" stroke="#3fb950" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-              <polyline points="3 17 8 10 13 14 17 6 21 11"/>
-              <circle cx="21" cy="11" r="2" fill="#3fb950" stroke="none"/>
-            </svg>
-          </span>
-          <span>InstNews <span style="opacity:0.5;font-weight:400">SIGNAL</span></span>
-        </div>
-
-        <span class="header-divider"></span>
-
-        <!-- Clock -->
-        <span class="clock" id="clock">--</span>
-
-        <span class="header-divider"></span>
-
-        <!-- Connection status -->
-        <div class="connection-status">
-          <span class="status-dot connected" id="connection-dot"></span>
-          <span id="connection-label">CONNECTING</span>
-        </div>
+  <!-- ================================================================= -->
+  <!-- Navbar                                                            -->
+  <!-- ================================================================= -->
+  <nav class="nav" id="nav">
+    <div class="nav-inner">
+      <a href="/" class="nav-logo">
+        <img src="/assets/ClearBackgroundAppLogo.png" alt="InstNews" width="32" height="32">
+        <span>InstNews</span>
+      </a>
+      <div class="nav-links" id="nav-links">
+        <a href="#features">Features</a>
+        <a href="#demo">Live Demo</a>
+        <a href="#api">API</a>
+        <a href="#pricing">Pricing</a>
+        <a href="/docs">Docs</a>
       </div>
-
-      <div class="header-right">
-        <div class="header-stat desktop-only">
-          <span>Items</span>
-          <span class="value" id="total-items">--</span>
-        </div>
-        <div class="header-stat desktop-only">
-          <span>Feeds</span>
-          <span class="value" id="feed-count">--</span>
-        </div>
-        <div class="header-stat desktop-only">
-          <span>Avg Sent</span>
-          <span class="value" id="avg-sentiment">--</span>
-        </div>
-
-        <button class="btn-header" id="btn-sound" title="Sound alerts OFF">
-          <svg class="sound-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M11 5L6 9H2v6h4l5 4V5z"/>
-            <line x1="23" y1="9" x2="17" y2="15"/>
-            <line x1="17" y1="9" x2="23" y2="15"/>
-          </svg>
-          <span class="desktop-only">Sound</span>
-        </button>
-
-        <button class="btn-header" id="btn-refresh">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M21 12a9 9 0 11-6.219-8.56"/>
-            <path d="M22 3v6h-6"/>
-          </svg>
-          <span class="desktop-only">Refresh</span>
-        </button>
-
-        <button class="btn-header" id="btn-docs">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/>
-            <polyline points="14 2 14 8 20 8"/>
-            <line x1="16" y1="13" x2="8" y2="13"/>
-            <line x1="16" y1="17" x2="8" y2="17"/>
-            <polyline points="10 9 9 9 8 9"/>
-          </svg>
-          <span class="desktop-only">API Docs</span>
-        </button>
-
-        <span class="header-divider"></span>
-
-        <!-- Auth: Sign In (shown when logged out) -->
-        <button class="btn-header btn-signin" id="btn-signin">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/>
-            <circle cx="12" cy="7" r="4"/>
-          </svg>
-          <span>Sign In</span>
-        </button>
-
-        <!-- Auth: User Menu (shown when logged in) -->
-        <div class="user-menu" id="user-menu" style="display:none">
-          <button class="btn-header btn-user" id="btn-user">
-            <img class="user-avatar" id="user-avatar" src="" alt="" width="20" height="20">
-            <span class="user-name desktop-only" id="user-name"></span>
-            <span class="tier-badge" id="tier-badge">FREE</span>
-          </button>
-          <div class="user-dropdown" id="user-dropdown">
-            <div class="user-dropdown-header">
-              <span id="dropdown-email"></span>
-              <span class="tier-label" id="dropdown-tier">Free Plan</span>
-            </div>
-            <a class="user-dropdown-item" href="/pricing" id="btn-upgrade">Upgrade Plan</a>
-            <button class="user-dropdown-item" id="btn-signout">Sign Out</button>
-          </div>
-        </div>
+      <div class="nav-actions" id="nav-actions">
+        <button class="nav-btn nav-btn-ghost" id="nav-signin">Sign In</button>
+        <button class="nav-btn nav-btn-primary" id="nav-cta">Sign Up Free</button>
       </div>
-    </header>
-
-    <!-- ================================================================= -->
-    <!-- Sidebar Backdrop (mobile)                                         -->
-    <!-- ================================================================= -->
-    <div class="sidebar-backdrop" id="sidebar-backdrop"></div>
-
-    <!-- ================================================================= -->
-    <!-- Sidebar                                                           -->
-    <!-- ================================================================= -->
-    <aside class="sidebar">
-      <!-- Search -->
-      <div class="sidebar-section">
-        <span class="sidebar-label">Search</span>
-        <div class="search-wrap">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
-            <circle cx="11" cy="11" r="8"/>
-            <line x1="21" y1="21" x2="16.65" y2="16.65"/>
-          </svg>
-          <input type="text" class="search-input" id="search-input" placeholder="Filter headlines..." spellcheck="false" autocomplete="off">
-          <span class="search-kbd">F</span>
-        </div>
-      </div>
-
-      <!-- Date Range -->
-      <div class="sidebar-section">
-        <span class="sidebar-label">Date Range</span>
-        <div class="date-range-wrap">
-          <div class="date-range-row">
-            <label class="date-range-label" for="date-from">From</label>
-            <input type="date" class="date-input" id="date-from">
-          </div>
-          <div class="date-range-row">
-            <label class="date-range-label" for="date-to">To</label>
-            <input type="date" class="date-input" id="date-to">
-          </div>
-          <button class="btn-clear-dates" id="btn-clear-dates">
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
-              <line x1="18" y1="6" x2="6" y2="18"/>
-              <line x1="6" y1="6" x2="18" y2="18"/>
-            </svg>
-            Clear dates
-          </button>
-        </div>
-      </div>
-
-      <!-- Duplicates Toggle -->
-      <div class="sidebar-section">
-        <label class="source-item">
-          <input type="checkbox" id="hide-duplicates">
-          <span>Hide duplicates</span>
-        </label>
-      </div>
-
-      <!-- Sentiment Filter -->
-      <div class="sidebar-section">
-        <span class="sidebar-label">Sentiment</span>
-        <div class="filter-group">
-          <button class="filter-btn sentiment-filter-btn active" data-sentiment="all">
-            <span class="dot" style="background: var(--text-secondary)"></span>
-            All
-            <span class="count" id="sentiment-count-all">--</span>
-            <span class="kbd">1</span>
-          </button>
-          <button class="filter-btn sentiment-filter-btn" data-sentiment="bullish">
-            <span class="dot" style="background: var(--green)"></span>
-            Bullish
-            <span class="count" id="sentiment-count-bullish">--</span>
-            <span class="kbd">2</span>
-          </button>
-          <button class="filter-btn sentiment-filter-btn" data-sentiment="bearish">
-            <span class="dot" style="background: var(--red)"></span>
-            Bearish
-            <span class="count" id="sentiment-count-bearish">--</span>
-            <span class="kbd">3</span>
-          </button>
-          <button class="filter-btn sentiment-filter-btn" data-sentiment="neutral">
-            <span class="dot" style="background: var(--yellow)"></span>
-            Neutral
-            <span class="count" id="sentiment-count-neutral">--</span>
-            <span class="kbd">4</span>
-          </button>
-        </div>
-      </div>
-
-      <!-- Sources -->
-      <div class="sidebar-section">
-        <span class="sidebar-label">Sources</span>
-        <div class="source-list" id="source-list">
-          <!-- Populated by JS -->
-        </div>
-      </div>
-
-      <!-- Refresh Interval -->
-      <div class="sidebar-section">
-        <span class="sidebar-label">Refresh Interval</span>
-        <select class="interval-select" id="refresh-interval">
-          <option value="3000">3 seconds</option>
-          <option value="5000" selected>5 seconds</option>
-          <option value="10000">10 seconds</option>
-          <option value="15000">15 seconds</option>
-          <option value="30000">30 seconds</option>
-          <option value="60000">60 seconds</option>
-        </select>
-      </div>
-
-      <!-- Keyboard shortcuts hint -->
-      <div class="shortcuts-hint">
-        <kbd>R</kbd> Refresh &nbsp; <kbd>F</kbd> Search &nbsp; <kbd>1-4</kbd> Sentiment
-      </div>
-    </aside>
-
-    <!-- ================================================================= -->
-    <!-- Main Content                                                      -->
-    <!-- ================================================================= -->
-    <main class="main">
-      <table class="news-table">
-        <thead>
-          <tr>
-            <th class="col-time">Time</th>
-            <th class="col-sentiment">Sentiment</th>
-            <th class="col-source">Source</th>
-            <th class="col-headline">Headline</th>
-            <th class="col-summary">Summary</th>
-          </tr>
-        </thead>
-        <tbody id="news-body">
-          <!-- Populated by JS -->
-        </tbody>
-      </table>
-    </main>
-
-    <!-- ================================================================= -->
-    <!-- Status Bar                                                        -->
-    <!-- ================================================================= -->
-    <footer class="statusbar">
-      <div class="statusbar-left">
-        <div class="statusbar-item">
-          Last refresh: <span class="value" id="last-refresh">--:--:--</span>
-        </div>
-        <div class="statusbar-item">
-          Rate: <span class="value" id="items-per-sec">0</span> items/s
-        </div>
-      </div>
-      <div class="statusbar-right">
-        <span class="statusbar-item site-links">
-          <a href="/pricing">Pricing</a>
-          <a href="/privacy">Privacy Policy</a>
-          <a href="/terms">Terms of Service</a>
-        </span>
-        <span class="api-url" id="api-url" title="Click to copy API endpoint">/api/news</span>
-      </div>
-    </footer>
-  </div>
+      <button class="nav-hamburger" id="nav-hamburger" aria-label="Menu">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+      </button>
+    </div>
+  </nav>
 
   <!-- ================================================================= -->
-  <!-- API Documentation Modal                                           -->
+  <!-- Hero Section                                                      -->
   <!-- ================================================================= -->
-  <div class="modal-overlay" id="modal-overlay">
-    <div class="modal">
-      <div class="modal-header">
-        <h2>// API Documentation</h2>
-        <button class="modal-close" id="modal-close" aria-label="Close">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
-            <line x1="18" y1="6" x2="6" y2="18"/>
-            <line x1="6" y1="6" x2="18" y2="18"/>
-          </svg>
-        </button>
-      </div>
-      <div class="modal-body">
-        <p style="font-size:12px; color:var(--text-secondary); margin-bottom:16px;">
-          REST API for programmatic access. All responses are JSON. Base URL: <code class="api-base-url" style="color:var(--blue)">http://localhost:8000</code>/api
+  <section class="hero">
+    <div class="hero-glow"></div>
+    <div class="container">
+      <div class="hero-content">
+        <div class="hero-badge">Powered by 15+ Financial News Sources</div>
+        <h1 class="hero-title">
+          Financial News Intelligence<br>
+          <span class="hero-accent">at the Speed of Markets</span>
+        </h1>
+        <p class="hero-subtitle">
+          Real-time aggregation, AI sentiment analysis, and tradeable signal detection — all in one terminal. Stop missing market-moving headlines.
         </p>
-
-        <!-- GET /news -->
-        <div class="api-endpoint">
-          <div class="api-endpoint-header">
-            <span class="api-method get">GET</span>
-            <span class="api-path">/news</span>
+        <div class="hero-actions">
+          <button class="btn btn-primary btn-lg" id="hero-signup">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></svg>
+            Open Terminal
+          </button>
+        </div>
+        <div class="hero-stats">
+          <div class="hero-stat">
+            <span class="hero-stat-value" id="stat-sources">15</span>
+            <span class="hero-stat-label">Live Sources</span>
           </div>
-          <div class="api-endpoint-body">
-            <p>Returns latest news items with sentiment scoring.</p>
-            <dl class="api-params">
-              <dt>limit</dt><dd>Number of items (default 50, max 500)</dd>
-              <dt>source</dt><dd>Filter by source name (default "all")</dd>
-              <dt>sentiment</dt><dd>Filter: bullish, bearish, neutral (default "all")</dd>
-              <dt>q</dt><dd>Keyword search in title and summary</dd>
-              <dt>from</dt><dd>Filter from date (ISO 8601, e.g. "2026-03-01")</dd>
-              <dt>to</dt><dd>Filter to date (ISO 8601, e.g. "2026-03-02")</dd>
-            </dl>
-            <div class="api-curl">curl "<span class="api-base-url"></span>/api/news?limit=10&amp;sentiment=bullish"</div>
+          <div class="hero-stat">
+            <span class="hero-stat-value" id="stat-items">--</span>
+            <span class="hero-stat-label">Articles Indexed</span>
           </div>
         </div>
-
-        <!-- GET /sources -->
-        <div class="api-endpoint">
-          <div class="api-endpoint-header">
-            <span class="api-method get">GET</span>
-            <span class="api-path">/sources</span>
+      </div>
+      <div class="hero-visual">
+        <div class="terminal-preview" id="terminal-preview">
+          <div class="terminal-bar">
+            <div class="terminal-dots">
+              <span></span><span></span><span></span>
+            </div>
+            <span class="terminal-title">SIGNAL Terminal — instnews.net/terminal</span>
           </div>
-          <div class="api-endpoint-body">
-            <p>Returns all active feed sources with item counts and status.</p>
-            <div class="api-curl">curl "<span class="api-base-url"></span>/api/sources"</div>
-          </div>
-        </div>
-
-        <!-- GET /stats -->
-        <div class="api-endpoint">
-          <div class="api-endpoint-header">
-            <span class="api-method get">GET</span>
-            <span class="api-path">/stats</span>
-          </div>
-          <div class="api-endpoint-body">
-            <p>Returns aggregated statistics: total items, by source, by sentiment, average score.</p>
-            <div class="api-curl">curl "<span class="api-base-url"></span>/api/stats"</div>
-          </div>
-        </div>
-
-        <!-- POST /refresh -->
-        <div class="api-endpoint">
-          <div class="api-endpoint-header">
-            <span class="api-method post">POST</span>
-            <span class="api-path">/refresh</span>
-          </div>
-          <div class="api-endpoint-body">
-            <p>Force refresh all feeds immediately. Returns count of new items found.</p>
-            <div class="api-curl">curl -X POST "<span class="api-base-url"></span>/api/refresh"</div>
-          </div>
-        </div>
-
-        <!-- GET /docs -->
-        <div class="api-endpoint">
-          <div class="api-endpoint-header">
-            <span class="api-method get">GET</span>
-            <span class="api-path">/docs</span>
-          </div>
-          <div class="api-endpoint-body">
-            <p>Returns this API documentation as JSON.</p>
-            <div class="api-curl">curl "<span class="api-base-url"></span>/api/docs"</div>
+          <div class="terminal-body" id="terminal-body">
+            <!-- Populated by JS with live data -->
           </div>
         </div>
       </div>
     </div>
-  </div>
+  </section>
 
-  <!-- Auth JS (must load before app.js) -->
-  <script src="./auth.js" defer></script>
-  <!-- App JS -->
-  <script src="./app.js" defer></script>
+  <!-- ================================================================= -->
+  <!-- Features Section                                                  -->
+  <!-- ================================================================= -->
+  <section class="section" id="features">
+    <div class="container">
+      <div class="section-header">
+        <h2 class="section-title">Built for Serious Market Watchers</h2>
+        <p class="section-subtitle">Every feature designed to give you an edge in fast-moving markets</p>
+      </div>
+      <div class="features-grid">
+        <!-- Sentiment Analysis -->
+        <div class="feature-card feature-card-highlight">
+          <div class="feature-icon feature-icon-green">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg>
+          </div>
+          <h3>AI Sentiment Analysis</h3>
+          <p>Every headline scored from -1.0 (bearish) to +1.0 (bullish) in real time. Filter your feed by market sentiment to focus on what matters.</p>
+        </div>
+
+        <!-- Tradeable Signals -->
+        <div class="feature-card feature-card-highlight">
+          <div class="feature-icon feature-icon-blue">
+            <img src="/assets/lightneingClearBG.png" alt="Tradeable Signal" width="24" height="24" style="filter: drop-shadow(0 0 8px rgba(0,191,255,0.4))">
+          </div>
+          <h3>Tradeable Signal Detection</h3>
+          <p>Headlines marked with <img src="/assets/lightneingClearBG.png" alt="" width="14" height="14" style="display:inline;vertical-align:middle"> indicate actionable trading opportunities — earnings surprises, M&A, FDA decisions, policy shifts, and more.</p>
+          <div class="signal-examples">
+            <div class="signal-item">
+              <img src="/assets/lightneingClearBG.png" alt="" width="14" height="14" class="signal-bolt">
+              <span class="signal-badge bullish">+0.87</span>
+              <span>NVDA beats Q4 estimates by 22%</span>
+            </div>
+            <div class="signal-item">
+              <img src="/assets/lightneingClearBG.png" alt="" width="14" height="14" class="signal-bolt">
+              <span class="signal-badge bearish">-0.65</span>
+              <span>FDA rejects Pfizer's new drug application</span>
+            </div>
+            <div class="signal-item">
+              <img src="/assets/lightneingClearBG.png" alt="" width="14" height="14" class="signal-bolt">
+              <span class="signal-badge bullish">+0.72</span>
+              <span>Microsoft announces $30B acquisition of...</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Deduplication -->
+        <div class="feature-card">
+          <div class="feature-icon feature-icon-yellow">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+          </div>
+          <h3>Smart Deduplication</h3>
+          <p>ML-powered sentence embeddings detect when multiple sources report the same story. Cut through the noise — see each story once.</p>
+        </div>
+
+        <!-- Real-time -->
+        <div class="feature-card">
+          <div class="feature-icon feature-icon-green">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          </div>
+          <h3>Real-Time Feed</h3>
+          <p>Auto-refreshing from 15+ premium sources including CNBC, Reuters, Bloomberg, Yahoo Finance, and more.</p>
+        </div>
+
+        <!-- API Access -->
+        <div class="feature-card">
+          <div class="feature-icon feature-icon-blue">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+          </div>
+          <h3>REST API</h3>
+          <p>Full programmatic access for trading bots, research pipelines, and custom dashboards. Python, JavaScript, Go, R, and Rust examples included.</p>
+        </div>
+
+        <!-- History -->
+        <div class="feature-card">
+          <div class="feature-icon feature-icon-yellow">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 8v4l3 3"/><circle cx="12" cy="12" r="10"/></svg>
+          </div>
+          <h3>Deep History</h3>
+          <p>Up to 1 year of indexed financial headlines with Pro. Backtest your sentiment strategies against historical data.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================================================================= -->
+  <!-- Live Demo Section                                                 -->
+  <!-- ================================================================= -->
+  <section class="section section-dark" id="demo">
+    <div class="container">
+      <div class="section-header">
+        <h2 class="section-title">See It Live</h2>
+        <p class="section-subtitle">Real headlines from real sources, scored and analyzed in real time</p>
+      </div>
+      <div class="demo-feed" id="demo-feed">
+        <div class="demo-header">
+          <span class="demo-header-col col-time">Time</span>
+          <span class="demo-header-col col-signal">Signal</span>
+          <span class="demo-header-col col-sentiment">Sentiment</span>
+          <span class="demo-header-col col-source">Source</span>
+          <span class="demo-header-col col-headline">Headline</span>
+        </div>
+        <div class="demo-rows" id="demo-rows">
+          <!-- Populated by landing.js -->
+          <div class="demo-loading">
+            <div class="spinner"></div>
+            <span>Connecting to live feed...</span>
+          </div>
+        </div>
+      </div>
+      <div class="demo-cta">
+        <button class="btn btn-primary" id="demo-open-terminal">Open Full Terminal</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================================================================= -->
+  <!-- API Section                                                       -->
+  <!-- ================================================================= -->
+  <section class="section" id="api">
+    <div class="container">
+      <div class="section-header">
+        <h2 class="section-title">Developer-First API</h2>
+        <p class="section-subtitle">Integrate financial news intelligence into your stack in minutes</p>
+      </div>
+      <div class="api-showcase">
+        <div class="api-info">
+          <div class="api-feature">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#3fb950" stroke-width="2" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>
+            <span>RESTful JSON API</span>
+          </div>
+          <div class="api-feature">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#3fb950" stroke-width="2" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>
+            <span>Authenticated API access (Pro)</span>
+          </div>
+          <div class="api-feature">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#3fb950" stroke-width="2" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>
+            <span>Sentiment scoring on every item (Pro)</span>
+          </div>
+          <div class="api-feature">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#3fb950" stroke-width="2" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>
+            <span>Filter by source, sentiment, keyword, date</span>
+          </div>
+          <div class="api-feature">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#3fb950" stroke-width="2" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>
+            <span>High-throughput API access (Pro &amp; Max)</span>
+          </div>
+          <a href="/docs" class="btn btn-outline" style="margin-top:24px">Read Full Documentation</a>
+        </div>
+        <div class="code-showcase">
+          <div class="code-tabs">
+            <button class="code-tab active" data-lang="curl">cURL</button>
+            <button class="code-tab" data-lang="python">Python</button>
+            <button class="code-tab" data-lang="javascript">JavaScript</button>
+            <button class="code-tab" data-lang="go">Go</button>
+            <button class="code-tab" data-lang="r">R</button>
+            <button class="code-tab" data-lang="rust">Rust</button>
+          </div>
+          <div class="code-panels" style="position:relative">
+            <button class="code-copy-btn" id="code-copy-btn" title="Copy to clipboard">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+            </button>
+            <pre class="code-panel active" data-lang="curl"><code><span class="code-comment"># Get latest bullish headlines</span>
+curl -s <span class="code-string">"https://www.instnews.net/api/news?sentiment=bullish&limit=10"</span> | jq .
+
+<span class="code-comment"># Search for a keyword</span>
+curl -s <span class="code-string">"https://www.instnews.net/api/news?q=nvidia&limit=5"</span> | jq .
+
+<span class="code-comment"># Get market statistics</span>
+curl -s <span class="code-string">"https://www.instnews.net/api/stats"</span> | jq .</code></pre>
+
+            <pre class="code-panel" data-lang="python"><code><span class="code-keyword">import</span> requests
+
+BASE_URL = <span class="code-string">"https://www.instnews.net"</span>
+
+<span class="code-comment"># Get latest bullish news</span>
+response = requests.get(<span class="code-string">f"<span class="code-interp">{BASE_URL}</span>/api/news"</span>, params={
+    <span class="code-string">"sentiment"</span>: <span class="code-string">"bullish"</span>,
+    <span class="code-string">"limit"</span>: <span class="code-number">10</span>,
+})
+
+<span class="code-keyword">for</span> item <span class="code-keyword">in</span> response.json()[<span class="code-string">"items"</span>]:
+    score = item.get(<span class="code-string">"sentiment_score"</span>, <span class="code-string">"N/A"</span>)
+    <span class="code-builtin">print</span>(<span class="code-string">f"[<span class="code-interp">{score:+.2f}</span>] <span class="code-interp">{item['title']}</span>"</span>)</code></pre>
+
+            <pre class="code-panel" data-lang="javascript"><code><span class="code-keyword">const</span> BASE_URL = <span class="code-string">"https://www.instnews.net"</span>;
+
+<span class="code-keyword">async function</span> <span class="code-function">getNews</span>(params = {}) {
+  <span class="code-keyword">const</span> query = <span class="code-keyword">new</span> URLSearchParams(params);
+  <span class="code-keyword">const</span> res = <span class="code-keyword">await</span> fetch(
+    <span class="code-string">`<span class="code-interp">${BASE_URL}</span>/api/news?<span class="code-interp">${query}</span>`</span>
+  );
+  <span class="code-keyword">return</span> res.json();
+}
+
+<span class="code-keyword">const</span> data = <span class="code-keyword">await</span> getNews({
+  sentiment: <span class="code-string">"bullish"</span>,
+  limit: <span class="code-number">10</span>,
+});
+data.items.forEach(<span class="code-function">item</span> =>
+  console.log(<span class="code-string">`[<span class="code-interp">${item.source}</span>] <span class="code-interp">${item.title}</span>`</span>)
+);</code></pre>
+
+            <pre class="code-panel" data-lang="go"><code><span class="code-keyword">package</span> main
+
+<span class="code-keyword">import</span> (
+    <span class="code-string">"encoding/json"</span>
+    <span class="code-string">"fmt"</span>
+    <span class="code-string">"net/http"</span>
+)
+
+<span class="code-keyword">type</span> NewsResponse <span class="code-keyword">struct</span> {
+    Count <span class="code-builtin">int</span>        <span class="code-string">`json:"count"`</span>
+    Items []NewsItem <span class="code-string">`json:"items"`</span>
+}
+<span class="code-keyword">type</span> NewsItem <span class="code-keyword">struct</span> {
+    Title  <span class="code-builtin">string</span>  <span class="code-string">`json:"title"`</span>
+    Source <span class="code-builtin">string</span>  <span class="code-string">`json:"source"`</span>
+    Score  <span class="code-builtin">float64</span> <span class="code-string">`json:"sentiment_score"`</span>
+}
+
+<span class="code-keyword">func</span> main() {
+    resp, _ := http.Get(
+      <span class="code-string">"https://www.instnews.net/api/news?limit=5"</span>)
+    <span class="code-keyword">defer</span> resp.Body.Close()
+    <span class="code-keyword">var</span> result NewsResponse
+    json.NewDecoder(resp.Body).Decode(&result)
+    <span class="code-keyword">for</span> _, item := <span class="code-keyword">range</span> result.Items {
+        fmt.Printf(<span class="code-string">"[%s] %s\n"</span>, item.Source, item.Title)
+    }
+}</code></pre>
+
+            <pre class="code-panel" data-lang="r"><code><span class="code-keyword">library</span>(httr)
+<span class="code-keyword">library</span>(jsonlite)
+
+base_url &lt;- <span class="code-string">"https://www.instnews.net"</span>
+
+<span class="code-comment"># Get bullish news</span>
+response &lt;- <span class="code-function">GET</span>(
+  paste0(base_url, <span class="code-string">"/api/news"</span>),
+  query = <span class="code-function">list</span>(sentiment = <span class="code-string">"bullish"</span>, limit = <span class="code-number">20</span>)
+)
+
+data &lt;- <span class="code-function">fromJSON</span>(<span class="code-function">content</span>(response, <span class="code-string">"text"</span>))
+df &lt;- data$items
+<span class="code-function">print</span>(df[, c(<span class="code-string">"source"</span>, <span class="code-string">"title"</span>, <span class="code-string">"sentiment_score"</span>)])</code></pre>
+
+            <pre class="code-panel" data-lang="rust"><code><span class="code-keyword">use</span> reqwest;
+<span class="code-keyword">use</span> serde::Deserialize;
+
+<span class="code-attribute">#[derive(Debug, Deserialize)]</span>
+<span class="code-keyword">struct</span> NewsResponse {
+    count: <span class="code-builtin">u32</span>,
+    items: Vec&lt;NewsItem&gt;,
+}
+<span class="code-attribute">#[derive(Debug, Deserialize)]</span>
+<span class="code-keyword">struct</span> NewsItem {
+    title: <span class="code-builtin">String</span>,
+    source: <span class="code-builtin">String</span>,
+}
+
+<span class="code-attribute">#[tokio::main]</span>
+<span class="code-keyword">async fn</span> <span class="code-function">main</span>() -> Result&lt;(), Box&lt;<span class="code-keyword">dyn</span> std::error::Error&gt;&gt; {
+    <span class="code-keyword">let</span> url = <span class="code-string">"https://www.instnews.net/api/news?limit=5"</span>;
+    <span class="code-keyword">let</span> resp: NewsResponse =
+        reqwest::get(url).<span class="code-keyword">await</span>?.json().<span class="code-keyword">await</span>?;
+    <span class="code-keyword">for</span> item <span class="code-keyword">in</span> &resp.items {
+        println!(<span class="code-string">"[{}] {}"</span>, item.source, item.title);
+    }
+    Ok(())
+}</code></pre>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================================================================= -->
+  <!-- Pricing Section                                                   -->
+  <!-- ================================================================= -->
+  <section class="section section-dark" id="pricing">
+    <div class="container">
+      <div class="section-header">
+        <h2 class="section-title">Simple, Transparent Pricing</h2>
+        <p class="section-subtitle">Start free. Upgrade when you need more power. Cancel any time.</p>
+      </div>
+      <div class="pricing-grid" id="landing-pricing-grid">
+        <div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--text-secondary)">Loading plans...</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================================================================= -->
+  <!-- Sources Section                                                   -->
+  <!-- ================================================================= -->
+  <section class="section">
+    <div class="container">
+      <div class="section-header">
+        <h2 class="section-title">Trusted Sources, One Feed</h2>
+        <p class="section-subtitle">Aggregating the world's top financial news providers</p>
+      </div>
+      <div class="sources-grid">
+        <div class="source-tag">CNBC</div>
+        <div class="source-tag">Reuters</div>
+        <div class="source-tag">Bloomberg</div>
+        <div class="source-tag">Yahoo Finance</div>
+        <div class="source-tag">MarketWatch</div>
+        <div class="source-tag">Nasdaq</div>
+        <div class="source-tag">SeekingAlpha</div>
+        <div class="source-tag">Investing.com</div>
+        <div class="source-tag">AP News</div>
+        <div class="source-tag">BBC Business</div>
+        <div class="source-tag">Benzinga</div>
+        <div class="source-tag">Google News</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================================================================= -->
+  <!-- CTA Section                                                       -->
+  <!-- ================================================================= -->
+  <section class="section section-cta">
+    <div class="container">
+      <img src="/assets/ClearBackgroundAppLogo.png" alt="InstNews" width="64" height="64" class="cta-logo">
+      <h2 class="cta-title">Ready to trade on better intelligence?</h2>
+      <p class="cta-subtitle">Join traders who never miss a market-moving headline.</p>
+      <div class="hero-actions" style="justify-content:center">
+        <button class="btn btn-primary btn-lg" id="cta-signup">Get Started Free</button>
+        <a href="/docs" class="btn btn-outline btn-lg">Read the Docs</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================================================================= -->
+  <!-- Footer                                                            -->
+  <!-- ================================================================= -->
+  <footer class="footer">
+    <div class="container footer-inner">
+      <div class="footer-brand">
+        <img src="/assets/ClearBackgroundAppLogo.png" alt="InstNews" width="28" height="28">
+        <span>InstNews</span>
+      </div>
+      <div class="footer-links">
+        <a href="/terminal">Terminal</a>
+        <a href="/pricing">Pricing</a>
+        <a href="/docs">API Docs</a>
+        <a href="/privacy">Privacy</a>
+        <a href="/terms">Terms</a>
+      </div>
+      <div class="footer-copy">&copy; 2026 InstNews. All rights reserved.</div>
+    </div>
+  </footer>
+
 </body>
 </html>

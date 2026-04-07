@@ -3,7 +3,6 @@
 from flask import Blueprint, request, jsonify, current_app
 
 from app.models import News
-from app.services.feed_refresh import maybe_refresh
 from app.middleware.tier_gate import tier_limit
 from app.billing.tiers import has_feature
 
@@ -19,9 +18,7 @@ def _current_tier():
 
 @news_bp.route("/api/news")
 def api_news():
-    config = current_app.config["APP_CONFIG"]
     session_factory = current_app.config["SESSION_FACTORY"]
-    maybe_refresh(session_factory, config)
 
     tier = _current_tier()
     max_limit = tier_limit("max_items_per_request") or 200
@@ -82,4 +79,12 @@ def _shape_item(item, tier):
         item.pop("sentiment_label", None)
     if not has_feature(tier, "deduplication"):
         item.pop("duplicate", None)
+    # Ticker recommendations require ai_ticker_recommendations feature
+    if not has_feature(tier, "ai_ticker_recommendations"):
+        item.pop("target_asset", None)
+        item.pop("asset_type", None)
+        item.pop("confidence", None)
+        item.pop("risk_level", None)
+        item.pop("tradeable", None)
+        item.pop("reasoning", None)
     return item

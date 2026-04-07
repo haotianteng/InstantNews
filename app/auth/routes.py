@@ -36,5 +36,14 @@ def get_user_tier():
 
 @auth_bp.route("/api/pricing")
 def get_pricing():
-    """Return all tier definitions for the pricing page."""
-    return jsonify({"tiers": get_all_tiers_summary()})
+    """Return all tier definitions for the pricing page.
+
+    Returns an ordered list of tiers with display metadata, plus
+    max-tier limits for usage comparison bars.
+    """
+    tiers = get_all_tiers_summary()
+    max_tier = get_tier("max")
+    return jsonify({
+        "tiers": tiers,
+        "max_limits": max_tier["limits"],
+    })

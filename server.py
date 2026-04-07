@@ -6,12 +6,24 @@ Usage:
     Docker:       docker compose up -d
 """
 
+import logging
+import os
+from pathlib import Path
+
+# Load .env file for local development (no-op if python-dotenv not installed)
+try:
+    from dotenv import load_dotenv
+    load_dotenv(Path(__file__).parent / ".env")
+except ImportError:
+    pass
+
 from app import create_app
 
 app = create_app()
 
 if __name__ == "__main__":
     import os
+    logger = logging.getLogger("signal")
     port = int(os.environ.get("PORT", "8000"))
-    print(f"Starting SIGNAL News Terminal on port {port}...")
+    logger.info("Starting SIGNAL News Terminal on port %d", port)
     app.run(host="0.0.0.0", port=port, debug=False)

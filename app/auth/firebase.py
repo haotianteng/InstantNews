@@ -33,10 +33,49 @@ def init_firebase():
 
 
 def verify_id_token(id_token):
-    """Verify a Firebase ID token and return the decoded claims.
-
-    Returns decoded token dict with 'uid', 'email', 'name', 'picture', etc.
-    Raises ValueError or firebase_admin.auth.InvalidIdTokenError on failure.
-    """
+    """Verify a Firebase ID token and return the decoded claims."""
     from firebase_admin import auth
     return auth.verify_id_token(id_token)
+
+
+def create_firebase_user(email, password, display_name=None):
+    """Create a new Firebase user with email/password.
+
+    Returns the UserRecord with .uid, .email, etc.
+    Raises firebase_admin.auth.EmailAlreadyExistsError if email is taken.
+    """
+    from firebase_admin import auth
+    kwargs = {"email": email, "password": password, "email_verified": False}
+    if display_name:
+        kwargs["display_name"] = display_name
+    return auth.create_user(**kwargs)
+
+
+def delete_firebase_user(uid):
+    """Delete a Firebase user by UID.
+
+    Silently succeeds if user doesn't exist in Firebase.
+    """
+    from firebase_admin import auth
+    try:
+        auth.delete_user(uid)
+    except auth.UserNotFoundError:
+        pass  # Already deleted or was never a real Firebase user
+
+
+def get_firebase_user(uid):
+    """Get Firebase user by UID. Returns None if not found."""
+    from firebase_admin import auth
+    try:
+        return auth.get_user(uid)
+    except auth.UserNotFoundError:
+        return None
+
+
+def get_firebase_user_by_email(email):
+    """Get Firebase user by email. Returns None if not found."""
+    from firebase_admin import auth
+    try:
+        return auth.get_user_by_email(email)
+    except auth.UserNotFoundError:
+        return None

@@ -8,8 +8,6 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="./base.css">
-  <link rel="stylesheet" href="./style.css">
 
   <!-- Firebase SDK -->
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
@@ -61,15 +59,17 @@
       margin: 0 auto;
     }
 
+    /* pricing-grid styles come from landing.css via pricing-renderer.js import */
     .pricing-grid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 20px;
       margin-bottom: 40px;
     }
 
-    @media (max-width: 768px) {
-      .pricing-grid { grid-template-columns: 1fr; max-width: 400px; margin: 0 auto 40px; }
+    .trial-badge {
+      display: inline-block;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--green);
+      margin-bottom: 8px;
     }
 
     .pricing-card {
@@ -234,6 +234,12 @@
       border: 1px solid rgba(210, 153, 34, 0.3);
     }
   </style>
+  <script type="module" crossorigin src="/assets/pricing-DiLqa-Hn.js"></script>
+  <link rel="modulepreload" crossorigin href="/assets/auth-DHFAXTYz.js">
+  <link rel="modulepreload" crossorigin href="/assets/checkout-9iIPNsE9.js">
+  <link rel="stylesheet" crossorigin href="/assets/checkout-D93VMLs_.css">
+  <link rel="stylesheet" crossorigin href="/assets/base-DBeiAWLw.css">
+  <link rel="stylesheet" crossorigin href="/assets/terminal-QVAFLMBh.css">
 </head>
 <body>
   <div class="pricing-page">
@@ -246,166 +252,22 @@
         SIGNAL
       </a>
       <h1>Choose Your Plan</h1>
-      <p>Real-time financial news intelligence. Start free, upgrade when you need more.</p>
+      <p>Real-time financial news intelligence. Start free, upgrade when you need more. Cancel any time.</p>
     </div>
 
     <!-- Success/Cancel alerts -->
     <div id="alert-container"></div>
 
-    <div class="pricing-grid">
-      <!-- Free -->
-      <div class="pricing-card">
-        <h2>Free</h2>
-        <div class="tier-desc">Get started with real-time news</div>
-        <div class="price">
-          <span class="amount">$0</span>
-          <span class="period">/ month</span>
-        </div>
-        <ul class="feature-list">
-          <li class="included"><span class="check">&#10003;</span> Real-time news feed</li>
-          <li class="included"><span class="check">&#10003;</span> Keyword search</li>
-          <li class="included"><span class="check">&#10003;</span> Source filtering</li>
-          <li class="included"><span class="check">&#10003;</span> 15 financial sources</li>
-          <li><span class="cross">&#10005;</span> Sentiment analysis</li>
-          <li><span class="cross">&#10005;</span> Duplicate detection</li>
-          <li><span class="cross">&#10005;</span> Date range filtering</li>
-          <li><span class="cross">&#10005;</span> AI recommendations</li>
-        </ul>
-        <a href="/" class="btn-subscribe secondary">Current Plan</a>
-      </div>
-
-      <!-- Plus -->
-      <div class="pricing-card featured">
-        <h2>Plus</h2>
-        <div class="tier-desc">Full analysis for active traders</div>
-        <div class="price">
-          <span class="amount">$14.99</span>
-          <span class="period">/ month</span>
-        </div>
-        <ul class="feature-list">
-          <li class="included"><span class="check">&#10003;</span> Everything in Free</li>
-          <li class="included"><span class="check">&#10003;</span> Sentiment analysis</li>
-          <li class="included"><span class="check">&#10003;</span> Duplicate detection</li>
-          <li class="included"><span class="check">&#10003;</span> Date range filtering</li>
-          <li class="included"><span class="check">&#10003;</span> 1 year history</li>
-          <li class="included"><span class="check">&#10003;</span> 200 items per request</li>
-          <li><span class="cross">&#10005;</span> AI recommendations</li>
-          <li><span class="cross">&#10005;</span> Price analysis</li>
-        </ul>
-        <button class="btn-subscribe primary" data-tier="plus" onclick="handleSubscribe('plus')">
-          Subscribe to Plus
-        </button>
-      </div>
-
-      <!-- Max -->
-      <div class="pricing-card">
-        <h2>Max</h2>
-        <div class="tier-desc">AI-powered insights for professionals</div>
-        <div class="price">
-          <span class="amount">$39.99</span>
-          <span class="period">/ month</span>
-        </div>
-        <ul class="feature-list">
-          <li class="included"><span class="check">&#10003;</span> Everything in Plus</li>
-          <li class="included"><span class="check">&#10003;</span> AI ticker recommendations</li>
-          <li class="included"><span class="check">&#10003;</span> Price analysis</li>
-          <li class="included"><span class="check">&#10003;</span> Advanced analytics</li>
-          <li class="included"><span class="check">&#10003;</span> Custom alerts</li>
-          <li class="included"><span class="check">&#10003;</span> 5 year history</li>
-          <li class="included"><span class="check">&#10003;</span> 500 items per request</li>
-          <li class="included"><span class="check">&#10003;</span> Priority support</li>
-        </ul>
-        <button class="btn-subscribe secondary" data-tier="max" onclick="handleSubscribe('max')">
-          Subscribe to Max
-        </button>
-      </div>
+    <div class="pricing-grid" id="pricing-page-grid">
+      <!-- Rendered dynamically by pricing.js from /api/pricing -->
+      <div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--text-secondary)">Loading plans...</div>
     </div>
 
     <div class="pricing-footer">
-      <p>All plans include 15+ financial news sources with 5-second refresh.</p>
-      <p>Questions? <a href="mailto:support@instnews.net">Contact us</a> &middot; <a href="/">Back to terminal</a></p>
+      <p>All plans include 15+ financial news sources. Pro includes 5-second refresh.</p>
+      <p>Questions? <a href="mailto:support@instnews.net">Contact us</a> &middot; <a href="/account">Account</a> &middot; <a href="/terminal">Back to terminal</a></p>
     </div>
   </div>
 
-  <script src="./auth.js"></script>
-  <script>
-    // Initialize auth
-    if (typeof SignalAuth !== "undefined") {
-      SignalAuth.init();
-    }
-
-    // Show success/cancel alerts from redirect
-    (function () {
-      var params = new URLSearchParams(window.location.search);
-      var container = document.getElementById("alert-container");
-      if (params.get("success") === "true") {
-        container.innerHTML = '<div class="alert success">Subscription activated! Your account has been upgraded.</div>';
-        // Clean URL
-        history.replaceState({}, "", "/pricing");
-      } else if (params.get("canceled") === "true") {
-        container.innerHTML = '<div class="alert canceled">Checkout was canceled. No charges were made.</div>';
-        history.replaceState({}, "", "/pricing");
-      }
-    })();
-
-    async function handleSubscribe(tier) {
-      // Must be signed in
-      if (!SignalAuth.isSignedIn()) {
-        try {
-          await SignalAuth.signIn();
-        } catch (err) {
-          if (err.code === "auth/popup-closed-by-user") return;
-          alert("Sign-in failed. Please try again.");
-          return;
-        }
-        // Wait for token
-        await new Promise(function (resolve) { setTimeout(resolve, 1000); });
-      }
-
-      var btn = document.querySelector('[data-tier="' + tier + '"]');
-      if (btn) {
-        btn.disabled = true;
-        btn.textContent = "Redirecting...";
-      }
-
-      try {
-        var res = await SignalAuth.fetch("/api/billing/checkout", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ tier: tier }),
-        });
-
-        var data = await res.json();
-
-        if (res.status === 503) {
-          // Stripe not configured yet
-          alert(data.error || "Payment system is coming soon!");
-          if (btn) {
-            btn.disabled = false;
-            btn.textContent = "Subscribe to " + tier.charAt(0).toUpperCase() + tier.slice(1);
-          }
-          return;
-        }
-
-        if (!res.ok) {
-          alert(data.error || "Something went wrong.");
-          if (btn) {
-            btn.disabled = false;
-            btn.textContent = "Subscribe to " + tier.charAt(0).toUpperCase() + tier.slice(1);
-          }
-          return;
-        }
-
-        // Redirect to Stripe Checkout
-        window.location.href = data.url;
-      } catch (err) {
-        alert("Network error. Please try again.");
-        if (btn) {
-          btn.disabled = false;
-          btn.textContent = "Subscribe to " + tier.charAt(0).toUpperCase() + tier.slice(1);
-        }
-      }
-    }
-  </script>
 </body>
 </html>

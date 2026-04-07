@@ -1,23 +1,23 @@
 # Phase 3A: Tier Gating
 
 **Status:** Complete
-**Goal:** Gate features by subscription tier (Free/Plus/Max). Server-side enforcement with client-side UI adaptation.
+**Goal:** Gate features by subscription tier (Free/Pro). Server-side enforcement with client-side UI adaptation. Max tier exists in code but is hidden from user-facing surfaces.
 
 ## Tier Definitions
 
-Centralized in `app/billing/tiers.py`. Single source of truth for both backend enforcement and frontend display.
+Centralized in `app/billing/tiers.py`. Single source of truth for both backend enforcement and frontend display. Only visible tiers (Free, Pro) are shown to users. The `plus` key is a backward-compatibility alias for `pro`.
 
-| Feature | Free | Plus ($14.99/mo) | Max ($39.99/mo) |
-|---------|------|-------------------|-----------------|
-| News feed | Yes | Yes | Yes |
-| Keyword search | Yes | Yes | Yes |
-| Source filtering | Yes | Yes | Yes |
-| Sentiment data | **No** | Yes | Yes |
-| Deduplication | **No** | Yes | Yes |
-| Date range filter | **No** | Yes | Yes |
-| History depth | 7 days | 1 year | 5 years |
-| Items per request | 50 | 200 | 500 |
-| API rate limit | 10/min | 60/min | 120/min |
+| Feature | Free | Pro ($14.99/mo, 30-day trial) |
+|---------|------|-------------------------------|
+| News feed | Yes | Yes |
+| Keyword search | Yes | Yes |
+| Source filtering | Yes | Yes |
+| Sentiment data | **No** | Yes |
+| Deduplication | **No** | Yes |
+| Date range filter | **No** | Yes |
+| History depth | 7 days | 1 year |
+| Items per request | 50 | 200 |
+| API rate limit | 10/min | 60/min |
 
 ## What Was Built
 

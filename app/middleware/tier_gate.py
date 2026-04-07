@@ -38,9 +38,9 @@ def require_feature(feature_name):
 def require_tier(min_tier):
     """Decorator that requires at least the specified tier.
 
-    Tier order: free < plus < max
+    Tier order: free < pro < max
     """
-    tier_order = {"free": 0, "plus": 1, "max": 2}
+    tier_order = {"free": 0, "pro": 1, "plus": 1, "max": 2}
 
     def decorator(f):
         @wraps(f)
