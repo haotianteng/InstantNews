@@ -19,7 +19,7 @@ Auditor: Feature Gate QA Agent
 
 ### Implemented Features (Enforced Today)
 
-| Feature | Free | Pro ($14.99/mo) | Enforcement Point |
+| Feature | Free | Pro ($29.99/mo) | Enforcement Point |
 |---------|------|-----------------|-------------------|
 | News feed access | Yes | Yes | `news_feed` flag (both True) |
 | Keyword search | Yes | Yes | `keyword_search` flag |

@@ -868,6 +868,7 @@ function hideUpgradeGate() {
   if (overlay) overlay.remove();
 }
 
+
 function init() {
   renderSkeleton();
   renderSources();

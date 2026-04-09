@@ -35,7 +35,7 @@ Major frontend redesign, AI-powered sentiment analysis, account dashboard, API k
 - Added `display` dict to each tier (prices, descriptions, feature lists, CTA labels)
 - Added `TIER_ORDER` list for canonical display ordering
 - `/api/pricing` returns ordered list with display metadata + max-tier limits
-- Three visible tiers: Free ($0), Pro ($14.99/mo), Max ($39.99/mo)
+- Three visible tiers: Free ($0), Pro ($29.99/mo), Max ($89.99/mo)
 
 ### Auth & API Keys
 - Auth middleware now accepts `X-API-Key` header alongside Firebase Bearer tokens

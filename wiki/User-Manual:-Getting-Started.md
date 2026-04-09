@@ -32,7 +32,7 @@ graph LR
         F5[7-day history]
     end
 
-    subgraph Plus [Plus — $14.99/mo]
+    subgraph Plus [Plus — $29.99/mo]
         P1[Everything in Free]
         P2[Sentiment Analysis]
         P3[Duplicate Detection]
@@ -41,7 +41,7 @@ graph LR
         P6[1-year history]
     end
 
-    subgraph Max [Max — $39.99/mo]
+    subgraph Max [Max — $89.99/mo]
         M1[Everything in Plus]
         M2[AI Ticker Recommendations]
         M3[Price Analysis]

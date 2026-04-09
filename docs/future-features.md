@@ -2,6 +2,34 @@
 
 Features listed in `app/billing/tiers.py` that are flagged but **not yet implemented**. Each requires new backend and/or frontend work before the tier gate becomes meaningful.
 
+## WeChat Login (Pending Approval)
+
+**Status:** Code implemented, waiting for WeChat Open Platform approval (~1 week).
+
+**What:** WeChat QR code scan login for Chinese users (Google OAuth is blocked in China).
+
+**Registration steps:**
+1. Register at https://open.weixin.qq.com/ (requires Chinese business license or individual ID)
+2. Create a "Website Application" (website app)
+3. Submit domain verification for www.instnews.net
+4. Wait for approval (1-3 business days after submission)
+5. Get `WECHAT_APP_ID` and `WECHAT_APP_SECRET`
+6. Configure callback URL: `https://www.instnews.net/api/auth/wechat/callback`
+7. Add secrets to AWS Secrets Manager (`instantnews/app`)
+8. Generate `APP_JWT_SECRET` (32-byte random hex) and add to secrets
+
+**Code already implemented:**
+- `app/auth/wechat.py` — WeChat OAuth client (QR code flow)
+- `app/auth/jwt_utils.py` — App JWT for WeChat session tokens
+- `app/auth/routes.py` — `/api/auth/wechat/login`, `/callback`, `/refresh`
+- `app/auth/middleware.py` — App JWT verification path
+- `frontend/src/auth.js` — WeChat button + token handling (CN region)
+- `migrations/versions/010_add_multi_auth_fields.py` — `wechat_openid`, `wechat_unionid` columns
+
+**Deploy:** Once approved, add secrets and redeploy. No code changes needed.
+
+---
+
 ## Phase 3B: Stripe Payment Integration (Next)
 
 **What:** Connect Stripe Checkout for subscriptions so users can upgrade tiers.
@@ -12,7 +40,7 @@ Features listed in `app/billing/tiers.py` that are flagged but **not yet impleme
 | `app/billing/routes.py` | `POST /api/billing/checkout`, `POST /api/billing/portal`, `POST /api/billing/webhook` |
 | `static/pricing.html` | Two-column pricing page (Free/Pro) with Subscribe buttons |
 | `migrations/003_add_subscriptions.py` | Subscriptions table (stripe_customer_id, stripe_subscription_id, status, etc.) |
-| Stripe Dashboard | Create Products and Prices for Pro ($14.99/mo with 30-day trial). Max tier hidden for now. |
+| Stripe Dashboard | Create Products and Prices for Pro ($29.99/mo with 30-day trial). Max tier hidden for now. |
 
 **Blocked by:** Company registration → Stripe account creation. Can develop in Stripe test mode.
 

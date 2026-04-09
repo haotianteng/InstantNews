@@ -17,7 +17,7 @@ graph TB
         F9[fa:fa-times No AI features]
     end
 
-    subgraph Plus [Plus — $14.99/month]
+    subgraph Plus [Plus — $29.99/month]
         direction TB
         P1[fa:fa-check Everything in Free]
         P2[fa:fa-check Sentiment analysis]
@@ -29,7 +29,7 @@ graph TB
         P8[fa:fa-times No AI features]
     end
 
-    subgraph Max [Max — $39.99/month]
+    subgraph Max [Max — $89.99/month]
         direction TB
         M1[fa:fa-check Everything in Plus]
         M2[fa:fa-check AI ticker recommendations]

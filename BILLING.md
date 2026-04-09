@@ -7,8 +7,8 @@ Stripe integration for InstNews (SIGNAL) subscription billing.
 | Tier | Internal Key | Price | Visible | Trial |
 |------|-------------|-------|---------|-------|
 | Free | `free` | $0/mo | Yes | N/A |
-| Pro | `pro` | $14.99/mo | Yes | 30 days |
-| Max | `max` | $39.99/mo | **No** (hidden, future) | None |
+| Pro | `pro` | $29.99/mo | Yes | 30 days |
+| Max | `max` | $89.99/mo | **No** (hidden, future) | None |
 
 The `plus` key is a backward-compatibility alias for `pro` in `app/billing/tiers.py`.
 
@@ -18,7 +18,7 @@ Products and Prices must be created in the [Stripe Dashboard](https://dashboard.
 
 | Product | Stripe Price ID Env Var | Monthly Price |
 |---------|------------------------|---------------|
-| SIGNAL Pro | `STRIPE_PRICE_PRO` | $14.99 |
+| SIGNAL Pro | `STRIPE_PRICE_PRO` | $29.99 |
 | SIGNAL Max | `STRIPE_PRICE_MAX` | (not active) |
 
 Legacy env var `STRIPE_PRICE_PLUS` is still accepted as a fallback for `STRIPE_PRICE_PRO`.

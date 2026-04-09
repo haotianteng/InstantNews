@@ -124,8 +124,8 @@ All via environment variables (see `.env.example`):
 Defined in `app/billing/tiers.py` — **single source of truth** for ALL tier data (backend gating + frontend display). Three visible tiers:
 
 - **Free** ($0): news feed, keyword search, source filtering. 50 items/req, 30 req/min, 7-day history.
-- **Pro** ($14.99/mo, 30-day trial): sentiment analysis, dedup, date filtering, API access, CSV export, watchlist. 200 items/req, 300 req/min, 1-year history.
-- **Max** ($39.99/mo): everything in Pro + AI ticker recommendations, price analysis, advanced analytics, custom alerts. 500 items/req, 1000 req/min, 5-year history.
+- **Pro** ($29.99/mo, 30-day trial): sentiment analysis, dedup, date filtering, API access, CSV export, watchlist. 200 items/req, 300 req/min, 1-year history.
+- **Max** ($89.99/mo): everything in Pro + AI ticker recommendations, price analysis, advanced analytics, custom alerts. 500 items/req, 1000 req/min, 5-year history.
 
 The `plus` key is a backward-compatibility alias for `pro`. Frontend fetches tier display data from `/api/pricing` — never hardcoded.
 

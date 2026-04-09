@@ -7,6 +7,8 @@ import SignalAuth from './auth.js';
 
 // ── State ────────────────────────────────────────────────────────
 var _currentUserId = null;
+var _currentUserRole = null;
+var _currentUserSelfId = null;
 var _usersOffset = 0;
 var _usersLimit = 50;
 
@@ -34,7 +36,16 @@ SignalAuth.onAuthChange(function (user) {
     document.getElementById("admin-auth").style.display = "none";
     document.getElementById("admin-app").style.display = "flex";
     document.getElementById("sidebar-email").textContent = user.email;
-    loadDashboard();
+    // Fetch current admin's role before loading dashboard
+    SignalAuth.fetch("/api/auth/me").then(function(r) { return r.json(); }).then(function(d) {
+      if (d.user) {
+        _currentUserRole = d.user.role || "user";
+        _currentUserSelfId = d.user.id;
+      }
+      loadDashboard();
+    }).catch(function() {
+      loadDashboard();
+    });
   } else {
     document.getElementById("admin-auth").style.display = "flex";
     document.getElementById("admin-app").style.display = "none";
@@ -365,6 +376,14 @@ function openUserDetail(userId) {
     disableBtn.textContent = u.disabled ? "Enable Account" : "Disable Account";
     disableBtn.className = u.disabled ? "btn btn-primary btn-block" : "btn btn-outline btn-block";
     document.getElementById("detail-delete").style.display = u.is_test_account ? "block" : "none";
+    // Show permanent delete for superadmins (not for self)
+    var permDeleteBtn = document.getElementById("detail-permanent-delete");
+    if (permDeleteBtn) {
+      var isSuperadmin = _currentUserRole === "superadmin";
+      var isSelf = u.id === _currentUserSelfId;
+      permDeleteBtn.style.display = (isSuperadmin && !isSelf) ? "block" : "none";
+      permDeleteBtn.dataset.email = u.email || u.display_name || u.id;
+    }
 
     // API Keys
     var keysEl = document.getElementById("detail-api-keys");
@@ -461,6 +480,28 @@ document.getElementById("detail-delete").addEventListener("click", function () {
   api("/users/" + _currentUserId, {method: "DELETE"}).then(function (r) { return r.json(); }).then(function (d) {
     if (d.status === "deleted") { showToast("Account deleted"); navigateTo("users"); }
     else alert(d.error || "Failed");
+  });
+});
+
+// Permanent delete (superadmin only) — requires typed confirmation
+document.getElementById("detail-permanent-delete").addEventListener("click", function () {
+  var emailOrName = this.dataset.email || "";
+  var expected = "DELETE ACCOUNT " + emailOrName;
+  var input = prompt(
+    "This will PERMANENTLY delete this account and all associated data.\n\n" +
+    "To confirm, type exactly:\n" + expected
+  );
+  if (!input || input.trim() !== expected) {
+    if (input !== null) alert("Confirmation did not match. Account was NOT deleted.");
+    return;
+  }
+  api("/users/" + _currentUserId + "/delete", {
+    method: "POST",
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify({confirmation: expected}),
+  }).then(function (r) { return r.json(); }).then(function (d) {
+    if (d.status === "deleted") { showToast("Account permanently deleted: " + d.email); navigateTo("users"); }
+    else alert(d.error || "Failed to delete account");
   });
 });
 

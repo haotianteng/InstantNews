@@ -444,6 +444,88 @@ def update_user_role(user_id):
         db.close()
 
 
+@admin_bp.route("/users/<int:user_id>/delete", methods=["POST"])
+@require_superadmin
+def permanently_delete_user(user_id):
+    """Permanently delete any user account (superadmin only).
+
+    Requires typing "DELETE ACCOUNT <email>" as confirmation.
+    Body: {"confirmation": "DELETE ACCOUNT user@example.com"}
+    """
+    data = request.get_json() or {}
+    confirmation = data.get("confirmation", "").strip()
+
+    db = _get_write_db()
+    try:
+        user = db.query(User).filter_by(id=user_id).first()
+        if not user:
+            return jsonify({"error": "User not found"}), 404
+
+        # Cannot delete yourself
+        if user_id == flask_g.current_user.id:
+            return jsonify({"error": "Cannot delete your own account."}), 400
+
+        # Verify confirmation string
+        expected = f"DELETE ACCOUNT {user.email or user.display_name or user.id}"
+        if confirmation != expected:
+            return jsonify({
+                "error": "Confirmation does not match.",
+                "expected_format": f"DELETE ACCOUNT {user.email or user.display_name or user.id}",
+            }), 400
+
+        email = user.email
+        firebase_uid = user.firebase_uid
+        auth_method = getattr(user, "auth_method", "unknown")
+
+        # Delete related records
+        db.query(ApiUsage).filter_by(user_id=user_id).delete()
+        db.query(ApiKey).filter_by(user_id=user_id).delete()
+        db.query(Subscription).filter_by(user_id=user_id).delete()
+
+        # Audit before delete
+        _audit(db, "permanently_delete_user", user_id, {
+            "email": email,
+            "auth_method": auth_method,
+            "firebase_uid": firebase_uid,
+        })
+
+        db.delete(user)
+        db.commit()
+
+        # Clean up Firebase if applicable
+        firebase_deleted = False
+        if firebase_uid:
+            try:
+                from app.auth.firebase import delete_firebase_user
+                delete_firebase_user(firebase_uid)
+                firebase_deleted = True
+            except Exception as e:
+                logger.warning("Firebase delete failed", extra={
+                    "event": "firebase_delete_failed",
+                    "firebase_uid": firebase_uid,
+                    "error": str(e),
+                })
+
+        logger.info("User permanently deleted by superadmin", extra={
+            "event": "user_permanently_deleted",
+            "deleted_user_id": user_id,
+            "deleted_email": email,
+            "deleted_by": flask_g.current_user.email,
+        })
+
+        return jsonify({
+            "status": "deleted",
+            "email": email,
+            "firebase_deleted": firebase_deleted,
+        })
+    except Exception as e:
+        db.rollback()
+        logger.exception("Permanent user deletion failed")
+        return jsonify({"error": str(e)}), 500
+    finally:
+        db.close()
+
+
 @admin_bp.route("/admins")
 @require_admin
 def list_admins():

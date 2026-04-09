@@ -7,7 +7,7 @@
 
 Centralized in `app/billing/tiers.py`. Single source of truth for both backend enforcement and frontend display. Only visible tiers (Free, Pro) are shown to users. The `plus` key is a backward-compatibility alias for `pro`.
 
-| Feature | Free | Pro ($14.99/mo, 30-day trial) |
+| Feature | Free | Pro ($29.99/mo, 30-day trial) |
 |---------|------|-------------------------------|
 | News feed | Yes | Yes |
 | Keyword search | Yes | Yes |

@@ -73,7 +73,7 @@ def api_news():
 
 
 def _shape_item(item, tier):
-    """Strip fields that the user's tier doesn't have access to."""
+    """Strip or mask fields that the user's tier doesn't have access to."""
     if not has_feature(tier, "sentiment_filter"):
         item.pop("sentiment_score", None)
         item.pop("sentiment_label", None)

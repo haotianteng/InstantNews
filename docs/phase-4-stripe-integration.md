@@ -1,7 +1,7 @@
 # Phase 4: Stripe Payment Integration
 
 **Status:** Complete (frontend-ready, backend-ready, awaiting Stripe account)
-**Goal:** Enable paid subscriptions via Stripe Checkout. Users can upgrade from Free to Plus ($14.99/mo) or Max ($39.99/mo). Webhook keeps subscription state in sync.
+**Goal:** Enable paid subscriptions via Stripe Checkout. Users can upgrade from Free to Plus ($29.99/mo) or Max ($89.99/mo). Webhook keeps subscription state in sync.
 
 ## What Was Built
 
@@ -61,8 +61,8 @@ Each Stripe event ID is stored in `stripe_events` table after processing. If the
 
 1. **Create Stripe account** at https://dashboard.stripe.com
 2. **Create Products and Prices:**
-   - Product "SIGNAL Plus" → Price $14.99/month (recurring)
-   - Product "SIGNAL Max" → Price $39.99/month (recurring)
+   - Product "SIGNAL Plus" → Price $29.99/month (recurring)
+   - Product "SIGNAL Max" → Price $89.99/month (recurring)
 3. **Set environment variables:**
    ```
    STRIPE_SECRET_KEY=sk_live_...

@@ -76,12 +76,17 @@ class User(Base):
     __tablename__ = "users"
 
     id = Column(Integer, primary_key=True, autoincrement=True)
-    firebase_uid = Column(String, unique=True, nullable=False)
-    email = Column(String, unique=True, nullable=False)
+    firebase_uid = Column(String, unique=True, nullable=True)
+    email = Column(String, unique=True, nullable=True)
     display_name = Column(String, nullable=True)
     photo_url = Column(String, nullable=True)
     tier = Column(String, default="free", nullable=False)
     role = Column(String, default="user", nullable=False)  # user, admin, superadmin
+    auth_method = Column(String, default="email", nullable=False)  # email, google, wechat
+    password_hash = Column(String, nullable=True)      # bcrypt, only for auth_method="email"
+    email_verified = Column(Boolean, default=False, nullable=False)
+    wechat_openid = Column(String, unique=True, nullable=True)
+    wechat_unionid = Column(String, nullable=True)
     is_test_account = Column(Boolean, default=False, nullable=False)
     test_tier_override = Column(String, nullable=True)
     disabled = Column(Boolean, default=False, nullable=False)
@@ -98,6 +103,7 @@ class User(Base):
             "display_name": self.display_name,
             "photo_url": self.photo_url,
             "tier": self.test_tier_override or self.tier if self.is_test_account else self.tier,
+            "auth_method": self.auth_method,
             "is_test_account": self.is_test_account,
             "created_at": self.created_at,
         }

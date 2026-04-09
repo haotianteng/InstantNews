@@ -29,6 +29,21 @@ class Config:
     WORKER_INTERVAL_SECONDS = int(os.environ.get("WORKER_INTERVAL_SECONDS", "30"))
     WORKER_ENABLED = os.environ.get("WORKER_ENABLED", "true").lower() == "true"
 
+    # WeChat OAuth (CN social login, pending approval)
+    WECHAT_APP_ID = os.environ.get("WECHAT_APP_ID", "")
+    WECHAT_APP_SECRET = os.environ.get("WECHAT_APP_SECRET", "")
+    WECHAT_REDIRECT_URI = os.environ.get(
+        "WECHAT_REDIRECT_URI", "https://www.instnews.net/api/auth/wechat/callback"
+    )
+
+    # App JWT (for email/password + WeChat session tokens)
+    APP_JWT_SECRET = os.environ.get("APP_JWT_SECRET", "")
+    APP_JWT_EXPIRY_DAYS = int(os.environ.get("APP_JWT_EXPIRY_DAYS", "7"))
+
+    # Email service (Gmail API via service account delegation)
+    GMAIL_SENDER = os.environ.get("GMAIL_SENDER", "noreply@instnews.net")
+    BASE_URL = os.environ.get("BASE_URL", "https://www.instnews.net")
+
     USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
 
     FEEDS = {

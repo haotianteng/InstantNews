@@ -1,5 +1,25 @@
 #!/bin/bash
 
+# Load secrets from Secrets Manager if not already set as env vars
+# This covers keys added to Secrets Manager before the next cdk deploy
+if [ -z "$APP_JWT_SECRET" ] && command -v python3 &>/dev/null; then
+  echo "Loading missing secrets from Secrets Manager..."
+  eval "$(python3 -c "
+import json, os
+try:
+    import boto3
+    client = boto3.client('secretsmanager', region_name='us-east-1')
+    resp = client.get_secret_value(SecretId='instantnews/app')
+    secrets = json.loads(resp['SecretString'])
+    for key in ['APP_JWT_SECRET', 'WECHAT_APP_ID', 'WECHAT_APP_SECRET']:
+        val = secrets.get(key, '')
+        if val and not os.environ.get(key):
+            print(f'export {key}=\"{val}\"')
+except Exception as e:
+    print(f'# Failed to load secrets: {e}', flush=True)
+" 2>/dev/null)" || true
+fi
+
 # Construct DATABASE_URL from components if not set directly
 if [ -z "$DATABASE_URL" ] && [ -n "$DB_HOST" ]; then
   export DATABASE_URL="postgresql://${DB_USER:-signal}:${DB_PASSWORD}@${DB_HOST}:${DB_PORT:-5432}/${DB_NAME:-signal_news}"

@@ -40,6 +40,12 @@ def create_app(config_class=None):
     # Store config for access in routes via current_app.config
     app.config["APP_CONFIG"] = config_class
 
+    # Copy auth config values to Flask config for route access
+    for key in ("WECHAT_APP_ID", "WECHAT_APP_SECRET", "WECHAT_REDIRECT_URI",
+                "APP_JWT_SECRET", "APP_JWT_EXPIRY_DAYS",
+                "GMAIL_SENDER", "BASE_URL"):
+        app.config[key] = getattr(config_class, key, "")
+
     # Initialize database (primary)
     engine = init_db(config_class.DATABASE_URL)
     from sqlalchemy.orm import sessionmaker

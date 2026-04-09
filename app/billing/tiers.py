@@ -71,7 +71,7 @@ TIERS = {
     "pro": {
         "name": "Pro",
         "visible": True,
-        "price_monthly_cents": 1499,
+        "price_monthly_cents": 2999,
         "trial_period_days": 30,
         "features": {
             "terminal_access": True,
@@ -98,7 +98,7 @@ TIERS = {
             "history_days": 365,
         },
         "display": {
-            "price": "$14.99",
+            "price": "$29.99",
             "price_period": "/mo",
             "description": "Full analysis for active traders",
             "trial_text": "30-day free trial \u2014 cancel anytime",
@@ -123,7 +123,7 @@ TIERS = {
     "max": {
         "name": "Max",
         "visible": True,
-        "price_monthly_cents": 3999,
+        "price_monthly_cents": 8999,
         "trial_period_days": 0,
         "features": {
             "terminal_access": True,
@@ -150,7 +150,7 @@ TIERS = {
             "history_days": 1825,
         },
         "display": {
-            "price": "$39.99",
+            "price": "$89.99",
             "price_period": "/mo",
             "description": "Maximum power for professional traders",
             "trial_text": None,
