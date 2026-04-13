@@ -1,0 +1,30 @@
+# Ralph v2 Progress Log
+Started: Mon 13 Apr 2026 05:04:13 AM EDT
+PRD: Transform the SIGNAL terminal into a competitive financial intelligence platform: sync AI backfill to production, fix ticker recommendation pipeline, add dynamic column customization, integrate Polygon.io real-time market data, and build comprehensive company profiles with SEC EDGAR institutional/insider data.
+Mode: Adversarial (loop)
+---
+
+## Codebase Patterns
+
+- **mypy config**: `pyproject.toml` has `[tool.mypy] ignore_missing_imports = true` — needed because many deps lack stubs (boto3, firebase_admin, etc.)
+- **database.py kwargs**: Use `dict[str, Any]` for engine kwargs to avoid mypy narrowing errors when mixing bool/int/type values
+- **Script conventions**: Scripts in `scripts/` use `sys.path.insert(0, ...)` + `dotenv` load + `init_db(Config.DATABASE_URL)` + `get_session()` pattern
+- **News.link is unique**: The `link` column is the unique identifier for articles across local and production DBs
+
+---
+
+## 2026-04-13 09:05 EDT - US-001 - IMPLEMENTOR — Implemented export_ai_backfill.py
+
+- Created `scripts/export_ai_backfill.py` — exports AI fields as SQL UPDATE statements keyed on `link`
+- Supports `--dry-run` (count + preview) and `--output <path>` (full SQL dump)
+- SQL wraps in BEGIN/COMMIT, handles NULLs, booleans, float formatting, single-quote escaping
+- Fixed `app/database.py` kwargs typing (dict[str, Any]) for mypy compatibility
+- Added `[tool.mypy] ignore_missing_imports = true` to `pyproject.toml`
+- Verified: 31,067 records exported, mypy clean, all PRD test assertions pass
+- **Files changed:** `scripts/export_ai_backfill.py`, `app/database.py`, `pyproject.toml`
+- **Environment notes for Tester:**
+  - Local SQLite DB has 31,067 AI-analyzed articles — `--dry-run` will show this count
+  - `--output` requires a writable path (e.g., `/tmp/ai_backfill.sql`)
+  - mypy requires `pip install mypy` (not in requirements.txt by default)
+  - 8 pre-existing test failures in `test_tiers.py`/`test_rate_limit.py` (stale tier config values) — not related to this story
+---

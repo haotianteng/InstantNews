@@ -1,6 +1,7 @@
 """Database engine and session management."""
 
 import os
+from typing import Any
 
 from sqlalchemy import create_engine
 from sqlalchemy.orm import DeclarativeBase, Session, sessionmaker
@@ -21,8 +22,8 @@ def init_db(database_url: str):
     """Initialize the database engine and session factory."""
     global _engine, _SessionFactory
 
-    connect_args = {}
-    kwargs = {"pool_pre_ping": True}
+    connect_args: dict[str, Any] = {}
+    kwargs: dict[str, Any] = {"pool_pre_ping": True}
 
     if database_url.startswith("sqlite"):
         connect_args["check_same_thread"] = False
@@ -53,7 +54,7 @@ def init_replica_db(database_url: str):
     """Initialize a read-only replica connection (for admin/analytics)."""
     global _replica_engine, _ReplicaSessionFactory
 
-    kwargs = {"pool_pre_ping": True}
+    kwargs: dict[str, Any] = {"pool_pre_ping": True}
     if database_url.startswith("postgresql"):
         kwargs["pool_size"] = int(os.environ.get("DB_REPLICA_POOL_SIZE", "5"))
         kwargs["max_overflow"] = int(os.environ.get("DB_REPLICA_MAX_OVERFLOW", "10"))
