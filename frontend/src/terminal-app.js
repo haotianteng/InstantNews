@@ -44,6 +44,10 @@ let state = {
   startTime: Date.now(),
   sidebarOpen: false,
   modalOpen: false,
+  detailModalOpen: false,
+  detailItem: null,
+  userTier: null,
+  userFeatures: {},
   soundEnabled: false,
 };
 
@@ -602,6 +606,32 @@ function bindEvents() {
     });
   }
 
+  // Detail modal — row click (event delegation)
+  const newsBody = $("#news-body");
+  if (newsBody) {
+    newsBody.addEventListener("click", (e) => {
+      // Don't intercept link clicks — let them open in new tab
+      if (e.target.closest("a")) return;
+      const row = e.target.closest("tr[data-id]");
+      if (!row) return;
+      const itemId = row.dataset.id;
+      const item = state.items.find((i) => String(i.id) === itemId);
+      if (item) openDetailModal(item);
+    });
+  }
+
+  // Detail modal close
+  const detailClose = $("#detail-modal-close");
+  if (detailClose) {
+    detailClose.addEventListener("click", closeDetailModal);
+  }
+  const detailOverlay = $("#detail-modal-overlay");
+  if (detailOverlay) {
+    detailOverlay.addEventListener("click", (e) => {
+      if (e.target === detailOverlay) closeDetailModal();
+    });
+  }
+
   // Sound toggle
   const soundBtn = $("#btn-sound");
   if (soundBtn) {
@@ -666,7 +696,8 @@ function bindEvents() {
         setSentimentFilter("neutral");
         break;
       case "escape":
-        if (state.modalOpen) toggleModal(false);
+        if (state.detailModalOpen) closeDetailModal();
+        else if (state.modalOpen) toggleModal(false);
         if (state.sidebarOpen) toggleSidebar(false);
         break;
     }
@@ -716,6 +747,110 @@ function toggleModal(open) {
       el.textContent = window.location.origin + window.location.pathname.replace(/\/[^/]*$/, "");
     });
   }
+}
+
+// ---------------------------------------------------------------------------
+// Detail Modal (Ticker Recommendation)
+// ---------------------------------------------------------------------------
+
+function openDetailModal(item) {
+  state.detailItem = item;
+  state.detailModalOpen = true;
+
+  const overlay = $("#detail-modal-overlay");
+  if (!overlay) return;
+
+  const isMax = state.userTier === "max";
+  let content = "";
+
+  // Article context — always shown
+  content += `<div class="detail-article">
+    <h3 class="detail-headline">${escapeHtml(item.title || "Untitled")}</h3>
+    <div class="detail-meta">
+      <span class="source-tag">${escapeHtml(item.source || "")}</span>
+      <span class="detail-time">${formatTime(item.published)} \u00B7 ${timeAgo(item.published)}</span>
+    </div>
+  </div>`;
+
+  if (!isMax) {
+    // Non-Max users see upgrade prompt
+    content += `<div class="detail-upgrade">
+      <div class="detail-upgrade-icon">\u25C7</div>
+      <h4>Ticker Recommendations</h4>
+      <p>Upgrade to Max to see AI ticker recommendations, risk assessment, and trading signals for every article.</p>
+      <a href="/pricing" class="detail-upgrade-btn">Upgrade to Max</a>
+    </div>`;
+  } else if (!item.ai_analyzed) {
+    // Max user but analysis hasn't run
+    content += `<div class="detail-pending">
+      <div class="detail-pending-icon">\u25C7</div>
+      <p>Analysis pending</p>
+      <span>AI analysis has not yet been run on this article.</span>
+    </div>`;
+  } else if (!item.target_asset) {
+    // Max user, analyzed but no ticker recommendation
+    content += `<div class="detail-pending">
+      <div class="detail-pending-icon">\u2014</div>
+      <p>No recommendation</p>
+      <span>AI analysis did not identify a tradeable ticker for this article.</span>
+    </div>`;
+  } else {
+    // Full ticker recommendation
+    const confidencePct = item.confidence != null ? Math.round(item.confidence * 100) : "\u2014";
+    const riskRaw = (item.risk_level || "").toLowerCase();
+    const riskColor = riskRaw === "low" ? "green" : riskRaw === "high" ? "red" : "yellow";
+    const tradeableLabel = item.tradeable ? "YES" : "NO";
+    const tradeableClass = item.tradeable ? "yes" : "no";
+    const sentClass = (item.sentiment_label || "neutral").toLowerCase();
+    const sentScore = item.sentiment_score != null
+      ? (item.sentiment_score >= 0 ? "+" : "") + Number(item.sentiment_score).toFixed(2)
+      : "\u2014";
+
+    content += `<div class="detail-ticker-header">
+      <div class="detail-ticker-symbol">${escapeHtml(item.target_asset)}</div>
+      <span class="detail-asset-type">${escapeHtml(item.asset_type || "\u2014")}</span>
+    </div>
+    <div class="detail-metrics">
+      <div class="detail-metric">
+        <div class="detail-metric-label">Sentiment</div>
+        <div class="detail-metric-value">
+          <span class="sentiment-badge ${sentClass}"><span class="sentiment-dot"></span>${sentClass}</span>
+          <span class="detail-metric-sub">${sentScore}</span>
+        </div>
+      </div>
+      <div class="detail-metric">
+        <div class="detail-metric-label">Confidence</div>
+        <div class="detail-metric-value detail-confidence">${confidencePct}%</div>
+      </div>
+      <div class="detail-metric">
+        <div class="detail-metric-label">Risk Level</div>
+        <div class="detail-metric-value">
+          <span class="detail-risk ${riskColor}">${escapeHtml((item.risk_level || "\u2014").toUpperCase())}</span>
+        </div>
+      </div>
+      <div class="detail-metric">
+        <div class="detail-metric-label">Tradeable</div>
+        <div class="detail-metric-value">
+          <span class="detail-tradeable ${tradeableClass}">${tradeableLabel}</span>
+        </div>
+      </div>
+    </div>
+    <div class="detail-reasoning">
+      <div class="detail-reasoning-label">Reasoning</div>
+      <div class="detail-reasoning-text">${escapeHtml(item.reasoning || "No reasoning provided.")}</div>
+    </div>`;
+  }
+
+  const modalBody = overlay.querySelector(".detail-modal-body");
+  if (modalBody) modalBody.innerHTML = content;
+  overlay.classList.add("open");
+}
+
+function closeDetailModal() {
+  state.detailModalOpen = false;
+  state.detailItem = null;
+  const overlay = $("#detail-modal-overlay");
+  if (overlay) overlay.classList.remove("open");
 }
 
 // ---------------------------------------------------------------------------
@@ -803,6 +938,9 @@ async function fetchTier() {
     const data = await res.json();
     const rawTier = data.tier || "free";
     const tier = rawTier === "plus" ? "pro" : rawTier;
+    const features = data.features || {};
+    state.userTier = tier;
+    state.userFeatures = features;
 
     const badge = $("#tier-badge");
     const dropdownTier = $("#dropdown-tier");
@@ -817,7 +955,6 @@ async function fetchTier() {
     }
 
     // Client-side terminal access gate (defense in depth)
-    const features = data.features || {};
     if (features.terminal_access === false || tier === "free") {
       showUpgradeGate();
     } else {

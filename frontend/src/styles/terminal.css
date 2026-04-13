@@ -1050,6 +1050,254 @@
 }
 
 /* =========================================================================
+   Detail Modal (Ticker Recommendation)
+   ========================================================================= */
+
+.detail-modal {
+  width: min(520px, 90vw);
+}
+
+/* Make news rows clickable */
+.news-table tbody tr[data-id] {
+  cursor: pointer;
+}
+
+.news-table tbody tr[data-id]:hover {
+  background: var(--bg-hover);
+}
+
+/* Article context */
+.detail-article {
+  margin-bottom: var(--sp-4);
+  padding-bottom: var(--sp-4);
+  border-bottom: 1px solid var(--border-muted);
+}
+
+.detail-headline {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+  line-height: 1.5;
+  margin: 0 0 var(--sp-2);
+}
+
+.detail-meta {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.detail-time {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+}
+
+/* Ticker header */
+.detail-ticker-header {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  margin-bottom: var(--sp-4);
+}
+
+.detail-ticker-symbol {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--blue);
+  letter-spacing: 1px;
+}
+
+.detail-asset-type {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  color: var(--text-muted);
+  padding: 2px 8px;
+  background: var(--bg-surface-2);
+  border: 1px solid var(--border-muted);
+  border-radius: var(--radius-sm);
+  text-transform: uppercase;
+}
+
+/* Metrics grid */
+.detail-metrics {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--sp-3);
+  margin-bottom: var(--sp-4);
+}
+
+.detail-metric {
+  padding: var(--sp-3);
+  background: var(--bg-surface-2);
+  border: 1px solid var(--border-muted);
+  border-radius: var(--radius-md);
+}
+
+.detail-metric-label {
+  font-size: 10px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: var(--sp-1);
+}
+
+.detail-metric-value {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+}
+
+.detail-metric-sub {
+  font-size: 12px;
+  font-weight: 400;
+  color: var(--text-secondary);
+}
+
+.detail-confidence {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 20px;
+  color: var(--blue);
+}
+
+/* Risk level colors */
+.detail-risk {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: var(--radius-sm);
+}
+
+.detail-risk.green {
+  color: var(--green);
+  background: var(--green-bg);
+}
+
+.detail-risk.yellow {
+  color: var(--yellow);
+  background: var(--yellow-bg);
+}
+
+.detail-risk.red {
+  color: var(--red);
+  background: var(--red-bg);
+}
+
+/* Tradeable badge */
+.detail-tradeable {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: var(--radius-sm);
+}
+
+.detail-tradeable.yes {
+  color: var(--green);
+  background: var(--green-bg);
+}
+
+.detail-tradeable.no {
+  color: var(--red);
+  background: var(--red-bg);
+}
+
+/* Reasoning section */
+.detail-reasoning {
+  border-top: 1px solid var(--border-muted);
+  padding-top: var(--sp-3);
+}
+
+.detail-reasoning-label {
+  font-size: 10px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: var(--sp-2);
+}
+
+.detail-reasoning-text {
+  font-size: 13px;
+  color: var(--text-secondary);
+  line-height: 1.7;
+  max-height: 200px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  white-space: pre-wrap;
+}
+
+/* Upgrade prompt (non-Max users) */
+.detail-upgrade {
+  text-align: center;
+  padding: var(--sp-6) var(--sp-4);
+}
+
+.detail-upgrade-icon {
+  font-size: 32px;
+  color: var(--text-muted);
+  margin-bottom: var(--sp-3);
+}
+
+.detail-upgrade h4 {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0 0 var(--sp-2);
+}
+
+.detail-upgrade p {
+  font-size: 13px;
+  color: var(--text-secondary);
+  line-height: 1.6;
+  margin: 0 0 var(--sp-4);
+}
+
+.detail-upgrade-btn {
+  display: inline-block;
+  padding: 10px 24px;
+  background: #238636;
+  color: #fff;
+  border-radius: var(--radius-md);
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 14px;
+  transition: background var(--duration-fast);
+}
+
+.detail-upgrade-btn:hover {
+  background: #2ea043;
+}
+
+/* Pending / no recommendation state */
+.detail-pending {
+  text-align: center;
+  padding: var(--sp-6) var(--sp-4);
+}
+
+.detail-pending-icon {
+  font-size: 32px;
+  color: var(--text-muted);
+  margin-bottom: var(--sp-3);
+}
+
+.detail-pending p {
+  font-size: 14px;
+  color: var(--text-secondary);
+  margin: 0 0 var(--sp-1);
+}
+
+.detail-pending span {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+/* =========================================================================
    Keyboard shortcuts overlay
    ========================================================================= */
 
