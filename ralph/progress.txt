@@ -179,3 +179,93 @@ Mode: Adversarial (loop)
   - Reasoning text scrollability: only visible with long reasoning content (>200px height)
   - 8 pre-existing test failures in test_tiers.py/test_rate_limit.py — NOT related to this story
 ---
+
+## 2026-04-13 09:50 EDT - US-005 - TESTER — TEST_PASSED
+
+- **All 7 test assertions passed**, all 9 acceptance criteria verified by browser execution
+- Assertion 1: `npx vite build` exits 0 (29 modules, 0 errors)
+- Assertion 2-3: Terminal loads with 50 rows; clicking row time cell opens detail modal
+- Assertion 4: Escape key closes modal (.open class removed)
+- Assertion 5: Backdrop click and close button both close modal
+- Assertion 6: Reasoning text scrollable (scrollHeight=354 > clientHeight=200, max-height:200px, overflow-y:auto)
+- Assertion 7: Non-Max user sees upgrade prompt with "Upgrade to Max" button linking to /pricing
+- Max-tier rendering verified via CSS/HTML injection (Vite ESM module scope prevents state injection): TSLA at 28px blue, STOCK badge, 2x2 metrics grid, risk colors (green/yellow/red), tradeable YES/NO badges
+- All 4 modal states verified: upgrade prompt, full ticker, analysis pending, no recommendation
+- Link clicks correctly do NOT trigger modal (e.target.closest("a") guard)
+- Dark theme: modal bg rgb(22,27,34), overlay rgba(0,0,0,0.7)
+- **Learnings:**
+  - Vite ESM dev mode isolates module-scoped state — cannot inject `state.userTier` from browser console or Playwright evaluate
+  - SignalAuth.signUp() resolves with mock data via Playwright route interception but _currentUser remains null in module closure
+  - For future browser tests requiring auth: either use built static files served by Flask, or add a test-mode bypass flag
+- **Artifacts:** `ralph/test_results/US-005/attempt-1/` (vite_build.log, test_evidence.log, 6 screenshots)
+---
+
+## 2026-04-13 - US-006 - IMPLEMENTOR — Implemented Dynamic Column Toggle and Visibility
+
+- Added column settings panel with 9 configurable columns (Time, Sentiment, Source, Headline, Summary, Ticker, Confidence, Risk Level, Tradeable)
+- Settings panel accessible via sliders icon ("Columns") in terminal header
+- Each column has a toggle switch; Headline is always-on (required); tier-gated columns show lock icon and disabled toggle
+- Tier gating: Sentiment locked for Free (requiredFeature: sentiment_filter), Ticker/Confidence/Risk/Tradeable locked for non-Max (requiredFeature: ai_ticker_recommendations)
+- Column visibility persists in localStorage (key: instnews_column_visibility) with merge logic for future new columns
+- Table header and rows now rendered dynamically via JS (renderTableHeader, renderCell, getVisibleColumns)
+- New cell renderers: Ticker (blue badge), Confidence (monospace %), Risk Level (color-coded green/yellow/red), Tradeable (YES/NO badge)
+- Fixed responsive CSS: replaced nth-child selectors with class-based selectors for dynamic column compatibility
+- **Files changed:** `frontend/src/terminal-app.js`, `frontend/terminal.html`, `frontend/src/styles/terminal.css`
+- **Self-validation:** Vite build exits 0, mypy clean (2 files), pytest 86 passed (8 pre-existing failures)
+- **Environment notes for Tester:**
+  - Test assertion 1: `cd frontend && npx vite build` — should exit 0
+  - For browser testing: `cd frontend && npx vite dev` (port 5173) and `python server.py` (port 8000)
+  - Click the sliders icon ("Columns") in the header-right area to open the settings panel
+  - Toggle "Summary" off → column disappears from table; toggle on → reappears
+  - Reload page → column state preserved in localStorage (check localStorage.getItem('instnews_column_visibility'))
+  - For tier-gated columns: Sentiment lock visible only for Free-tier users, Ticker/Confidence/Risk/Tradeable locks visible for non-Max users
+  - Testing tier locks: set `state.userTier = 'free'` and `state.userFeatures = {sentiment_filter: false}` won't work from console (ESM scope); instead, use built static files or intercept /api/auth/tier via Playwright route
+  - New columns (Ticker, Confidence, Risk, Tradeable) default to hidden; when enabled by Max user, they render data from the existing API fields (target_asset, confidence, risk_level, tradeable) or show em-dash if null
+  - Headline toggle is always checked and disabled (required column)
+  - 8 pre-existing test failures in test_tiers.py/test_rate_limit.py — NOT related to this story
+---
+
+## 2026-04-13 12:25 EDT - US-006 - TESTER — TEST_PASSED
+
+- **All 6 test assertions passed**, all 9 acceptance criteria verified by browser execution
+- Assertion 1: `npx vite build` exits 0 (29 modules, 0 errors)
+- Assertion 2: Clicked 'Columns' button → panel opens with 9 columns, toggles, Headline disabled
+- Assertion 3: Toggle Summary off → column removed from table immediately
+- Assertion 4: Toggle Summary on → column reappears immediately
+- Assertion 5: After reload, localStorage persists, Summary stays hidden, toggle shows unchecked
+- Assertion 6: Free-tier user (via addInitScript SignalAuth interception) — Sentiment/Ticker/Confidence/Risk/Tradeable all show lock icons and disabled toggles
+- AC4: Headline toggle disabled, click has no effect, stays checked
+- AC6: Locked columns hidden from table — Free-tier visible: [Time, Source, Headline, Summary]
+- AC7: localStorage key 'instnews_column_visibility' confirmed across reload
+- AC8: Vite build clean, mypy clean (2 Python files)
+- pytest: 86 passed, 8 failed (all pre-existing in test_tiers.py/test_rate_limit.py)
+- **Learnings:**
+  - Vite ESM production bundles also isolate module scope — cannot inject state from console
+  - Use Playwright addInitScript + Object.defineProperty to intercept window.SignalAuth before module sets it — this triggers the full fetchTier → renderColumnSettings code path with mocked tier data
+  - For future browser tests requiring auth: addInitScript approach is reliable for built static files served by Flask
+- **Artifacts:** `ralph/test_results/US-006/attempt-1/` (vite_build.log, test_evidence.log, pytest_full.log, mypy_stdout.log, 4 screenshots)
+---
+
+## 2026-04-13 - US-007 - IMPLEMENTOR — Implemented Dynamic Column Drag-and-Drop Reorder
+
+- Added drag-and-drop column reordering to the settings panel using native HTML5 DnD API (no external libraries)
+- **State & storage:** Added `columnOrder` array to state, new `LS_COLUMN_ORDER_KEY = 'instnews_column_order'` for localStorage persistence
+- **Load/save:** `loadColumnOrder()` reads stored order, validates against COLUMN_DEFS, appends any new columns not in stored order; `saveColumnOrder()` persists to localStorage
+- **Ordered rendering:** New `getOrderedColumnDefs()` returns COLUMN_DEFS sorted by `columnOrder`; `getVisibleColumns()` now filters from this ordered list instead of raw COLUMN_DEFS
+- **DnD implementation:** Each settings panel item has `draggable="true"` and a 6-dot grip handle SVG. Events: `dragstart` (sets opacity), `dragover` (adds blue line indicator above/below based on cursor position), `drop` (DOM reorder + state sync + save + re-render table), `dragend` (cleanup)
+- **Template change:** Settings items changed from `<label>` to `<div>` to prevent checkbox toggle during drag
+- **CSS:** `.col-drag-handle` (grip icon), `.dragging` (opacity), `.drag-over-above/.drag-over-below` (blue line drop indicators)
+- **Self-validation:** Vite build exits 0 (29 modules), mypy clean (2 files), pytest 86 passed (8 pre-existing failures in test_tiers.py/test_rate_limit.py)
+- **Files changed:** `frontend/src/terminal-app.js`, `frontend/src/styles/terminal.css`
+- **Environment notes for Tester:**
+  - Test assertion 1: `cd frontend && npx vite build` — should exit 0
+  - For browser testing: `cd frontend && npx vite dev` (port 5173) and `python server.py` (port 8000)
+  - Click "Columns" button in header to open settings panel — each item now has a drag handle (6-dot grip on the left)
+  - Drag "Source" above "Time" → table header and body columns should swap immediately
+  - Reload page → localStorage key `instnews_column_order` should persist the custom order
+  - Toggle a column off, then drag remaining columns — no visual glitches, hidden columns not shown in table
+  - The drag handle shows a 6-dot grip icon on the left side of each column item
+  - Drop indicator: blue horizontal line appears above/below the target item during drag
+  - For tier-gated testing: use Playwright addInitScript approach (same as US-006 tester learnings)
+  - 8 pre-existing test failures in test_tiers.py/test_rate_limit.py — NOT related to this story
+---

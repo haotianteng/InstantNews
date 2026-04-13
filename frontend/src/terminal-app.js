@@ -32,6 +32,7 @@ const COLUMN_DEFS = [
 ];
 
 const LS_COLUMN_KEY = 'instnews_column_visibility';
+const LS_COLUMN_ORDER_KEY = 'instnews_column_order';
 
 // ---------------------------------------------------------------------------
 // State
@@ -68,6 +69,7 @@ let state = {
   userFeatures: {},
   soundEnabled: false,
   columnVisibility: {},
+  columnOrder: COLUMN_DEFS.map(c => c.id),
   columnSettingsOpen: false,
 };
 
@@ -338,6 +340,42 @@ function saveColumnVisibility() {
   }
 }
 
+function loadColumnOrder() {
+  try {
+    const stored = localStorage.getItem(LS_COLUMN_ORDER_KEY);
+    if (stored) {
+      const parsed = JSON.parse(stored);
+      if (Array.isArray(parsed)) {
+        const knownIds = new Set(COLUMN_DEFS.map(c => c.id));
+        const valid = parsed.filter(id => knownIds.has(id));
+        // Append any new columns not in stored order
+        for (const col of COLUMN_DEFS) {
+          if (!valid.includes(col.id)) valid.push(col.id);
+        }
+        state.columnOrder = valid;
+        return;
+      }
+    }
+  } catch {
+    // Fall through to defaults
+  }
+  state.columnOrder = COLUMN_DEFS.map(c => c.id);
+}
+
+function saveColumnOrder() {
+  try {
+    localStorage.setItem(LS_COLUMN_ORDER_KEY, JSON.stringify(state.columnOrder));
+  } catch {
+    // Silent
+  }
+}
+
+function getOrderedColumnDefs() {
+  const defMap = {};
+  for (const col of COLUMN_DEFS) defMap[col.id] = col;
+  return state.columnOrder.map(id => defMap[id]).filter(Boolean);
+}
+
 function isColumnLocked(col) {
   if (!col.requiredFeature) return false;
   if (state.userTier === null) return false;
@@ -345,7 +383,7 @@ function isColumnLocked(col) {
 }
 
 function getVisibleColumns() {
-  return COLUMN_DEFS.filter(col => {
+  return getOrderedColumnDefs().filter(col => {
     if (isColumnLocked(col)) return false;
     return state.columnVisibility[col.id] !== false;
   });
@@ -405,12 +443,20 @@ function renderColumnSettings() {
   const panel = $('#column-settings-panel');
   if (!panel) return;
 
-  const items = COLUMN_DEFS.map(col => {
+  const orderedDefs = getOrderedColumnDefs();
+  const items = orderedDefs.map(col => {
     const locked = isColumnLocked(col);
     const checked = !locked && state.columnVisibility[col.id] !== false;
     const disabled = col.required || locked;
 
-    return `<label class="col-toggle-item${locked ? ' locked' : ''}${col.required ? ' required' : ''}">
+    return `<div class="col-toggle-item${locked ? ' locked' : ''}${col.required ? ' required' : ''}" draggable="true" data-col-id="${col.id}">
+      <span class="col-drag-handle" aria-label="Drag to reorder">
+        <svg width="10" height="14" viewBox="0 0 10 14" fill="currentColor">
+          <circle cx="3" cy="2" r="1.2"/><circle cx="7" cy="2" r="1.2"/>
+          <circle cx="3" cy="7" r="1.2"/><circle cx="7" cy="7" r="1.2"/>
+          <circle cx="3" cy="12" r="1.2"/><circle cx="7" cy="12" r="1.2"/>
+        </svg>
+      </span>
       <span class="col-toggle-label">
         ${locked ? '<svg class="col-lock-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>' : ''}
         ${escapeHtml(col.label)}
@@ -419,12 +465,13 @@ function renderColumnSettings() {
         <input type="checkbox" ${checked ? 'checked' : ''} ${disabled ? 'disabled' : ''} data-col-id="${col.id}">
         <span class="col-toggle-track"><span class="col-toggle-thumb"></span></span>
       </span>
-    </label>`;
+    </div>`;
   });
 
   panel.innerHTML = `<div class="col-settings-header"><span>Columns</span></div>
     <div class="col-settings-list">${items.join('')}</div>`;
 
+  // Toggle visibility
   panel.querySelectorAll('input[type="checkbox"]').forEach(cb => {
     cb.addEventListener('change', (e) => {
       const colId = e.target.dataset.colId;
@@ -432,6 +479,68 @@ function renderColumnSettings() {
       saveColumnVisibility();
       renderTableHeader();
       renderNews();
+    });
+  });
+
+  // Drag-and-drop reorder
+  const list = panel.querySelector('.col-settings-list');
+  let dragSrcEl = null;
+
+  list.querySelectorAll('.col-toggle-item[draggable]').forEach(item => {
+    item.addEventListener('dragstart', (e) => {
+      dragSrcEl = item;
+      item.classList.add('dragging');
+      e.dataTransfer.effectAllowed = 'move';
+      e.dataTransfer.setData('text/plain', item.dataset.colId);
+    });
+
+    item.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'move';
+      if (!dragSrcEl || item === dragSrcEl) return;
+
+      // Remove existing drop indicator
+      list.querySelectorAll('.col-toggle-item').forEach(el => el.classList.remove('drag-over-above', 'drag-over-below'));
+
+      const rect = item.getBoundingClientRect();
+      const midY = rect.top + rect.height / 2;
+      if (e.clientY < midY) {
+        item.classList.add('drag-over-above');
+      } else {
+        item.classList.add('drag-over-below');
+      }
+    });
+
+    item.addEventListener('dragleave', () => {
+      item.classList.remove('drag-over-above', 'drag-over-below');
+    });
+
+    item.addEventListener('drop', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      if (!dragSrcEl || item === dragSrcEl) return;
+
+      list.querySelectorAll('.col-toggle-item').forEach(el => el.classList.remove('drag-over-above', 'drag-over-below'));
+
+      const rect = item.getBoundingClientRect();
+      const midY = rect.top + rect.height / 2;
+      if (e.clientY < midY) {
+        list.insertBefore(dragSrcEl, item);
+      } else {
+        list.insertBefore(dragSrcEl, item.nextSibling);
+      }
+
+      // Update column order from DOM order
+      const newOrder = [...list.querySelectorAll('.col-toggle-item[data-col-id]')].map(el => el.dataset.colId);
+      state.columnOrder = newOrder;
+      saveColumnOrder();
+      renderTableHeader();
+      renderNews();
+    });
+
+    item.addEventListener('dragend', () => {
+      item.classList.remove('dragging');
+      list.querySelectorAll('.col-toggle-item').forEach(el => el.classList.remove('drag-over-above', 'drag-over-below'));
     });
   });
 }
@@ -1173,6 +1282,7 @@ function hideUpgradeGate() {
 
 function init() {
   loadColumnVisibility();
+  loadColumnOrder();
   renderTableHeader();
   renderSkeleton();
   renderSources();

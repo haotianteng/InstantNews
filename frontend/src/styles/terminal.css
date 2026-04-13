@@ -1749,6 +1749,35 @@
   opacity: 0.4;
 }
 
+/* Drag handle */
+.col-drag-handle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  flex-shrink: 0;
+  color: var(--text-muted);
+  cursor: grab;
+  opacity: 0.4;
+  transition: opacity var(--duration-fast);
+}
+
+.col-toggle-item:hover .col-drag-handle {
+  opacity: 0.8;
+}
+
+.col-toggle-item.dragging {
+  opacity: 0.4;
+}
+
+.col-toggle-item.drag-over-above {
+  box-shadow: 0 -2px 0 0 var(--blue);
+}
+
+.col-toggle-item.drag-over-below {
+  box-shadow: 0 2px 0 0 var(--blue);
+}
+
 /* =========================================================================
    Reduced motion
    ========================================================================= */
