@@ -32,7 +32,6 @@ from aws_cdk import (
     aws_certificatemanager as acm,
     aws_logs as logs,
     aws_elasticloadbalancingv2 as elbv2,
-    aws_cognito as cognito,
 )
 
 
@@ -113,40 +112,6 @@ class InstantNewsStack(Stack):
         )
 
         # ---------------------------------------------------------------
-        # Cognito User Pool (email/password auth for China region)
-        # ---------------------------------------------------------------
-        user_pool = cognito.UserPool(
-            self, "UserPool",
-            user_pool_name="instnews-users",
-            self_sign_up_enabled=True,
-            sign_in_aliases=cognito.SignInAliases(email=True),
-            auto_verify=cognito.AutoVerifiedAttrs(email=True),
-            password_policy=cognito.PasswordPolicy(
-                min_length=8,
-                require_lowercase=True,
-                require_uppercase=False,
-                require_digits=False,
-                require_symbols=False,
-            ),
-            account_recovery=cognito.AccountRecovery.EMAIL_ONLY,
-            removal_policy=RemovalPolicy.RETAIN,
-        )
-
-        user_pool_client = user_pool.add_client(
-            "WebClient",
-            user_pool_client_name="instnews-web",
-            auth_flows=cognito.AuthFlow(
-                user_password=True,
-                user_srp=True,
-            ),
-            generate_secret=False,
-        )
-
-        # Output Cognito IDs for ECS task configuration
-        cdk.CfnOutput(self, "CognitoUserPoolId", value=user_pool.user_pool_id)
-        cdk.CfnOutput(self, "CognitoClientId", value=user_pool_client.user_pool_client_id)
-
-        # ---------------------------------------------------------------
         # ECS Cluster
         # ---------------------------------------------------------------
         cluster = ecs.Cluster(
@@ -197,13 +162,11 @@ class InstantNewsStack(Stack):
             "DEDUP_THRESHOLD": "0.85",
             "BEDROCK_ENABLED": "true",
             "BEDROCK_REGION": "us-east-1",
+            "MINIMAX_MODEL_ID": "MiniMax-M2.7",
             "DB_HOST": db.db_instance_endpoint_address,
             "DB_PORT": db.db_instance_endpoint_port,
             "DB_NAME": "signal_news",
             "DB_USER": "signal",
-            "COGNITO_USER_POOL_ID": user_pool.user_pool_id,
-            "COGNITO_CLIENT_ID": user_pool_client.user_pool_client_id,
-            "COGNITO_REGION": "us-east-1",
         }
 
         shared_secrets = {

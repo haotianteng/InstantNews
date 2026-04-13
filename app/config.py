@@ -1,6 +1,25 @@
-"""Application configuration loaded from environment variables."""
+"""Application configuration loaded from environment variables.
 
+Falls back to AWS Secrets Manager for secrets not in env vars (production).
+"""
+
+import json
 import os
+
+
+def _load_secret(key, secret_id="instantnews/app"):
+    """Load a single key from Secrets Manager if not in env vars."""
+    val = os.environ.get(key, "")
+    if val:
+        return val
+    try:
+        import boto3
+        client = boto3.client("secretsmanager", region_name="us-east-1")
+        resp = client.get_secret_value(SecretId=secret_id)
+        secrets = json.loads(resp["SecretString"])
+        return secrets.get(key, "")
+    except Exception:
+        return ""
 
 
 def _build_database_url():
@@ -28,6 +47,7 @@ class Config:
     DEDUP_THRESHOLD = float(os.environ.get("DEDUP_THRESHOLD", "0.85"))
     WORKER_INTERVAL_SECONDS = int(os.environ.get("WORKER_INTERVAL_SECONDS", "30"))
     WORKER_ENABLED = os.environ.get("WORKER_ENABLED", "true").lower() == "true"
+    BEDROCK_ENABLED = os.environ.get("BEDROCK_ENABLED", "true").lower() == "true"
 
     # WeChat OAuth (CN social login, pending approval)
     WECHAT_APP_ID = os.environ.get("WECHAT_APP_ID", "")
@@ -37,7 +57,7 @@ class Config:
     )
 
     # App JWT (for email/password + WeChat session tokens)
-    APP_JWT_SECRET = os.environ.get("APP_JWT_SECRET", "")
+    APP_JWT_SECRET = _load_secret("APP_JWT_SECRET")
     APP_JWT_EXPIRY_DAYS = int(os.environ.get("APP_JWT_EXPIRY_DAYS", "7"))
 
     # Email service (Gmail API via service account delegation)

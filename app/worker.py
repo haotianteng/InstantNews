@@ -32,7 +32,7 @@ def main():
     interval = config.WORKER_INTERVAL_SECONDS
     logger.info("Feed worker started", extra={
         "event": "worker_start",
-        "detail": f"interval={interval}s",
+        "detail": f"interval={interval}s, BEDROCK_ENABLED={config.BEDROCK_ENABLED}",
     })
 
     running = True

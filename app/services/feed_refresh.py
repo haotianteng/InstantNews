@@ -135,6 +135,10 @@ def _run_bedrock_analysis(session_factory, article_ids):
     """Run Bedrock AI analysis on newly stored articles and update the DB."""
     from app.services.bedrock_config import BEDROCK_ENABLED
     if not BEDROCK_ENABLED:
+        logger.info("AI analysis skipped (BEDROCK_ENABLED=false)", extra={
+            "event": "bedrock_skipped",
+            "article_count": len(article_ids),
+        })
         return
 
     session = session_factory()
@@ -155,26 +159,39 @@ def _run_bedrock_analysis(session_factory, article_ids):
     finally:
         session.close()
 
+    batch_size = len(batch)
+    logger.info("AI analysis started", extra={
+        "event": "bedrock_analysis_start",
+        "batch_size": batch_size,
+        "article_ids_sample": article_ids[:5],
+    })
+
+    start_time = time.time()
     try:
         from app.services.bedrock_analysis import analyze_articles_batch
         results = analyze_articles_batch(batch)
     except Exception as e:
+        elapsed = round(time.time() - start_time, 2)
         logger.warning("Bedrock batch analysis failed", extra={
             "event": "bedrock_batch_error",
             "error": str(e),
-            "count": len(batch),
+            "batch_size": batch_size,
+            "elapsed_seconds": elapsed,
         })
         return
 
     # Update articles with AI results
     session = session_factory()
     try:
-        updated = 0
+        success_count = 0
+        failure_count = 0
         for article_id, analysis in results.items():
             if analysis is None:
+                failure_count += 1
                 continue
             article = session.query(News).filter_by(id=article_id).first()
             if not article:
+                failure_count += 1
                 continue
             article.sentiment_score = analysis["sentiment_score"]
             article.sentiment_label = analysis["sentiment_label"]
@@ -185,19 +202,24 @@ def _run_bedrock_analysis(session_factory, article_ids):
             article.tradeable = analysis["tradeable"]
             article.reasoning = analysis["reasoning"]
             article.ai_analyzed = True
-            updated += 1
+            success_count += 1
         session.commit()
-        if updated:
-            logger.info("Bedrock analysis completed", extra={
-                "event": "bedrock_analysis_complete",
-                "analyzed": updated,
-                "total": len(batch),
-            })
+        elapsed = round(time.time() - start_time, 2)
+        logger.info("AI analysis completed", extra={
+            "event": "bedrock_analysis_complete",
+            "batch_size": batch_size,
+            "success_count": success_count,
+            "failure_count": failure_count,
+            "elapsed_seconds": elapsed,
+        })
     except Exception as e:
         session.rollback()
+        elapsed = round(time.time() - start_time, 2)
         logger.warning("Bedrock DB update failed", extra={
             "event": "bedrock_update_error",
             "error": str(e),
+            "batch_size": batch_size,
+            "elapsed_seconds": elapsed,
         })
     finally:
         session.close()
