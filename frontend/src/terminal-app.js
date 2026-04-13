@@ -33,6 +33,8 @@ const COLUMN_DEFS = [
 
 const LS_COLUMN_KEY = 'instnews_column_visibility';
 const LS_COLUMN_ORDER_KEY = 'instnews_column_order';
+const LS_COLUMN_WIDTHS_KEY = 'instnews_column_widths';
+const MIN_COL_WIDTH = 60;
 
 // ---------------------------------------------------------------------------
 // State
@@ -70,6 +72,7 @@ let state = {
   soundEnabled: false,
   columnVisibility: {},
   columnOrder: COLUMN_DEFS.map(c => c.id),
+  columnWidths: {},
   columnSettingsOpen: false,
 };
 
@@ -370,6 +373,36 @@ function saveColumnOrder() {
   }
 }
 
+function loadColumnWidths() {
+  try {
+    const stored = localStorage.getItem(LS_COLUMN_WIDTHS_KEY);
+    if (stored) {
+      const parsed = JSON.parse(stored);
+      if (parsed && typeof parsed === 'object') {
+        const widths = {};
+        for (const col of COLUMN_DEFS) {
+          if (col.id in parsed && typeof parsed[col.id] === 'number' && parsed[col.id] >= MIN_COL_WIDTH) {
+            widths[col.id] = parsed[col.id];
+          }
+        }
+        state.columnWidths = widths;
+        return;
+      }
+    }
+  } catch {
+    // Fall through to defaults
+  }
+  state.columnWidths = {};
+}
+
+function saveColumnWidths() {
+  try {
+    localStorage.setItem(LS_COLUMN_WIDTHS_KEY, JSON.stringify(state.columnWidths));
+  } catch {
+    // Silent
+  }
+}
+
 function getOrderedColumnDefs() {
   const defMap = {};
   for (const col of COLUMN_DEFS) defMap[col.id] = col;
@@ -393,9 +426,114 @@ function renderTableHeader() {
   const head = document.querySelector('.news-table thead');
   if (!head) return;
   const cols = getVisibleColumns();
-  head.innerHTML = '<tr>' + cols.map(col =>
-    `<th class="col-${col.id}">${col.label}</th>`
-  ).join('') + '</tr>';
+  head.innerHTML = '<tr>' + cols.map(col => {
+    const w = state.columnWidths[col.id];
+    const style = w ? ` style="width:${w}px"` : '';
+    return `<th class="col-${col.id}"${style}>${col.label}<span class="col-resize-handle" data-col-id="${col.id}"></span></th>`;
+  }).join('') + '</tr>';
+
+  // Apply table-layout: fixed when any custom width is set
+  const table = document.querySelector('.news-table');
+  if (table) {
+    table.style.tableLayout = Object.keys(state.columnWidths).length > 0 ? 'fixed' : '';
+  }
+
+  bindColumnResizeHandles();
+}
+
+function bindColumnResizeHandles() {
+  const handles = document.querySelectorAll('.col-resize-handle');
+  handles.forEach(handle => {
+    handle.addEventListener('mousedown', onResizeStart);
+    handle.addEventListener('dblclick', onResizeAutoFit);
+  });
+}
+
+function onResizeStart(e) {
+  e.preventDefault();
+  e.stopPropagation();
+  const handle = e.target;
+  const th = handle.parentElement;
+  const colId = handle.dataset.colId;
+  const startX = e.clientX;
+  const startWidth = th.offsetWidth;
+
+  const table = document.querySelector('.news-table');
+  if (table) table.style.tableLayout = 'fixed';
+
+  document.body.style.cursor = 'col-resize';
+  document.body.style.userSelect = 'none';
+  handle.classList.add('active');
+
+  function onMouseMove(ev) {
+    const delta = ev.clientX - startX;
+    const newWidth = Math.max(MIN_COL_WIDTH, startWidth + delta);
+    th.style.width = newWidth + 'px';
+  }
+
+  function onMouseUp(ev) {
+    document.removeEventListener('mousemove', onMouseMove);
+    document.removeEventListener('mouseup', onMouseUp);
+    document.body.style.cursor = '';
+    document.body.style.userSelect = '';
+    handle.classList.remove('active');
+
+    const delta = ev.clientX - startX;
+    const finalWidth = Math.max(MIN_COL_WIDTH, startWidth + delta);
+    state.columnWidths[colId] = finalWidth;
+    saveColumnWidths();
+    renderTableHeader();
+    renderNews();
+  }
+
+  document.addEventListener('mousemove', onMouseMove);
+  document.addEventListener('mouseup', onMouseUp);
+}
+
+function onResizeAutoFit(e) {
+  e.preventDefault();
+  e.stopPropagation();
+  const colId = e.target.dataset.colId;
+  const cols = getVisibleColumns();
+  const colIndex = cols.findIndex(c => c.id === colId);
+  if (colIndex === -1) return;
+
+  const rows = document.querySelectorAll('#news-body tr');
+  let maxWidth = MIN_COL_WIDTH;
+
+  // Measure header text width
+  const th = e.target.parentElement;
+  const headerSpan = document.createElement('span');
+  headerSpan.style.cssText = 'visibility:hidden;position:absolute;white-space:nowrap;font-size:10px;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;';
+  headerSpan.textContent = th.textContent;
+  document.body.appendChild(headerSpan);
+  maxWidth = Math.max(maxWidth, headerSpan.offsetWidth + 32); // 24px padding + 8px handle
+  document.body.removeChild(headerSpan);
+
+  // Measure cell content widths
+  rows.forEach(row => {
+    if (row.classList.contains('skeleton-row')) return;
+    const cells = row.querySelectorAll('td');
+    const cell = cells[colIndex];
+    if (!cell) return;
+    const measurer = document.createElement('div');
+    measurer.style.cssText = 'visibility:hidden;position:absolute;white-space:nowrap;font-size:12px;';
+    measurer.innerHTML = cell.innerHTML;
+    document.body.appendChild(measurer);
+    maxWidth = Math.max(maxWidth, measurer.offsetWidth + 24); // 24px padding
+    document.body.removeChild(measurer);
+  });
+
+  // Cap at reasonable max
+  maxWidth = Math.min(maxWidth, 600);
+
+  const table = document.querySelector('.news-table');
+  if (table) table.style.tableLayout = 'fixed';
+
+  state.columnWidths[colId] = maxWidth;
+  saveColumnWidths();
+  renderTableHeader();
+  renderNews();
 }
 
 function renderCell(colId, item, isFresh, dupBadge) {
@@ -1283,6 +1421,7 @@ function hideUpgradeGate() {
 function init() {
   loadColumnVisibility();
   loadColumnOrder();
+  loadColumnWidths();
   renderTableHeader();
   renderSkeleton();
   renderSources();
