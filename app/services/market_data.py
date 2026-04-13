@@ -1,0 +1,166 @@
+"""Polygon.io market data service — real-time prices and company details.
+
+Provides PolygonClient with two main methods:
+- get_ticker_snapshot(symbol): last price, change, change%, volume, VWAP
+- get_ticker_details(symbol): company name, sector, market cap, logo URL, description
+
+Caching: 5-second TTL for snapshots (real-time), 1-hour TTL for details (static).
+Requires POLYGON_API_KEY env var. Service is disabled (returns None) if not set.
+"""
+
+import logging
+import os
+import time
+from typing import Any, Optional
+
+import requests
+
+logger = logging.getLogger("signal.market_data")
+
+POLYGON_API_KEY = os.environ.get("POLYGON_API_KEY", "")
+POLYGON_BASE_URL = "https://api.polygon.io"
+
+SNAPSHOT_TTL = 5  # seconds
+DETAILS_TTL = 3600  # 1 hour
+
+
+class _CacheEntry:
+    __slots__ = ("value", "expires_at")
+
+    def __init__(self, value: Any, ttl: float) -> None:
+        self.value = value
+        self.expires_at = time.monotonic() + ttl
+
+    def is_valid(self) -> bool:
+        return time.monotonic() < self.expires_at
+
+
+class PolygonClient:
+    """Client for Polygon.io market data API with in-memory caching."""
+
+    def __init__(self, api_key: Optional[str] = None) -> None:
+        self._api_key = api_key or POLYGON_API_KEY
+        self._enabled = bool(self._api_key)
+        self._snapshot_cache: dict[str, _CacheEntry] = {}
+        self._details_cache: dict[str, _CacheEntry] = {}
+        self._session = requests.Session()
+        if not self._enabled:
+            logger.warning("POLYGON_API_KEY not set — market data service disabled")
+
+    @property
+    def enabled(self) -> bool:
+        return self._enabled
+
+    def get_ticker_snapshot(self, symbol: str) -> Optional[dict[str, Any]]:
+        """Fetch real-time snapshot for a ticker.
+
+        Returns dict with keys: symbol, price, change, change_percent, volume, vwap
+        Returns None if service is disabled, symbol not found, or API error.
+        """
+        if not self._enabled:
+            return None
+
+        symbol = symbol.upper().strip()
+        cached = self._snapshot_cache.get(symbol)
+        if cached and cached.is_valid():
+            return cached.value
+
+        try:
+            url = f"{POLYGON_BASE_URL}/v2/snapshot/locale/us/markets/stocks/tickers/{symbol}"
+            resp = self._session.get(url, params={"apiKey": self._api_key}, timeout=10)
+            resp.raise_for_status()
+            data = resp.json()
+
+            if data.get("status") != "OK" or "ticker" not in data:
+                logger.warning("polygon snapshot: unexpected response for %s: %s", symbol, data.get("status"))
+                return None
+
+            ticker = data["ticker"]
+            day = ticker.get("day", {})
+            prev_day = ticker.get("prevDay", {})
+            last_trade = ticker.get("lastTrade", {})
+
+            price = last_trade.get("p") or day.get("c", 0)
+            prev_close = prev_day.get("c", 0)
+            change = round(price - prev_close, 4) if price and prev_close else 0
+            change_pct = round((change / prev_close) * 100, 4) if prev_close else 0
+
+            result: dict[str, Any] = {
+                "symbol": symbol,
+                "price": price,
+                "change": change,
+                "change_percent": change_pct,
+                "volume": day.get("v", 0),
+                "vwap": day.get("vw", 0),
+            }
+
+            self._snapshot_cache[symbol] = _CacheEntry(result, SNAPSHOT_TTL)
+            return result
+
+        except requests.exceptions.HTTPError as e:
+            if e.response is not None and e.response.status_code == 404:
+                logger.warning("polygon snapshot: ticker %s not found", symbol)
+            else:
+                logger.warning("polygon snapshot: HTTP error for %s: %s", symbol, e)
+            return None
+        except (requests.exceptions.RequestException, ValueError, KeyError) as e:
+            logger.warning("polygon snapshot: error fetching %s: %s", symbol, e)
+            return None
+
+    def get_ticker_details(self, symbol: str) -> Optional[dict[str, Any]]:
+        """Fetch company details for a ticker.
+
+        Returns dict with keys: symbol, name, sector, market_cap, logo_url, description, homepage_url
+        Returns None if service is disabled, symbol not found, or API error.
+        """
+        if not self._enabled:
+            return None
+
+        symbol = symbol.upper().strip()
+        cached = self._details_cache.get(symbol)
+        if cached and cached.is_valid():
+            return cached.value
+
+        try:
+            url = f"{POLYGON_BASE_URL}/v3/reference/tickers/{symbol}"
+            resp = self._session.get(url, params={"apiKey": self._api_key}, timeout=10)
+            resp.raise_for_status()
+            data = resp.json()
+
+            if data.get("status") != "OK" or "results" not in data:
+                logger.warning("polygon details: unexpected response for %s: %s", symbol, data.get("status"))
+                return None
+
+            results = data["results"]
+            branding = results.get("branding", {})
+            logo_url = branding.get("icon_url") or branding.get("logo_url") or ""
+            if logo_url and self._api_key:
+                logo_url = f"{logo_url}?apiKey={self._api_key}"
+
+            result: dict[str, Any] = {
+                "symbol": symbol,
+                "name": results.get("name", ""),
+                "sector": results.get("sic_description", ""),
+                "market_cap": results.get("market_cap"),
+                "logo_url": logo_url,
+                "description": results.get("description", ""),
+                "homepage_url": results.get("homepage_url", ""),
+            }
+
+            self._details_cache[symbol] = _CacheEntry(result, DETAILS_TTL)
+            return result
+
+        except requests.exceptions.HTTPError as e:
+            if e.response is not None and e.response.status_code == 404:
+                logger.warning("polygon details: ticker %s not found", symbol)
+            else:
+                logger.warning("polygon details: HTTP error for %s: %s", symbol, e)
+            return None
+        except (requests.exceptions.RequestException, ValueError, KeyError) as e:
+            logger.warning("polygon details: error fetching %s: %s", symbol, e)
+            return None
+
+    def clear_cache(self) -> None:
+        """Clear all cached data."""
+        self._snapshot_cache.clear()
+        self._details_cache.clear()

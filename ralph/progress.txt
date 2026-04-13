@@ -269,3 +269,87 @@ Mode: Adversarial (loop)
   - For tier-gated testing: use Playwright addInitScript approach (same as US-006 tester learnings)
   - 8 pre-existing test failures in test_tiers.py/test_rate_limit.py — NOT related to this story
 ---
+
+## 2026-04-13 12:36 EDT - US-007 - TESTER — TEST_PASSED
+
+- **All 4 test assertions passed**, all 7 acceptance criteria verified by browser execution
+- Assertion 1: `npx vite build` exits 0 (29 modules, 0 errors)
+- Assertion 2: Dragged Source above Time — panel reordered to [source,time,sentiment,...], table headers to [Source,Time,Sentiment,Headline,Summary], body cells match, localStorage updated
+- Assertion 3: After full page reload, localStorage persisted custom order, table headers restored correctly
+- Assertion 4: Toggled Summary off, dragged Sentiment above Source — table showed [Sentiment,Source,Time,Headline], body cells matched, no visual glitches
+- AC1: All 9 items have draggable="true", .col-drag-handle with 6-circle SVG grip
+- AC4: Header and body cells stay in sync (verified cell contents match header order)
+- AC5: Hidden columns correctly excluded from table while preserved in panel — reorder works
+- AC6: mypy clean (2 files), Vite build clean
+- pytest: 86 passed, 8 failed (all pre-existing in test_tiers.py/test_rate_limit.py)
+- **Learnings:**
+  - HTML5 DnD can be simulated via page.evaluate with DataTransfer + DragEvent dispatching — dragstart/dragover/drop/dragend sequence works reliably
+  - clientY position relative to target element top determines above/below placement — use top+5 for "above"
+- **Artifacts:** `ralph/test_results/US-007/attempt-1/` (vite_build.log, test_evidence.log, pytest_full.log, mypy_stdout.log, screenshot-after-drag.png, screenshot-hidden-column-reorder.png)
+---
+
+## 2026-04-13 - US-008 - IMPLEMENTOR — Implemented Dynamic Column Width Customization
+
+- Added draggable resize handles on the right edge of each table header column
+- Resize handles are 6px wide, transparent by default, highlighted blue on hover/active
+- Drag to resize: mousedown on handle → mousemove updates th.style.width → mouseup saves to state and localStorage
+- Minimum column width enforced at 60px (MIN_COL_WIDTH constant) in both drag and auto-fit
+- Double-click on resize handle: measures header text + all visible cell widths, auto-fits to widest content (capped at 600px)
+- Column widths persisted in localStorage under `instnews_column_widths` key as `{colId: widthPx}` object
+- Table switches to `table-layout: fixed` when any custom width exists, reverts to auto when all defaults
+- Width state keyed by column ID, so widths survive column reorder and toggle operations
+- Added `overflow: hidden; text-overflow: ellipsis` to both `th` and `td` for clean truncation under fixed layout
+- **Files changed:** `frontend/src/terminal-app.js`, `frontend/src/styles/terminal.css`
+- **Self-validation:** Vite build exits 0 (29 modules), mypy clean (2 files), pytest 86 passed (8 pre-existing failures in test_tiers.py/test_rate_limit.py)
+- **Environment notes for Tester:**
+  - Test assertion 1: `cd frontend && npx vite build` — should exit 0
+  - For browser testing: `cd frontend && npx vite dev` (port 5173) and `python server.py` (port 8000)
+  - Resize handle: hover over the right edge of any column header — cursor changes to col-resize, a blue line appears
+  - Drag the handle left/right to resize — column width updates in real time
+  - Double-click the resize handle — column auto-fits to widest content
+  - Minimum width is 60px — try dragging to make a column very narrow, it stops at 60px
+  - Reload page → localStorage key `instnews_column_widths` persists custom widths
+  - After reorder (drag columns in settings panel): resize handles still work, custom widths preserved by column ID
+  - After toggle (hide/show columns in settings panel): resize handles still work on remaining visible columns
+  - 8 pre-existing test failures in test_tiers.py/test_rate_limit.py — NOT related to this story
+---
+
+## 2026-04-13 23:36 EDT - US-008 - TESTER — TEST_PASSED
+
+- **All 4 test assertions passed**, all 7 acceptance criteria verified by browser execution
+- Assertion 1: `npx vite build` exits 0 (29 modules, 0 errors)
+- Assertion 2: Dragged Headline column resize handle 150px right — width updated from 361px to 511px in real time, localStorage updated
+- Assertion 3: Double-clicked Source column resize handle — auto-fitted to 107px based on content measurement
+- Assertion 4: After full page reload — localStorage preserved, Headline restored to 511px, Source restored to 107px, table-layout:fixed
+- AC1: All 5 visible columns have .col-resize-handle (6px wide, absolute, cursor:col-resize, parent th position:relative)
+- AC2: Minimum 60px enforced — dragged Time column 500px left, clamped to 60px
+- AC3: Double-click auto-fit on Source → 107px
+- AC4: instnews_column_widths key persists across full page reload
+- AC5: Toggled Sentiment off — all widths preserved, resize handles present on remaining columns, drag-resized Source from 107→157px
+- AC6: mypy clean (2 files). pytest 86 passed, 8 failed (all pre-existing in test_tiers.py/test_rate_limit.py — stale tier config values)
+- AC7: All verified in browser via Playwright automation
+- **Learnings:**
+  - Resize events (mousedown on handle, mousemove/mouseup on document) work reliably via dispatchEvent
+  - After mouseup, renderTableHeader() re-renders all ths, so element references become stale — verify state via localStorage or fresh querySelector
+  - table-layout switches to "fixed" when any custom width exists, enabling explicit width control
+- **Artifacts:** `ralph/test_results/US-008/attempt-1/` (vite_build.log, mypy_stdout.log, pytest_full.log, test_evidence.log, screenshot-after-resize.png, screenshot-terminal-visible.png, screenshot-after-toggle-resize.png)
+---
+
+## 2026-04-13 - US-009 - IMPLEMENTOR — Implemented Polygon.io Market Data Service
+
+- Created `app/services/market_data.py` with `PolygonClient` class
+- **get_ticker_snapshot(symbol):** Fetches real-time price data from Polygon.io `/v2/snapshot/` endpoint. Returns: symbol, price, change, change_percent, volume, vwap. Computes change from lastTrade.p - prevDay.c. Cached with 5-second TTL.
+- **get_ticker_details(symbol):** Fetches company info from Polygon.io `/v3/reference/tickers/` endpoint. Returns: symbol, name, sector, market_cap, logo_url, description, homepage_url. Cached with 1-hour TTL.
+- **Caching:** In-memory `_CacheEntry` with `time.monotonic()` TTL. Keyed by uppercase symbol. `clear_cache()` method available.
+- **Error handling:** All API errors (HTTP, network, parse) caught → returns None + logs warning. 404 = "not found". Service fully disabled when `POLYGON_API_KEY` not set.
+- **Tests:** 14 tests in `tests/test_market_data.py` — disabled state (3), snapshot success/caching/normalization/errors (7), details success/caching/errors (4). All use `unittest.mock`.
+- **Self-validation:** Import ok, mypy clean (1 file), 14/14 tests pass, full suite 100 passed (8 pre-existing failures in test_tiers.py/test_rate_limit.py)
+- **Files changed:** `app/services/market_data.py`, `tests/test_market_data.py`
+- **Environment notes for Tester:**
+  - Test assertion 1: `python -c "from app.services.market_data import PolygonClient; print('import ok')"` — exits 0
+  - Test assertion 2: `python -m pytest tests/ -v -k 'polygon or market_data'` — 14 passed
+  - Test assertion 3: `mypy app/services/market_data.py` — requires `types-requests` stubs (`pip install types-requests`)
+  - No real API calls in tests (all mocked). To test against real Polygon.io: set `POLYGON_API_KEY` env var and instantiate PolygonClient()
+  - `requests` library already available in the environment (transitive dep)
+  - 8 pre-existing test failures in test_tiers.py/test_rate_limit.py — NOT related to this story
+---
