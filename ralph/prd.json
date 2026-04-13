@@ -275,13 +275,13 @@
         "python -m pytest tests/ -v -k 'polygon or market_data' exits 0",
         "mypy app/services/market_data.py exits 0"
       ],
-      "status": "READY_FOR_TEST",
-      "passes": false,
+      "status": "TEST_PASSED",
+      "passes": true,
       "implementation_notes": "Created app/services/market_data.py with PolygonClient class.\n\n1. **get_ticker_snapshot(symbol)**: Calls Polygon.io /v2/snapshot/locale/us/markets/stocks/tickers/{symbol}. Returns dict with symbol, price, change, change_percent, volume, vwap. Computes change/change_percent from lastTrade.p minus prevDay.c. Caches results with 5-second TTL.\n\n2. **get_ticker_details(symbol)**: Calls Polygon.io /v3/reference/tickers/{symbol}. Returns dict with symbol, name, sector (from sic_description), market_cap, logo_url (with apiKey appended), description, homepage_url. Caches results with 1-hour TTL.\n\n3. **Caching**: In-memory _CacheEntry with monotonic time-based TTL. Snapshot: 5s, Details: 3600s. Cache keyed by uppercase symbol.\n\n4. **Error handling**: All API errors (HTTP, network, parse) caught and return None with logger.warning. 404s logged as 'not found'. Service disabled (returns None for all calls) when POLYGON_API_KEY not set.\n\n5. **Tests**: 14 tests in tests/test_market_data.py covering disabled state, snapshot success/caching/normalization/errors, details success/caching/errors, and cache clearing. All use unittest.mock to avoid real API calls.\n\n6. **Typecheck**: mypy clean (requires types-requests stubs, installed via pip).",
       "files_changed": ["app/services/market_data.py", "tests/test_market_data.py"],
       "failure_reason": null,
-      "test_evidence": null,
-      "test_report": null,
+      "test_evidence": "All 3 test assertions passed, all 7 acceptance criteria verified by execution.\n\nAssertion 1: import PolygonClient — exits 0, prints 'import ok'\nAssertion 2: pytest -k 'polygon or market_data' — 14/14 passed (exit 0)\nAssertion 3: mypy app/services/market_data.py — 'Success: no issues found in 1 source file' (exit 0)\n\nAC1: PolygonClient class exists with get_ticker_snapshot, get_ticker_details, clear_cache, enabled\nAC2: get_ticker_snapshot returns {symbol, price, change, change_percent, volume, vwap} — verified by execution with mock API data\nAC3: get_ticker_details returns {symbol, name, sector, market_cap, logo_url, description, homepage_url} — logo_url appends apiKey param\nAC4: SNAPSHOT_TTL=5s, DETAILS_TTL=3600s; cache expiration verified with monotonic timer (entry valid when fresh, invalid after TTL)\nAC5: HTTP errors, 404s, network errors all return None (verified by test execution); disabled client returns None for both methods\nAC6: enabled=True with key, enabled=False without key; logs warning when disabled\nAC7: mypy clean\n\nFull pytest: 100 passed, 8 failed (all pre-existing in test_tiers.py/test_rate_limit.py — stale tier config values, not related to US-009)\n\nArtifacts: ralph/test_results/US-009/attempt-1/",
+      "test_report": "US-009 Polygon.io Integration — Backend Service: TEST_PASSED\n\nAll 3 test assertions passed (exit 0 each). All 7 acceptance criteria verified by real execution — imported the module, called both methods with mocked Polygon.io responses, verified return schemas match spec exactly, confirmed caching TTLs (5s/3600s) and expiration behavior, tested disabled state and error handling paths. 14/14 dedicated tests pass. mypy clean. Full suite: 100 passed, 8 failed (all pre-existing).",
       "fail_count": 0
     },
     {
@@ -304,10 +304,10 @@
         "python -m pytest tests/ -v -k 'market' exits 0",
         "mypy app/routes/market.py exits 0"
       ],
-      "status": "REQUIRE_IMPLEMENT",
+      "status": "READY_FOR_TEST",
       "passes": false,
-      "implementation_notes": null,
-      "files_changed": [],
+      "implementation_notes": "Created app/routes/market.py with market_bp Blueprint.\n\n1. **GET /api/market/<symbol>**: Requires auth via @require_auth decorator (returns 401 for unauthenticated). Uses singleton PolygonClient to fetch real-time snapshot. Returns {symbol, price, change, change_percent, volume, vwap, updated_at}. Returns 404 with descriptive message for unknown tickers (when PolygonClient returns None). Returns 503 with Retry-After:60 header when Polygon.io is not configured (client disabled).\n\n2. **GET /api/market/<symbol>/details**: Same auth and error handling. Returns {symbol, name, sector, market_cap, logo_url, description, homepage_url}. Same 404/503 behavior.\n\n3. **Rate limiting**: Both endpoints decorated with @limiter.limit('60 per minute') — 60 req/min per user, keyed by user ID (or IP for anonymous). Uses the existing Flask-Limiter instance from app.middleware.rate_limit.\n\n4. **Tests**: 10 tests in tests/test_market_routes.py covering auth (401 for unauthenticated, 200 for authenticated), response field schema (all required fields present), 404 for unknown tickers, 503 with Retry-After when disabled, and rate limit header presence.\n\n5. **Registration**: Blueprint registered in app/routes/__init__.py.\n\n6. **Typecheck**: mypy app/routes/market.py — Success: no issues found in 1 source file.",
+      "files_changed": ["app/routes/market.py", "app/routes/__init__.py", "tests/test_market_routes.py"],
       "failure_reason": null,
       "test_evidence": null,
       "test_report": null,

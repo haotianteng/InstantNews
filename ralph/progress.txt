@@ -353,3 +353,43 @@ Mode: Adversarial (loop)
   - `requests` library already available in the environment (transitive dep)
   - 8 pre-existing test failures in test_tiers.py/test_rate_limit.py — NOT related to this story
 ---
+
+## 2026-04-13 23:45 EDT - US-009 - TESTER — TEST_PASSED
+
+- **All 3 test assertions passed**, all 7 acceptance criteria verified by execution
+- Assertion 1: `python -c "from app.services.market_data import PolygonClient; print('import ok')"` — exits 0
+- Assertion 2: `python -m pytest tests/ -v -k 'polygon or market_data'` — 14/14 passed (exit 0)
+- Assertion 3: `mypy app/services/market_data.py` — "Success: no issues found in 1 source file" (exit 0)
+- AC1: PolygonClient class exists with get_ticker_snapshot, get_ticker_details, clear_cache, enabled property
+- AC2: get_ticker_snapshot returns {symbol, price, change, change_percent, volume, vwap} — verified with mock API data (price=150.25, change=1.75, change_percent=1.1785)
+- AC3: get_ticker_details returns {symbol, name, sector, market_cap, logo_url, description, homepage_url} — logo_url appends apiKey query param
+- AC4: SNAPSHOT_TTL=5s, DETAILS_TTL=3600s — cache expiration verified: entry valid when fresh, invalid after TTL elapses (monotonic timer)
+- AC5: Disabled client returns None for both methods; HTTP 404/500, network errors all caught → returns None + logs warning
+- AC6: enabled=True with API key, enabled=False without; logs "POLYGON_API_KEY not set — market data service disabled"
+- AC7: mypy clean (1 file)
+- Full pytest: 100 passed, 8 failed (all pre-existing in test_tiers.py/test_rate_limit.py — stale tier config values, not related to US-009)
+- **Artifacts:** `ralph/test_results/US-009/attempt-1/` (assertion1_import.log, assertion2_pytest_market.log, assertion3_mypy.log, ac_validation.log, pytest_full.log)
+---
+
+## 2026-04-13 - US-010 - IMPLEMENTOR — Implemented Market Data API Endpoint
+
+- Created `app/routes/market.py` with `market_bp` Blueprint
+- **GET /api/market/<symbol>**: Returns `{symbol, price, change, change_percent, volume, vwap, updated_at}` via PolygonClient singleton
+- **GET /api/market/<symbol>/details**: Returns `{symbol, name, sector, market_cap, logo_url, description, homepage_url}`
+- Both endpoints require authentication (@require_auth → 401 for unauthenticated)
+- Rate limited: 60 req/min per user via @limiter.limit("60 per minute")
+- 404 with descriptive message when PolygonClient returns None for unknown tickers
+- 503 with Retry-After:60 header when Polygon.io service is disabled (no POLYGON_API_KEY)
+- 10 tests in `tests/test_market_routes.py` covering auth, response schema, 404, 503, rate limit headers
+- Registered blueprint in `app/routes/__init__.py`
+- **Self-validation:** mypy clean (1 file), 24/24 market tests pass, full suite 110 passed (8 pre-existing failures in test_tiers.py/test_rate_limit.py)
+- **Files changed:** `app/routes/market.py`, `app/routes/__init__.py`, `tests/test_market_routes.py`
+- **Environment notes for Tester:**
+  - Test assertion 1: `python -m pytest tests/ -v -k 'market'` — 24 tests should pass (14 from US-009 + 10 new route tests)
+  - Test assertion 2: `mypy app/routes/market.py` — should report "Success: no issues found in 1 source file"
+  - Auth testing: unauthenticated GET to `/api/market/AAPL` returns 401
+  - To test with real Polygon.io: set `POLYGON_API_KEY` env var and start server (`python server.py`), then `curl -H "Authorization: Bearer <token>" http://localhost:8000/api/market/AAPL`
+  - Without POLYGON_API_KEY, both endpoints return 503 with `Retry-After: 60` header
+  - The PolygonClient is a module-level singleton — no constructor args needed at route level
+  - 8 pre-existing test failures in test_tiers.py/test_rate_limit.py — NOT related to this story
+---
