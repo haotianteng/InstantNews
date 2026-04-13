@@ -49,7 +49,7 @@ class News(Base):
     )
 
     def to_dict(self):
-        d = {
+        return {
             "id": self.id,
             "title": self.title,
             "link": self.link,
@@ -61,15 +61,14 @@ class News(Base):
             "sentiment_label": self.sentiment_label,
             "tags": self.tags,
             "duplicate": self.duplicate,
+            "ai_analyzed": self.ai_analyzed or False,
+            "target_asset": self.target_asset,
+            "asset_type": self.asset_type,
+            "confidence": self.confidence,
+            "risk_level": self.risk_level,
+            "tradeable": self.tradeable,
+            "reasoning": self.reasoning,
         }
-        if self.ai_analyzed:
-            d["target_asset"] = self.target_asset
-            d["asset_type"] = self.asset_type
-            d["confidence"] = self.confidence
-            d["risk_level"] = self.risk_level
-            d["tradeable"] = self.tradeable
-            d["reasoning"] = self.reasoning
-        return d
 
 
 class User(Base):
