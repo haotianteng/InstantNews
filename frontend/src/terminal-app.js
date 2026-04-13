@@ -16,6 +16,24 @@ const DEFAULT_LIMIT = 200;
 const NEW_THRESHOLD_MS = 60000; // 60 seconds
 
 // ---------------------------------------------------------------------------
+// Column Definitions
+// ---------------------------------------------------------------------------
+
+const COLUMN_DEFS = [
+  { id: 'time', label: 'Time', defaultVisible: true, required: false, requiredFeature: null },
+  { id: 'sentiment', label: 'Sentiment', defaultVisible: true, required: false, requiredFeature: 'sentiment_filter' },
+  { id: 'source', label: 'Source', defaultVisible: true, required: false, requiredFeature: null },
+  { id: 'headline', label: 'Headline', defaultVisible: true, required: true, requiredFeature: null },
+  { id: 'summary', label: 'Summary', defaultVisible: true, required: false, requiredFeature: null },
+  { id: 'ticker', label: 'Ticker', defaultVisible: false, required: false, requiredFeature: 'ai_ticker_recommendations' },
+  { id: 'confidence', label: 'Confidence', defaultVisible: false, required: false, requiredFeature: 'ai_ticker_recommendations' },
+  { id: 'risk', label: 'Risk Level', defaultVisible: false, required: false, requiredFeature: 'ai_ticker_recommendations' },
+  { id: 'tradeable', label: 'Tradeable', defaultVisible: false, required: false, requiredFeature: 'ai_ticker_recommendations' },
+];
+
+const LS_COLUMN_KEY = 'instnews_column_visibility';
+
+// ---------------------------------------------------------------------------
 // State
 // ---------------------------------------------------------------------------
 
@@ -49,6 +67,8 @@ let state = {
   userTier: null,
   userFeatures: {},
   soundEnabled: false,
+  columnVisibility: {},
+  columnSettingsOpen: false,
 };
 
 // ---------------------------------------------------------------------------
@@ -285,6 +305,138 @@ function getSentimentCounts() {
 }
 
 // ---------------------------------------------------------------------------
+// Column Configuration
+// ---------------------------------------------------------------------------
+
+function loadColumnVisibility() {
+  try {
+    const stored = localStorage.getItem(LS_COLUMN_KEY);
+    if (stored) {
+      const parsed = JSON.parse(stored);
+      const vis = {};
+      for (const col of COLUMN_DEFS) {
+        vis[col.id] = col.id in parsed ? parsed[col.id] : col.defaultVisible;
+      }
+      state.columnVisibility = vis;
+      return;
+    }
+  } catch {
+    // Fall through to defaults
+  }
+  const vis = {};
+  for (const col of COLUMN_DEFS) {
+    vis[col.id] = col.defaultVisible;
+  }
+  state.columnVisibility = vis;
+}
+
+function saveColumnVisibility() {
+  try {
+    localStorage.setItem(LS_COLUMN_KEY, JSON.stringify(state.columnVisibility));
+  } catch {
+    // Silent
+  }
+}
+
+function isColumnLocked(col) {
+  if (!col.requiredFeature) return false;
+  if (state.userTier === null) return false;
+  return !state.userFeatures[col.requiredFeature];
+}
+
+function getVisibleColumns() {
+  return COLUMN_DEFS.filter(col => {
+    if (isColumnLocked(col)) return false;
+    return state.columnVisibility[col.id] !== false;
+  });
+}
+
+function renderTableHeader() {
+  const head = document.querySelector('.news-table thead');
+  if (!head) return;
+  const cols = getVisibleColumns();
+  head.innerHTML = '<tr>' + cols.map(col =>
+    `<th class="col-${col.id}">${col.label}</th>`
+  ).join('') + '</tr>';
+}
+
+function renderCell(colId, item, isFresh, dupBadge) {
+  switch (colId) {
+    case 'time':
+      return `<td class="cell-time" title="${timeAgo(item.published)}">${formatTime(item.published)}</td>`;
+    case 'sentiment':
+      return `<td class="cell-sentiment"><span class="sentiment-badge ${item.sentiment_label}"><span class="sentiment-dot"></span>${item.sentiment_label}</span></td>`;
+    case 'source':
+      return `<td class="cell-source"><span class="source-tag">${escapeHtml(item.source || "")}</span></td>`;
+    case 'headline':
+      return `<td class="cell-headline"><a href="${escapeHtml(item.link || "#")}" target="_blank" rel="noopener noreferrer">${escapeHtml(item.title || "Untitled")}</a>${isFresh ? '<span class="badge-new">NEW</span>' : ''}${dupBadge}</td>`;
+    case 'summary':
+      return `<td class="cell-summary">${escapeHtml(truncate(item.summary, 120))}</td>`;
+    case 'ticker':
+      return `<td class="cell-ticker">${item.target_asset ? `<span class="ticker-symbol">${escapeHtml(item.target_asset)}</span>` : '<span class="cell-dash">\u2014</span>'}</td>`;
+    case 'confidence':
+      return `<td class="cell-confidence">${item.confidence != null ? Math.round(item.confidence * 100) + '%' : '<span class="cell-dash">\u2014</span>'}</td>`;
+    case 'risk': {
+      if (!item.risk_level) return '<td class="cell-risk"><span class="cell-dash">\u2014</span></td>';
+      const rl = item.risk_level.toLowerCase();
+      const rc = rl === 'low' ? 'green' : rl === 'high' ? 'red' : 'yellow';
+      return `<td class="cell-risk"><span class="risk-badge ${rc}">${escapeHtml(item.risk_level.toUpperCase())}</span></td>`;
+    }
+    case 'tradeable':
+      if (item.tradeable == null) return '<td class="cell-tradeable"><span class="cell-dash">\u2014</span></td>';
+      return `<td class="cell-tradeable"><span class="tradeable-badge ${item.tradeable ? 'yes' : 'no'}">${item.tradeable ? 'YES' : 'NO'}</span></td>`;
+    default:
+      return '<td></td>';
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Column Settings Panel
+// ---------------------------------------------------------------------------
+
+function toggleColumnSettings(forceState) {
+  const open = typeof forceState === 'boolean' ? forceState : !state.columnSettingsOpen;
+  state.columnSettingsOpen = open;
+  const panel = $('#column-settings-panel');
+  if (panel) panel.classList.toggle('open', open);
+}
+
+function renderColumnSettings() {
+  const panel = $('#column-settings-panel');
+  if (!panel) return;
+
+  const items = COLUMN_DEFS.map(col => {
+    const locked = isColumnLocked(col);
+    const checked = !locked && state.columnVisibility[col.id] !== false;
+    const disabled = col.required || locked;
+
+    return `<label class="col-toggle-item${locked ? ' locked' : ''}${col.required ? ' required' : ''}">
+      <span class="col-toggle-label">
+        ${locked ? '<svg class="col-lock-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>' : ''}
+        ${escapeHtml(col.label)}
+      </span>
+      <span class="col-toggle-switch${disabled ? ' disabled' : ''}">
+        <input type="checkbox" ${checked ? 'checked' : ''} ${disabled ? 'disabled' : ''} data-col-id="${col.id}">
+        <span class="col-toggle-track"><span class="col-toggle-thumb"></span></span>
+      </span>
+    </label>`;
+  });
+
+  panel.innerHTML = `<div class="col-settings-header"><span>Columns</span></div>
+    <div class="col-settings-list">${items.join('')}</div>`;
+
+  panel.querySelectorAll('input[type="checkbox"]').forEach(cb => {
+    cb.addEventListener('change', (e) => {
+      const colId = e.target.dataset.colId;
+      state.columnVisibility[colId] = e.target.checked;
+      saveColumnVisibility();
+      renderTableHeader();
+      renderNews();
+    });
+  });
+}
+
+// ---------------------------------------------------------------------------
 // Rendering
 // ---------------------------------------------------------------------------
 
@@ -293,11 +445,13 @@ function renderNews() {
   if (!container) return;
 
   const items = getFilteredItems();
+  const visibleCols = getVisibleColumns();
+  const colCount = visibleCols.length;
 
   if (items.length === 0 && !state.loading) {
     container.innerHTML = `
       <tr>
-        <td colspan="5">
+        <td colspan="${colCount}">
           <div class="empty-state">
             <div class="icon">\u25C7</div>
             <div>No items match current filters</div>
@@ -312,19 +466,9 @@ function renderNews() {
     const isNewItem = state.newIds.has(item.id);
     const isFresh = isNew(item.fetched_at);
     const rowClass = isNewItem ? "news-row-new" : "";
-    const pubTime = formatTime(item.published);
-    const ago = timeAgo(item.published);
     const dupBadge = item.duplicate ? '<span class="badge-dup">DUP</span>' : '';
-
-    return `<tr class="${rowClass}" data-id="${item.id}">
-      <td class="cell-time" title="${ago}">${pubTime}</td>
-      <td><span class="sentiment-badge ${item.sentiment_label}"><span class="sentiment-dot"></span>${item.sentiment_label}</span></td>
-      <td><span class="source-tag">${escapeHtml(item.source || "")}</span></td>
-      <td class="cell-headline">
-        <a href="${escapeHtml(item.link || "#")}" target="_blank" rel="noopener noreferrer">${escapeHtml(item.title || "Untitled")}</a>${isFresh ? '<span class="badge-new">NEW</span>' : ''}${dupBadge}
-      </td>
-      <td class="cell-summary">${escapeHtml(truncate(item.summary, 120))}</td>
-    </tr>`;
+    const cells = visibleCols.map(col => renderCell(col.id, item, isFresh, dupBadge)).join('');
+    return `<tr class="${rowClass}" data-id="${item.id}">${cells}</tr>`;
   });
 
   container.innerHTML = rows.join("");
@@ -335,17 +479,15 @@ function renderNews() {
 function renderSkeleton() {
   const container = $("#news-body");
   if (!container) return;
-  const rows = Array.from({ length: 15 }, (_, i) => {
-    const w1 = 50 + Math.random() * 20;
-    const w2 = 200 + Math.random() * 200;
-    const w3 = 100 + Math.random() * 100;
-    return `<tr class="skeleton-row">
-      <td><div class="skeleton-block" style="width:${w1}px"></div></td>
-      <td><div class="skeleton-block" style="width:60px"></div></td>
-      <td><div class="skeleton-block" style="width:80px"></div></td>
-      <td><div class="skeleton-block" style="width:${w2}px"></div></td>
-      <td><div class="skeleton-block" style="width:${w3}px"></div></td>
-    </tr>`;
+  const visibleCols = getVisibleColumns();
+  const rows = Array.from({ length: 15 }, () => {
+    const cells = visibleCols.map(col => {
+      const w = col.id === 'headline' ? (200 + Math.random() * 200)
+        : col.id === 'summary' ? (100 + Math.random() * 100)
+        : (50 + Math.random() * 30);
+      return `<td><div class="skeleton-block" style="width:${w}px"></div></td>`;
+    }).join('');
+    return `<tr class="skeleton-row">${cells}</tr>`;
   });
   container.innerHTML = rows.join("");
 }
@@ -353,9 +495,10 @@ function renderSkeleton() {
 function renderEmpty(message) {
   const container = $("#news-body");
   if (!container) return;
+  const colCount = getVisibleColumns().length;
   container.innerHTML = `
     <tr>
-      <td colspan="5">
+      <td colspan="${colCount}">
         <div class="loading-state">
           <div class="loading-spinner"></div>
           <div>${escapeHtml(message)}</div>
@@ -605,6 +748,23 @@ function bindEvents() {
       if (e.target === modalOverlay) toggleModal(false);
     });
   }
+
+  // Column settings button
+  const colSettingsBtn = $('#btn-col-settings');
+  if (colSettingsBtn) {
+    colSettingsBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      toggleColumnSettings();
+      if (state.columnSettingsOpen) renderColumnSettings();
+    });
+  }
+
+  // Close column settings on outside click
+  document.addEventListener('click', (e) => {
+    if (state.columnSettingsOpen && !e.target.closest('#column-settings-wrap')) {
+      toggleColumnSettings(false);
+    }
+  });
 
   // Detail modal — row click (event delegation)
   const newsBody = $("#news-body");
@@ -942,6 +1102,11 @@ async function fetchTier() {
     state.userTier = tier;
     state.userFeatures = features;
 
+    // Re-render columns with tier-based locks
+    renderColumnSettings();
+    renderTableHeader();
+    renderNews();
+
     const badge = $("#tier-badge");
     const dropdownTier = $("#dropdown-tier");
 
@@ -1007,6 +1172,8 @@ function hideUpgradeGate() {
 
 
 function init() {
+  loadColumnVisibility();
+  renderTableHeader();
   renderSkeleton();
   renderSources();
   bindEvents();

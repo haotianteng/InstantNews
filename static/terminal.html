@@ -17,10 +17,10 @@
 
   <!-- Favicon -->
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='12' fill='%230d1117'/><path d='M20 65 L35 40 L50 55 L65 25 L80 45' stroke='%233fb950' stroke-width='6' fill='none' stroke-linecap='round' stroke-linejoin='round'/><circle cx='80' cy='45' r='5' fill='%233fb950'/></svg>">
-  <script type="module" crossorigin src="/assets/terminal-BdCXwiMl.js"></script>
+  <script type="module" crossorigin src="/assets/terminal-iax8sINx.js"></script>
   <link rel="modulepreload" crossorigin href="/assets/auth-C4Y_TkCR.js">
   <link rel="stylesheet" crossorigin href="/assets/base-DBeiAWLw.css">
-  <link rel="stylesheet" crossorigin href="/assets/terminal-QVAFLMBh.css">
+  <link rel="stylesheet" crossorigin href="/assets/terminal-L-Yw0x8G.css">
 </head>
 <body>
   <div class="dashboard">
@@ -104,6 +104,26 @@
           </svg>
           <span class="desktop-only">API Docs</span>
         </button>
+
+        <div id="column-settings-wrap" class="column-settings-wrap">
+          <button class="btn-header" id="btn-col-settings" title="Column settings">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+              <line x1="4" y1="21" x2="4" y2="14"/>
+              <line x1="4" y1="10" x2="4" y2="3"/>
+              <line x1="12" y1="21" x2="12" y2="12"/>
+              <line x1="12" y1="8" x2="12" y2="3"/>
+              <line x1="20" y1="21" x2="20" y2="16"/>
+              <line x1="20" y1="12" x2="20" y2="3"/>
+              <line x1="1" y1="14" x2="7" y2="14"/>
+              <line x1="9" y1="8" x2="15" y2="8"/>
+              <line x1="17" y1="16" x2="23" y2="16"/>
+            </svg>
+            <span class="desktop-only">Columns</span>
+          </button>
+          <div class="column-settings-panel" id="column-settings-panel">
+            <!-- Populated by JS -->
+          </div>
+        </div>
 
         <span class="header-divider"></span>
 
@@ -252,13 +272,7 @@
     <main class="main">
       <table class="news-table">
         <thead>
-          <tr>
-            <th class="col-time">Time</th>
-            <th class="col-sentiment">Sentiment</th>
-            <th class="col-source">Source</th>
-            <th class="col-headline">Headline</th>
-            <th class="col-summary">Summary</th>
-          </tr>
+          <!-- Populated by JS (renderTableHeader) -->
         </thead>
         <tbody id="news-body">
           <!-- Populated by JS -->
@@ -375,6 +389,26 @@
             <div class="api-curl">curl "<span class="api-base-url"></span>/api/docs"</div>
           </div>
         </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================================================================= -->
+  <!-- Detail Modal (Ticker Recommendation)                            -->
+  <!-- ================================================================= -->
+  <div class="modal-overlay" id="detail-modal-overlay">
+    <div class="modal detail-modal">
+      <div class="modal-header">
+        <h2>// Ticker Recommendation</h2>
+        <button class="modal-close" id="detail-modal-close" aria-label="Close">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+            <line x1="18" y1="6" x2="6" y2="18"/>
+            <line x1="6" y1="6" x2="18" y2="18"/>
+          </svg>
+        </button>
+      </div>
+      <div class="modal-body detail-modal-body">
+        <!-- Populated by JS -->
       </div>
     </div>
   </div>

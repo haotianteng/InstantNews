@@ -597,6 +597,10 @@
 .news-table th.col-source { width: 120px; }
 .news-table th.col-headline { }
 .news-table th.col-summary { width: 25%; min-width: 120px; }
+.news-table th.col-ticker { width: 80px; }
+.news-table th.col-confidence { width: 90px; }
+.news-table th.col-risk { width: 90px; }
+.news-table th.col-tradeable { width: 80px; }
 
 .news-table td {
   padding: 6px 12px;
@@ -701,6 +705,90 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+/* Ticker */
+.cell-ticker {
+  white-space: nowrap;
+}
+
+.ticker-symbol {
+  display: inline-block;
+  padding: 1px 6px;
+  background: var(--blue-bg);
+  border: 1px solid var(--blue-border);
+  border-radius: var(--radius-sm);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--blue);
+}
+
+/* Confidence */
+.cell-confidence {
+  font-family: 'JetBrains Mono', monospace;
+  font-variant-numeric: tabular-nums lining-nums;
+  font-size: 11px;
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+
+/* Risk Level */
+.cell-risk {
+  white-space: nowrap;
+}
+
+.risk-badge {
+  display: inline-block;
+  padding: 2px 6px;
+  border-radius: var(--radius-sm);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  font-weight: 600;
+}
+
+.risk-badge.green {
+  color: var(--green);
+  background: var(--green-bg);
+}
+
+.risk-badge.yellow {
+  color: var(--yellow);
+  background: var(--yellow-bg);
+}
+
+.risk-badge.red {
+  color: var(--red);
+  background: var(--red-bg);
+}
+
+/* Tradeable */
+.cell-tradeable {
+  white-space: nowrap;
+}
+
+.tradeable-badge {
+  display: inline-block;
+  padding: 2px 6px;
+  border-radius: var(--radius-sm);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  font-weight: 600;
+}
+
+.tradeable-badge.yes {
+  color: var(--green);
+  background: var(--green-bg);
+}
+
+.tradeable-badge.no {
+  color: var(--red);
+  background: var(--red-bg);
+}
+
+/* Cell dash (empty value) */
+.cell-dash {
+  color: var(--text-faint);
 }
 
 /* NEW badge */
@@ -1390,8 +1478,16 @@
     grid-column: 1;
   }
 
-  .news-table th.col-source,
-  .news-table td:nth-child(3) {
+  .news-table .col-source,
+  .news-table .cell-source,
+  .news-table .col-ticker,
+  .news-table .cell-ticker,
+  .news-table .col-confidence,
+  .news-table .cell-confidence,
+  .news-table .col-risk,
+  .news-table .cell-risk,
+  .news-table .col-tradeable,
+  .news-table .cell-tradeable {
     display: none;
   }
 
@@ -1409,8 +1505,8 @@
 }
 
 @media (max-width: 480px) {
-  .news-table th.col-sentiment,
-  .news-table td:nth-child(2) {
+  .news-table .col-sentiment,
+  .news-table .cell-sentiment {
     display: none;
   }
 
@@ -1517,6 +1613,140 @@
 
 .user-dropdown-item:hover {
   background: var(--bg-hover);
+}
+
+/* =========================================================================
+   Column Settings
+   ========================================================================= */
+
+.column-settings-wrap {
+  position: relative;
+}
+
+.column-settings-panel {
+  display: none;
+  position: absolute;
+  top: calc(100% + 4px);
+  right: 0;
+  min-width: 220px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  z-index: 1000;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  overflow: hidden;
+}
+
+.column-settings-panel.open {
+  display: block;
+}
+
+.col-settings-header {
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--border);
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-muted);
+}
+
+.col-settings-list {
+  padding: 4px 0;
+}
+
+.col-toggle-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 12px;
+  cursor: pointer;
+  transition: background var(--duration-fast);
+  user-select: none;
+}
+
+.col-toggle-item:hover {
+  background: var(--bg-hover);
+}
+
+.col-toggle-item.locked {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.col-toggle-item.locked:hover {
+  background: transparent;
+}
+
+.col-toggle-item.required {
+  opacity: 0.7;
+}
+
+.col-toggle-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--text-primary);
+}
+
+.col-lock-icon {
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+
+/* Toggle switch */
+.col-toggle-switch {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
+.col-toggle-switch input {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.col-toggle-track {
+  width: 32px;
+  height: 18px;
+  background: var(--bg-surface-3);
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  position: relative;
+  transition: all var(--duration-fast);
+  cursor: pointer;
+}
+
+.col-toggle-thumb {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 12px;
+  height: 12px;
+  background: var(--text-muted);
+  border-radius: 50%;
+  transition: all var(--duration-fast);
+}
+
+.col-toggle-switch input:checked + .col-toggle-track {
+  background: var(--blue-bg);
+  border-color: var(--blue);
+}
+
+.col-toggle-switch input:checked + .col-toggle-track .col-toggle-thumb {
+  transform: translateX(14px);
+  background: var(--blue);
+}
+
+.col-toggle-switch.disabled {
+  pointer-events: none;
+}
+
+.col-toggle-switch.disabled .col-toggle-track {
+  opacity: 0.4;
 }
 
 /* =========================================================================
