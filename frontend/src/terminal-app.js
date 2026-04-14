@@ -78,6 +78,10 @@ let state = {
   columnSettingsOpen: false,
   marketPrices: {},
   priceRefreshTimer: null,
+  companyProfileOpen: false,
+  companyProfileSymbol: null,
+  companyProfileData: null,
+  companyProfileLoading: false,
 };
 
 // ---------------------------------------------------------------------------
@@ -148,6 +152,14 @@ function escapeHtml(str) {
 function truncate(str, max) {
   if (!str) return "";
   return str.length > max ? str.slice(0, max) + "\u2026" : str;
+}
+
+function formatMarketCap(val) {
+  if (val == null) return "\u2014";
+  if (val >= 1e12) return "$" + (val / 1e12).toFixed(2) + "T";
+  if (val >= 1e9) return "$" + (val / 1e9).toFixed(2) + "B";
+  if (val >= 1e6) return "$" + (val / 1e6).toFixed(2) + "M";
+  return "$" + val.toLocaleString();
 }
 
 // ---------------------------------------------------------------------------
@@ -1074,6 +1086,13 @@ function bindEvents() {
     newsBody.addEventListener("click", (e) => {
       // Don't intercept link clicks — let them open in new tab
       if (e.target.closest("a")) return;
+      // Ticker badge click → open company profile modal
+      const badge = e.target.closest(".ticker-badge[data-ticker]");
+      if (badge) {
+        e.stopPropagation();
+        openCompanyProfile(badge.dataset.ticker);
+        return;
+      }
       const row = e.target.closest("tr[data-id]");
       if (!row) return;
       const itemId = row.dataset.id;
@@ -1091,6 +1110,18 @@ function bindEvents() {
   if (detailOverlay) {
     detailOverlay.addEventListener("click", (e) => {
       if (e.target === detailOverlay) closeDetailModal();
+    });
+  }
+
+  // Company profile modal close
+  const cpClose = $("#company-profile-close");
+  if (cpClose) {
+    cpClose.addEventListener("click", closeCompanyProfile);
+  }
+  const cpOverlay = $("#company-profile-overlay");
+  if (cpOverlay) {
+    cpOverlay.addEventListener("click", (e) => {
+      if (e.target === cpOverlay) closeCompanyProfile();
     });
   }
 
@@ -1158,7 +1189,8 @@ function bindEvents() {
         setSentimentFilter("neutral");
         break;
       case "escape":
-        if (state.detailModalOpen) closeDetailModal();
+        if (state.companyProfileOpen) closeCompanyProfile();
+        else if (state.detailModalOpen) closeDetailModal();
         else if (state.modalOpen) toggleModal(false);
         if (state.sidebarOpen) toggleSidebar(false);
         break;
@@ -1312,6 +1344,113 @@ function closeDetailModal() {
   state.detailModalOpen = false;
   state.detailItem = null;
   const overlay = $("#detail-modal-overlay");
+  if (overlay) overlay.classList.remove("open");
+}
+
+// ---------------------------------------------------------------------------
+// Company Profile Modal
+// ---------------------------------------------------------------------------
+
+async function openCompanyProfile(symbol) {
+  state.companyProfileOpen = true;
+  state.companyProfileSymbol = symbol;
+  state.companyProfileData = null;
+  state.companyProfileLoading = true;
+
+  const overlay = $("#company-profile-overlay");
+  if (!overlay) return;
+
+  // Update title
+  const titleEl = $("#company-profile-title");
+  if (titleEl) titleEl.textContent = `// ${symbol.toUpperCase()}`;
+
+  // Show loading state
+  const body = $("#company-profile-body");
+  if (body) {
+    body.innerHTML = `<div class="cp-loading">
+      <div class="cp-loading-row"><div class="skeleton" style="width:60%;height:24px"></div></div>
+      <div class="cp-loading-row"><div class="skeleton" style="width:40%;height:16px"></div></div>
+      <div class="cp-loading-row" style="margin-top:16px"><div class="skeleton" style="width:100%;height:80px"></div></div>
+      <div class="cp-loading-grid">
+        <div class="skeleton" style="width:100%;height:64px"></div>
+        <div class="skeleton" style="width:100%;height:64px"></div>
+      </div>
+    </div>`;
+  }
+
+  overlay.classList.add("open");
+
+  // Fetch company details
+  try {
+    const res = await SignalAuth.fetch(`${API}/market/${encodeURIComponent(symbol)}/details`);
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.message || `HTTP ${res.status}`);
+    }
+    const data = await res.json();
+    state.companyProfileData = data;
+    state.companyProfileLoading = false;
+    renderCompanyFundamentals(data);
+  } catch (err) {
+    state.companyProfileLoading = false;
+    logger.warn("Error fetching company details for", symbol, err);
+    if (body) {
+      body.innerHTML = `<div class="cp-error">
+        <div class="cp-error-icon">!</div>
+        <p>Could not load company details for <strong>${escapeHtml(symbol)}</strong></p>
+        <span>${escapeHtml(err.message)}</span>
+      </div>`;
+    }
+  }
+}
+
+function renderCompanyFundamentals(data) {
+  const body = $("#company-profile-body");
+  if (!body) return;
+
+  const logoHtml = data.logo_url
+    ? `<img class="cp-logo" src="${escapeHtml(data.logo_url)}" alt="${escapeHtml(data.name)}" onerror="this.style.display='none'">`
+    : "";
+
+  const homepageHtml = data.homepage_url
+    ? `<a class="cp-homepage" href="${escapeHtml(data.homepage_url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(data.homepage_url.replace(/^https?:\/\//, ""))}</a>`
+    : "";
+
+  body.innerHTML = `
+    <div class="cp-header">
+      ${logoHtml}
+      <div class="cp-header-info">
+        <div class="cp-name">${escapeHtml(data.name || "\u2014")}</div>
+        <div class="cp-symbol-row">
+          <span class="cp-symbol">${escapeHtml(data.symbol || "\u2014")}</span>
+          ${data.sector ? `<span class="cp-sector">${escapeHtml(data.sector)}</span>` : ""}
+        </div>
+      </div>
+    </div>
+    <div class="cp-metrics">
+      <div class="detail-metric">
+        <div class="detail-metric-label">Market Cap</div>
+        <div class="detail-metric-value">${formatMarketCap(data.market_cap)}</div>
+      </div>
+      <div class="detail-metric">
+        <div class="detail-metric-label">Sector</div>
+        <div class="detail-metric-value" style="font-size:12px">${escapeHtml(data.sector || "\u2014")}</div>
+      </div>
+    </div>
+    ${data.description ? `<div class="cp-description">
+      <div class="cp-desc-label">About</div>
+      <p class="cp-desc-text">${escapeHtml(data.description)}</p>
+    </div>` : ""}
+    ${homepageHtml ? `<div class="cp-links">${homepageHtml}</div>` : ""}
+  `;
+}
+
+function closeCompanyProfile() {
+  state.companyProfileOpen = false;
+  state.companyProfileSymbol = null;
+  state.companyProfileData = null;
+  state.companyProfileLoading = false;
+  const overlay = $("#company-profile-overlay");
   if (overlay) overlay.classList.remove("open");
 }
 

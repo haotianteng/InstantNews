@@ -439,3 +439,56 @@ Mode: Adversarial (loop)
   - If no ticker on a news item, shows em-dash (—)
   - 8 pre-existing test failures in test_tiers.py/test_rate_limit.py — NOT related to this story
 ---
+
+## 2026-04-14 - US-011 - TESTER — TEST_PASSED
+
+- **All 4 test assertions passed**, all 9 acceptance criteria verified by browser execution
+- Assertion 1: Vite build exits 0 (29 modules, 364ms)
+- Assertion 2: 14 ticker badges with prices rendered in Ticker column (MU, ZM, MSFT, PLTR, CHPT, LVMH, UBER, QCOM, ORCL, CAG, APTV, GME)
+- Assertion 3: Market price refresh confirmed — 5 refresh batches (60 fetches) in 12 seconds. MARKET_REFRESH_MS=10000
+- Assertion 4: Color coding verified — Green rgb(63,185,80) for positive change, Red rgb(248,81,73) for negative (MSFT -0.57%)
+- AC1: Ticker badges with .ticker-badge class, data-ticker attribute, cursor:pointer
+- AC2: Badge format: SYMBOL$PRICE SIGN% with price-up/price-down/price-flat CSS classes
+- AC3: fetchMarketPrices() fetches /api/market/:symbol for each unique ticker
+- AC4: MAX_CONCURRENT_FETCHES=10, batched via Promise.all (12 tickers = batch of 10 + batch of 2)
+- AC5: 10-second setInterval via startPriceRefresh(), guarded on feature + column visibility
+- AC6: Items without target_asset show em-dash (36/50 items)
+- AC7: Column gated via requiredFeature='ai_ticker_recommendations', lock icon + disabled toggle for non-Max users
+- AC8: Vite build exits 0
+- AC9: Full Playwright browser verification with 9 screenshots
+- No regressions: 1 console error from /api/refresh 401 (pre-existing, not related to US-011)
+- **Learnings:**
+  - Vite ESM production bundles isolate module scope — addInitScript + Object.defineProperty on window.SignalAuth is the reliable pattern for auth mocking
+  - Server-side _shape_item() strips target_asset for unauthenticated users — client-side ticker injection needed to test rendering logic with mock auth
+  - fetchMarketPrices() is called both from the 10-second dedicated timer AND from fetchNews() integration, resulting in more frequent updates than 10 seconds
+- **Artifacts:** `ralph/test_results/US-011/attempt-1/` (vite_build.log, test_evidence.log, 9 screenshots)
+---
+
+## 2026-04-13 - US-012 - IMPLEMENTOR — Implemented Company Profile Modal — Fundamentals Tab
+
+- Clicking a `.ticker-badge` in the terminal table now opens a Company Profile Modal (separate from the detail/ticker recommendation modal)
+- Badge click is intercepted via event delegation with `e.stopPropagation()` so it doesn't trigger the row-level detail modal
+- Modal fetches `/api/market/:symbol/details` via `SignalAuth.fetch()` and displays:
+  - Company name, symbol, sector badge
+  - Logo image (with onerror fallback)
+  - Market cap (formatted via new `formatMarketCap()`: $X.XXB, $X.XXT, etc.)
+  - Company description (scrollable, max-height 120px)
+  - Homepage link (opens in new tab)
+- Tab bar with "Fundamentals" tab active — ready for future tabs (US-014/016/018/019)
+- Loading state: skeleton UI while fetching
+- Error state: styled error message with specific error text
+- Close: X button, overlay click, or Escape key (Escape priority: company profile > detail modal > API docs modal)
+- Reuses existing `.modal-overlay`, `.detail-metric` CSS patterns and dark terminal theme variables
+- Added 4 new state fields: `companyProfileOpen`, `companyProfileSymbol`, `companyProfileData`, `companyProfileLoading`
+- **Files changed:** `frontend/src/terminal-app.js`, `frontend/src/styles/terminal.css`, `static/terminal.html`
+- **Self-validation:** Vite build passes, pytest 85 passed (8 pre-existing failures excluded), JS syntax OK
+- **Environment notes for Tester:**
+  - The company profile modal opens by clicking a ticker badge (e.g., "AAPL" blue badge in the ticker column), NOT by clicking the row
+  - Requires Max tier (ticker badges only appear for Max users with `ai_ticker_recommendations` feature)
+  - Requires Polygon.io API key configured — if not set, the endpoint returns 503
+  - The `/api/market/:symbol/details` endpoint must be reachable (requires auth)
+  - The `cd frontend && npx vite build` assertion validates that the build still passes
+  - To test visually: navigate to terminal, sign in as Max user, find an article with a ticker badge, click the badge
+  - Modal should show skeleton → then company fundamentals (name, sector, market cap, logo, description, homepage link)
+  - Closing the modal (X, overlay click, Escape) should leave the terminal fully functional
+---
