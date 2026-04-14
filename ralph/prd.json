@@ -304,13 +304,13 @@
         "python -m pytest tests/ -v -k 'market' exits 0",
         "mypy app/routes/market.py exits 0"
       ],
-      "status": "READY_FOR_TEST",
-      "passes": false,
+      "status": "TEST_PASSED",
+      "passes": true,
       "implementation_notes": "Created app/routes/market.py with market_bp Blueprint.\n\n1. **GET /api/market/<symbol>**: Requires auth via @require_auth decorator (returns 401 for unauthenticated). Uses singleton PolygonClient to fetch real-time snapshot. Returns {symbol, price, change, change_percent, volume, vwap, updated_at}. Returns 404 with descriptive message for unknown tickers (when PolygonClient returns None). Returns 503 with Retry-After:60 header when Polygon.io is not configured (client disabled).\n\n2. **GET /api/market/<symbol>/details**: Same auth and error handling. Returns {symbol, name, sector, market_cap, logo_url, description, homepage_url}. Same 404/503 behavior.\n\n3. **Rate limiting**: Both endpoints decorated with @limiter.limit('60 per minute') — 60 req/min per user, keyed by user ID (or IP for anonymous). Uses the existing Flask-Limiter instance from app.middleware.rate_limit.\n\n4. **Tests**: 10 tests in tests/test_market_routes.py covering auth (401 for unauthenticated, 200 for authenticated), response field schema (all required fields present), 404 for unknown tickers, 503 with Retry-After when disabled, and rate limit header presence.\n\n5. **Registration**: Blueprint registered in app/routes/__init__.py.\n\n6. **Typecheck**: mypy app/routes/market.py — Success: no issues found in 1 source file.",
       "files_changed": ["app/routes/market.py", "app/routes/__init__.py", "tests/test_market_routes.py"],
       "failure_reason": null,
-      "test_evidence": null,
-      "test_report": null,
+      "test_evidence": "All 2 test assertions passed, all 7 acceptance criteria verified by execution.\n\nAssertion 1: `python -m pytest tests/ -v -k 'market'` — 24/24 passed (14 market_data + 10 market_routes), exit 0. See assertion1_pytest_market.log.\nAssertion 2: `mypy app/routes/market.py` — 'Success: no issues found in 1 source file', exit 0. See assertion2_mypy.log.\n\nAC1: GET /api/market/MSFT returns 200 with all 7 fields: ['change', 'change_percent', 'price', 'symbol', 'updated_at', 'volume', 'vwap']. updated_at is ISO format. See ac6_ratelimit_verification.log.\nAC2: GET /api/market/AAPL/details returns 200 with all 7 fields: symbol, name, sector, market_cap, logo_url, description, homepage_url. Verified by test_details_response_fields execution.\nAC3: Unauthenticated GET /api/market/AAPL → 401. Unauthenticated GET /api/market/AAPL/details → 401. See ac3_auth_verification.log.\nAC4: GET /api/market/ZZZZZ → 404 with error='Ticker not found', message contains 'ZZZZZ'. GET /api/market/ZZZZZ/details → 404. Verified by test execution.\nAC5: GET /api/market/AAPL with disabled Polygon → 503, Retry-After='60'. Same for /details. Verified by test execution.\nAC6: X-RateLimit-Limit: 60, X-RateLimit-Remaining: 59 — confirms 60 req/min limit active. See ac6_ratelimit_verification.log.\nAC7: mypy clean — 'Success: no issues found in 1 source file'.\n\nFull pytest: 110 passed, 8 failed (all pre-existing in test_tiers.py/test_rate_limit.py — stale tier config values, not related to US-010). No regressions.\n\nArtifacts: ralph/test_results/US-010/attempt-1/",
+      "test_report": "## US-010 Test Report — PASSED\n\n### Test Assertions\n1. PASS: `python -m pytest tests/ -v -k 'market'` — 24/24 passed (exit 0)\n2. PASS: `mypy app/routes/market.py` — 'Success: no issues found in 1 source file' (exit 0)\n\n### Acceptance Criteria\n1. PASS (AC1): GET /api/market/<symbol> returns {symbol, price, change, change_percent, volume, vwap, updated_at} — all 7 fields present, updated_at in ISO format\n2. PASS (AC2): GET /api/market/<symbol>/details returns {symbol, name, sector, market_cap, logo_url, description, homepage_url} — all 7 fields present\n3. PASS (AC3): Both endpoints require auth — unauthenticated requests return 401 (verified independently via test client)\n4. PASS (AC4): Unknown ticker ZZZZZ returns 404 with descriptive message containing the symbol name\n5. PASS (AC5): Disabled Polygon.io returns 503 with Retry-After:60 header on both endpoints\n6. PASS (AC6): Rate limited at 60 req/min — X-RateLimit-Limit: 60, X-RateLimit-Remaining: 59 confirmed\n7. PASS (AC7): mypy clean — 'Success: no issues found in 1 source file'\n\n### Quality Checks\n- mypy: clean (1 file)\n- pytest (targeted): 24/24 passed (market_data + market_routes)\n- pytest (full): 110/118 passed; 8 pre-existing failures in test_tiers.py/test_rate_limit.py (stale tier config values, documented in prior progress entries, not related to US-010)\n- No regressions introduced (110 passed vs 100 in US-009 — 10 new route tests added)\n- Blueprint registered in app/routes/__init__.py (line 10 import, line 23 register)",
       "fail_count": 0
     },
     {
@@ -337,10 +337,10 @@
         "Wait 10s — prices update",
         "Verify green/red coloring matches positive/negative change"
       ],
-      "status": "REQUIRE_IMPLEMENT",
+      "status": "READY_FOR_TEST",
       "passes": false,
-      "implementation_notes": null,
-      "files_changed": [],
+      "implementation_notes": "Enhanced existing ticker column in terminal-app.js with live market price badges. Added fetchMarketPrices() that collects unique tickers from news items and fetches /api/market/:symbol in parallel batches of 10. Prices stored in state.marketPrices and rendered as color-coded badges (green=positive, red=negative change%). 10-second auto-refresh via startPriceRefresh()/stopPriceRefresh(). Ticker badges are clickable (cursor:pointer, data-ticker attr) for future US-012 company profile modal. Column gated to Max tier via existing requiredFeature='ai_ticker_recommendations'. Price refresh only runs when ticker column is visible and user has the feature. Column width increased from 80px to 160px to accommodate price data. CSS added for .ticker-badge, .ticker-price, .ticker-change with price-up/price-down/price-flat color classes.",
+      "files_changed": ["frontend/src/terminal-app.js", "frontend/src/styles/terminal.css"],
       "failure_reason": null,
       "test_evidence": null,
       "test_report": null,

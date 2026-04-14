@@ -14,6 +14,8 @@ import SignalAuth from './auth.js';
 const API = "/api";
 const DEFAULT_LIMIT = 200;
 const NEW_THRESHOLD_MS = 60000; // 60 seconds
+const MARKET_REFRESH_MS = 10000; // 10 seconds
+const MAX_CONCURRENT_FETCHES = 10;
 
 // ---------------------------------------------------------------------------
 // Column Definitions
@@ -74,6 +76,8 @@ let state = {
   columnOrder: COLUMN_DEFS.map(c => c.id),
   columnWidths: {},
   columnSettingsOpen: false,
+  marketPrices: {},
+  priceRefreshTimer: null,
 };
 
 // ---------------------------------------------------------------------------
@@ -190,6 +194,7 @@ async function fetchNews() {
     renderNews();
     updateStatusBar();
     updateConnectionStatus(true);
+    fetchMarketPrices();
   } catch (err) {
     state.connected = false;
     state.loading = false;
@@ -220,6 +225,45 @@ async function fetchStats() {
     updateHeaderStats();
   } catch {
     // silent
+  }
+}
+
+async function fetchMarketPrices() {
+  if (!state.userFeatures.ai_ticker_recommendations) return;
+  if (!state.columnVisibility.ticker) return;
+
+  const tickers = [...new Set(state.items.map(i => i.target_asset).filter(Boolean))];
+  if (tickers.length === 0) return;
+
+  for (let i = 0; i < tickers.length; i += MAX_CONCURRENT_FETCHES) {
+    const batch = tickers.slice(i, i + MAX_CONCURRENT_FETCHES);
+    const promises = batch.map(async (symbol) => {
+      try {
+        const res = await SignalAuth.fetch(`${API}/market/${encodeURIComponent(symbol)}`);
+        if (res.ok) {
+          state.marketPrices[symbol] = await res.json();
+        }
+      } catch {
+        // silent — price just won't display
+      }
+    });
+    await Promise.all(promises);
+  }
+
+  renderNews();
+}
+
+function startPriceRefresh() {
+  stopPriceRefresh();
+  if (!state.userFeatures.ai_ticker_recommendations) return;
+  if (!state.columnVisibility.ticker) return;
+  state.priceRefreshTimer = setInterval(fetchMarketPrices, MARKET_REFRESH_MS);
+}
+
+function stopPriceRefresh() {
+  if (state.priceRefreshTimer) {
+    clearInterval(state.priceRefreshTimer);
+    state.priceRefreshTimer = null;
   }
 }
 
@@ -548,8 +592,19 @@ function renderCell(colId, item, isFresh, dupBadge) {
       return `<td class="cell-headline"><a href="${escapeHtml(item.link || "#")}" target="_blank" rel="noopener noreferrer">${escapeHtml(item.title || "Untitled")}</a>${isFresh ? '<span class="badge-new">NEW</span>' : ''}${dupBadge}</td>`;
     case 'summary':
       return `<td class="cell-summary">${escapeHtml(truncate(item.summary, 120))}</td>`;
-    case 'ticker':
-      return `<td class="cell-ticker">${item.target_asset ? `<span class="ticker-symbol">${escapeHtml(item.target_asset)}</span>` : '<span class="cell-dash">\u2014</span>'}</td>`;
+    case 'ticker': {
+      if (!item.target_asset) return '<td class="cell-ticker"><span class="cell-dash">\u2014</span></td>';
+      const ticker = escapeHtml(item.target_asset);
+      const mkt = state.marketPrices[item.target_asset];
+      let priceHtml = '';
+      if (mkt && mkt.price != null) {
+        const pct = mkt.change_percent || 0;
+        const sign = pct >= 0 ? '+' : '';
+        const cls = pct > 0 ? 'price-up' : pct < 0 ? 'price-down' : 'price-flat';
+        priceHtml = `<span class="ticker-price ${cls}">$${mkt.price.toFixed(2)} <span class="ticker-change">${sign}${pct.toFixed(2)}%</span></span>`;
+      }
+      return `<td class="cell-ticker"><span class="ticker-badge" data-ticker="${ticker}">${ticker}${priceHtml}</span></td>`;
+    }
     case 'confidence':
       return `<td class="cell-confidence">${item.confidence != null ? Math.round(item.confidence * 100) + '%' : '<span class="cell-dash">\u2014</span>'}</td>`;
     case 'risk': {
@@ -1354,6 +1409,10 @@ async function fetchTier() {
     renderTableHeader();
     renderNews();
 
+    // Start market price refresh for Max users
+    fetchMarketPrices();
+    startPriceRefresh();
+
     const badge = $("#tier-badge");
     const dropdownTier = $("#dropdown-tier");
 
@@ -1410,6 +1469,7 @@ function showUpgradeGate() {
 
   // Stop auto-refresh to avoid unnecessary API calls
   stopAutoRefresh();
+  stopPriceRefresh();
 }
 
 function hideUpgradeGate() {

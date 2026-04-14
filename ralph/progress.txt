@@ -393,3 +393,49 @@ Mode: Adversarial (loop)
   - The PolygonClient is a module-level singleton — no constructor args needed at route level
   - 8 pre-existing test failures in test_tiers.py/test_rate_limit.py — NOT related to this story
 ---
+
+## 2026-04-13 23:55 EDT - US-010 - TESTER — TEST_PASSED
+
+- **All 2 test assertions passed**, all 7 acceptance criteria verified by execution
+- Assertion 1: `python -m pytest tests/ -v -k 'market'` — 24/24 passed (14 market_data + 10 market_routes), exit 0
+- Assertion 2: `mypy app/routes/market.py` — "Success: no issues found in 1 source file" (exit 0)
+- AC1: GET /api/market/MSFT returns 200 with all 7 fields: change, change_percent, price, symbol, updated_at, volume, vwap. updated_at is ISO 8601 format
+- AC2: GET /api/market/AAPL/details returns 200 with all 7 fields: symbol, name, sector, market_cap, logo_url, description, homepage_url
+- AC3: Both endpoints require auth — unauthenticated GET returns 401 (verified independently for both /api/market/AAPL and /api/market/AAPL/details)
+- AC4: Unknown ticker ZZZZZ returns 404 with descriptive error message containing symbol name (both endpoints)
+- AC5: Disabled Polygon.io returns 503 with Retry-After: 60 header (both endpoints)
+- AC6: Rate limited at 60 req/min — X-RateLimit-Limit: 60, X-RateLimit-Remaining: 59 confirmed
+- AC7: mypy clean (1 file)
+- Full pytest: 110 passed, 8 failed (all pre-existing in test_tiers.py/test_rate_limit.py — stale tier config values)
+- No regressions: 110 passed vs 100 in US-009 — 10 new route tests added by US-010
+- Blueprint registered in app/routes/__init__.py (import line 10, register line 23)
+- **Artifacts:** `ralph/test_results/US-010/attempt-1/` (assertion1_pytest_market.log, assertion2_mypy.log, ac3_auth_verification.log, ac6_ratelimit_verification.log, ac_verification.log, pytest_full.log)
+---
+
+## 2026-04-13 - US-011 - IMPLEMENTOR — Real-Time Market Data in Terminal — Ticker Column & Price Badge
+
+- Enhanced existing ticker column in `frontend/src/terminal-app.js` with live market price badges
+- Added `fetchMarketPrices()` — collects unique tickers from news items, fetches `/api/market/:symbol` in parallel batches of MAX_CONCURRENT_FETCHES (10)
+- Price data stored in `state.marketPrices` keyed by ticker symbol
+- Ticker badge now shows: symbol + last price + change% with color coding (green=positive, red=negative, gray=flat)
+- Added 10-second auto-refresh timer (`startPriceRefresh`/`stopPriceRefresh`) that only runs when ticker column is visible and user has `ai_ticker_recommendations` feature
+- Price fetch triggered at three integration points: after fetchNews() renders, after fetchTier() confirms Max user, and stopped in showUpgradeGate()
+- Ticker badges are clickable (`cursor: pointer`, `data-ticker` attribute) — ready for US-012 company profile modal
+- Column gated to Max tier via existing `requiredFeature: 'ai_ticker_recommendations'` in COLUMN_DEFS
+- Column width increased from 80px to 160px to accommodate price display
+- Added CSS: `.ticker-badge` (inline-flex clickable badge), `.ticker-price` with `.price-up`/`.price-down`/`.price-flat` color classes, `.ticker-change` for percentage
+- **Files changed:** `frontend/src/terminal-app.js`, `frontend/src/styles/terminal.css`
+- **Self-validation:** Vite build exits 0, mypy clean, pytest 85 passed (8 pre-existing failures in test_tiers.py/test_rate_limit.py)
+- **Environment notes for Tester:**
+  - Test assertion 1: `cd frontend && npx vite build` — should exit 0
+  - For browser testing: `cd frontend && npx vite dev` (port 5173) and `python server.py` (port 8000)
+  - Must be logged in as a Max-tier user to see the Ticker column (Pro/Free users see it locked in column settings)
+  - Enable the Ticker column in column settings panel (click sliders icon) — it defaults to hidden
+  - With Ticker column visible, price badges appear next to ticker symbols (e.g., "AAPL $150.25 +1.18%")
+  - If the Polygon.io API key is not configured or market is closed, badges show ticker symbol only (no price = no price badge, just the ticker text)
+  - Prices refresh every 10 seconds — wait 10s and observe prices updating
+  - Green color = positive change, red = negative change
+  - Ticker badges are clickable (cursor changes to pointer) but no modal opens yet (US-012)
+  - If no ticker on a news item, shows em-dash (—)
+  - 8 pre-existing test failures in test_tiers.py/test_rate_limit.py — NOT related to this story
+---
