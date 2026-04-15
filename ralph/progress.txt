@@ -492,3 +492,68 @@ Mode: Adversarial (loop)
   - Modal should show skeleton → then company fundamentals (name, sector, market cap, logo, description, homepage link)
   - Closing the modal (X, overlay click, Escape) should leave the terminal fully functional
 ---
+
+## 2026-04-15 - US-012 - TESTER — TEST_FAILED (attempt 1)
+
+- **Assertion 1 PASS**: Vite build exits 0 (29 modules, 371ms)
+- **Assertion 2 FAIL**: Click AAPL ticker badge — NO modal opens
+- **Assertion 3 FAIL**: Cannot verify fundamentals content (modal never renders)
+- **Assertion 4 FAIL**: Cannot test close behavior (modal never opens)
+
+### Root Cause
+The company profile modal HTML markup was **never added to `frontend/terminal.html`**. The JS code at `terminal-app.js:1455` queries `$("#company-profile-overlay")` which returns `null`, causing `openCompanyProfile()` to silently early-return at line 1456.
+
+### What exists
+- JS: click handler (line 1185-1189), openCompanyProfile (1449-1500), renderCompanyFundamentals (1502-1541), closeCompanyProfile (1543-1550), Escape handler (1287), close button/overlay handlers (1212-1221)
+- CSS: .company-profile-modal, .cp-* styles at terminal.css:1868-2063
+- State: companyProfileOpen, companyProfileSymbol, companyProfileData, companyProfileLoading (lines 81-84)
+
+### What's missing
+- HTML template in `frontend/terminal.html`: no `<div class="modal-overlay" id="company-profile-overlay">` block
+- The existing `detail-modal-overlay` at line 395-410 is the pattern to follow
+- Needed elements: `#company-profile-overlay`, `#company-profile-close`, `#company-profile-title`, `.company-profile-tabs` with `.cp-tab` children, `#company-profile-body`
+
+### Fix required
+Add a modal HTML block to `frontend/terminal.html` (after the detail-modal-overlay, before `</body>`), e.g.:
+```html
+<div class="modal-overlay" id="company-profile-overlay">
+  <div class="modal company-profile-modal">
+    <div class="modal-header">
+      <h2 id="company-profile-title">// SYMBOL</h2>
+      <button class="modal-close" id="company-profile-close" aria-label="Close">
+        <svg>...</svg>
+      </button>
+    </div>
+    <div class="company-profile-tabs">
+      <button class="cp-tab active">Fundamentals</button>
+    </div>
+    <div class="company-profile-body" id="company-profile-body"></div>
+  </div>
+</div>
+```
+
+- **Artifacts:** `ralph/test_results/US-012/attempt-1/` (vite_build.log, test_evidence.log, 3 screenshots, console-errors.log)
+- **Learnings:**
+  - The implementor's self-validation ("Vite build passes, JS syntax OK") did not catch the missing HTML — the JS silently guards against null elements, so no runtime error is thrown
+  - Always verify that HTML templates contain the DOM elements referenced by querySelector/getElementById in the JS
+---
+
+## 2026-04-15 — US-012 - IMPLEMENTOR — Rework: Added missing modal HTML skeleton
+
+- **Root cause**: Original implementation wrote JS logic, CSS styles, and event listeners for the company profile modal, but never added the HTML template to `frontend/terminal.html`. The JS silently early-returned because `$("#company-profile-overlay")` was null.
+- **Fix**: Added `<div class="modal-overlay" id="company-profile-overlay">` block to `frontend/terminal.html` (after the detail-modal-overlay, before the auth gate). Contains:
+  - Modal container with `.company-profile-modal` class
+  - Header with `#company-profile-title` (default text: `// COMPANY`)
+  - Close button `#company-profile-close` (SVG X icon, matches detail-modal pattern)
+  - Tab bar (`.company-profile-tabs`) with single "Fundamentals" `.cp-tab.active` button
+  - Body `#company-profile-body` for JS-populated content
+- Cross-verified all 4 JS selectors match their HTML counterparts
+- Vite build passes (29 modules, 371ms), static/terminal.html updated
+- **Files changed:** `frontend/terminal.html`, `static/terminal.html`
+- **Environment notes for Tester:**
+  - The Vite build already ran and outputs to `static/terminal.html` — both source and built files have the modal HTML
+  - No new JS or CSS changes — only the HTML skeleton was missing
+  - Test with Playwright: click any `.ticker-badge` → `#company-profile-overlay` should get `.open` class
+  - Modal closes via: X button click, overlay background click, or Escape key
+  - Fundamentals tab content is populated by `renderCompanyFundamentals()` after fetch from `/api/market/:symbol/details`
+---
