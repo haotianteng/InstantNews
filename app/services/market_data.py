@@ -22,6 +22,7 @@ POLYGON_BASE_URL = "https://api.polygon.io"
 
 SNAPSHOT_TTL = 5  # seconds
 DETAILS_TTL = 3600  # 1 hour
+FINANCIALS_TTL = 3600  # 1 hour
 
 
 class _CacheEntry:
@@ -43,6 +44,8 @@ class PolygonClient:
         self._enabled = bool(self._api_key)
         self._snapshot_cache: dict[str, _CacheEntry] = {}
         self._details_cache: dict[str, _CacheEntry] = {}
+        self._financials_cache: dict[str, _CacheEntry] = {}
+        self._earnings_cache: dict[str, _CacheEntry] = {}
         self._session = requests.Session()
         if not self._enabled:
             logger.warning("POLYGON_API_KEY not set — market data service disabled")
@@ -160,7 +163,157 @@ class PolygonClient:
             logger.warning("polygon details: error fetching %s: %s", symbol, e)
             return None
 
+    def get_financials(self, symbol: str) -> Optional[dict[str, Any]]:
+        """Fetch latest quarterly financials for a ticker.
+
+        Returns dict with keys: symbol, fiscal_period, fiscal_year, revenue,
+        net_income, eps, pe_ratio.
+        Returns None if service is disabled, data unavailable, or API error.
+        P/E ratio is computed from current price and trailing-twelve-month EPS.
+        """
+        if not self._enabled:
+            return None
+
+        symbol = symbol.upper().strip()
+        cached = self._financials_cache.get(symbol)
+        if cached and cached.is_valid():
+            return cached.value
+
+        try:
+            url = f"{POLYGON_BASE_URL}/vX/reference/financials"
+            params: dict[str, Any] = {
+                "apiKey": self._api_key,
+                "ticker": symbol,
+                "timeframe": "quarterly",
+                "limit": 4,
+                "sort": "period_of_report_date",
+                "order": "desc",
+            }
+            resp = self._session.get(url, params=params, timeout=10)
+            resp.raise_for_status()
+            data = resp.json()
+
+            results = data.get("results", [])
+            if not results:
+                result: dict[str, Any] = {
+                    "symbol": symbol,
+                    "fiscal_period": None,
+                    "fiscal_year": None,
+                    "revenue": None,
+                    "net_income": None,
+                    "eps": None,
+                    "pe_ratio": None,
+                }
+                self._financials_cache[symbol] = _CacheEntry(result, FINANCIALS_TTL)
+                return result
+
+            latest = results[0]
+            financials = latest.get("financials", {})
+            income = financials.get("income_statement", {})
+
+            revenue = income.get("revenues", {}).get("value")
+            net_income = income.get("net_income_loss", {}).get("value")
+            eps = income.get("basic_earnings_per_share", {}).get("value")
+
+            # Compute trailing-twelve-month P/E ratio
+            pe_ratio: Optional[float] = None
+            ttm_eps = 0.0
+            for quarter in results:
+                q_income = quarter.get("financials", {}).get("income_statement", {})
+                q_eps = q_income.get("basic_earnings_per_share", {}).get("value")
+                if q_eps is not None:
+                    ttm_eps += q_eps
+            if ttm_eps > 0 and len(results) == 4:
+                snapshot = self.get_ticker_snapshot(symbol)
+                if snapshot and snapshot.get("price"):
+                    pe_ratio = round(snapshot["price"] / ttm_eps, 2)
+
+            result = {
+                "symbol": symbol,
+                "fiscal_period": latest.get("fiscal_period", ""),
+                "fiscal_year": latest.get("fiscal_year", ""),
+                "revenue": revenue,
+                "net_income": net_income,
+                "eps": eps,
+                "pe_ratio": pe_ratio,
+            }
+
+            self._financials_cache[symbol] = _CacheEntry(result, FINANCIALS_TTL)
+            return result
+
+        except requests.exceptions.HTTPError as e:
+            if e.response is not None and e.response.status_code == 404:
+                logger.warning("polygon financials: ticker %s not found", symbol)
+            else:
+                logger.warning("polygon financials: HTTP error for %s: %s", symbol, e)
+            return None
+        except (requests.exceptions.RequestException, ValueError, KeyError) as e:
+            logger.warning("polygon financials: error fetching %s: %s", symbol, e)
+            return None
+
+    def get_earnings(self, symbol: str) -> Optional[dict[str, Any]]:
+        """Fetch last 4 quarters of EPS (actual vs estimate) for a ticker.
+
+        Returns dict with keys: symbol, earnings (list of quarterly EPS data).
+        Each entry has: fiscal_period, fiscal_year, actual_eps, estimated_eps.
+        estimated_eps is None (Polygon.io does not provide consensus estimates).
+        Returns None if service is disabled or API error.
+        """
+        if not self._enabled:
+            return None
+
+        symbol = symbol.upper().strip()
+        cached = self._earnings_cache.get(symbol)
+        if cached and cached.is_valid():
+            return cached.value
+
+        try:
+            url = f"{POLYGON_BASE_URL}/vX/reference/financials"
+            params: dict[str, Any] = {
+                "apiKey": self._api_key,
+                "ticker": symbol,
+                "timeframe": "quarterly",
+                "limit": 4,
+                "sort": "period_of_report_date",
+                "order": "desc",
+            }
+            resp = self._session.get(url, params=params, timeout=10)
+            resp.raise_for_status()
+            data = resp.json()
+
+            results = data.get("results", [])
+            earnings: list[dict[str, Any]] = []
+            for quarter in results:
+                q_income = quarter.get("financials", {}).get("income_statement", {})
+                actual_eps = q_income.get("basic_earnings_per_share", {}).get("value")
+                earnings.append({
+                    "fiscal_period": quarter.get("fiscal_period", ""),
+                    "fiscal_year": quarter.get("fiscal_year", ""),
+                    "actual_eps": actual_eps,
+                    "estimated_eps": None,
+                })
+
+            result: dict[str, Any] = {
+                "symbol": symbol,
+                "earnings": earnings,
+            }
+
+            self._earnings_cache[symbol] = _CacheEntry(result, FINANCIALS_TTL)
+            return result
+
+        except requests.exceptions.HTTPError as e:
+            if e.response is not None and e.response.status_code == 404:
+                logger.warning("polygon earnings: ticker %s not found", symbol)
+            else:
+                logger.warning("polygon earnings: HTTP error for %s: %s", symbol, e)
+            return None
+        except (requests.exceptions.RequestException, ValueError, KeyError) as e:
+            logger.warning("polygon earnings: error fetching %s: %s", symbol, e)
+            return None
+
     def clear_cache(self) -> None:
         """Clear all cached data."""
         self._snapshot_cache.clear()
         self._details_cache.clear()
+        self._financials_cache.clear()
+        self._earnings_cache.clear()

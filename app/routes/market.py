@@ -58,3 +58,30 @@ def market_details(symbol: str):
         }), 404
 
     return jsonify(data)
+
+
+@market_bp.route("/api/market/<symbol>/financials")
+@require_auth
+@limiter.limit("60 per minute")
+def market_financials(symbol: str):
+    """Return earnings and financial ratios for a ticker symbol."""
+    if not _polygon.enabled:
+        return jsonify({
+            "error": "Market data service unavailable",
+            "message": "Polygon.io integration is not configured",
+        }), 503, {"Retry-After": "60"}
+
+    financials = _polygon.get_financials(symbol)
+    earnings = _polygon.get_earnings(symbol)
+
+    if financials is None and earnings is None:
+        return jsonify({
+            "error": "Ticker not found",
+            "message": f"No financial data available for symbol '{symbol.upper()}'",
+        }), 404
+
+    return jsonify({
+        "symbol": symbol.upper(),
+        "financials": financials,
+        "earnings": earnings.get("earnings", []) if earnings else [],
+    })
