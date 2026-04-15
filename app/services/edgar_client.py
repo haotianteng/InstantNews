@@ -11,6 +11,7 @@ No API key required — SEC EDGAR is free public data.
 
 import logging
 import time
+from datetime import datetime, timedelta
 from typing import Any, Optional
 from xml.etree import ElementTree
 
@@ -20,7 +21,10 @@ logger = logging.getLogger("signal.edgar")
 
 EDGAR_BASE_URL = "https://efts.sec.gov/LATEST"
 EDGAR_DATA_URL = "https://data.sec.gov"
+EDGAR_SEC_URL = "https://www.sec.gov"
 EDGAR_USER_AGENT = "InstantNews dev@instnews.net"
+
+_13F_NS = "http://www.sec.gov/edgar/document/thirteenf/informationtable"
 
 # Cache TTLs per acceptance criteria
 INSTITUTIONAL_TTL = 86400  # 24 hours for 13F
@@ -29,6 +33,15 @@ INSIDER_TTL = 3600  # 1 hour for Form 4
 
 # SEC rate limit: 10 req/sec — minimum 0.1s between requests
 _MIN_REQUEST_INTERVAL = 0.1
+
+
+def _normalize_company_name(name: str) -> str:
+    """Normalize a company name for matching by removing common suffixes and punctuation."""
+    n = name.upper().replace(".", "").replace(",", "").strip()
+    for suffix in (" INC", " CORP", " CORPORATION", " CO", " LTD", " LLC", " LP", " PLC", " GROUP"):
+        if n.endswith(suffix):
+            n = n[: -len(suffix)].strip()
+    return n
 
 
 class _CacheEntry:
@@ -53,6 +66,7 @@ class EdgarClient:
         })
         self._last_request_time = 0.0
         self._cik_cache: dict[str, _CacheEntry] = {}
+        self._company_names: dict[str, str] = {}  # symbol → company title
         self._institutional_cache: dict[str, _CacheEntry] = {}
         self._position_cache: dict[str, _CacheEntry] = {}
         self._insider_cache: dict[str, _CacheEntry] = {}
@@ -83,7 +97,7 @@ class EdgarClient:
 
         # Primary: use company tickers JSON for ticker → CIK mapping
         try:
-            url = f"{EDGAR_DATA_URL}/files/company_tickers.json"
+            url = f"{EDGAR_SEC_URL}/files/company_tickers.json"
             resp = self._get(url)
             resp.raise_for_status()
             tickers = resp.json()
@@ -92,6 +106,7 @@ class EdgarClient:
                 if entry.get("ticker", "").upper() == symbol:
                     cik_padded = str(entry["cik_str"]).zfill(10)
                     self._cik_cache[symbol] = _CacheEntry(cik_padded, 86400)
+                    self._company_names[symbol] = entry.get("title", "")
                     return cik_padded
 
         except (requests.exceptions.RequestException, ValueError, KeyError) as e:
@@ -102,6 +117,9 @@ class EdgarClient:
     def get_institutional_holders(self, symbol: str, limit: int = 20) -> Optional[list[dict[str, Any]]]:
         """Fetch top institutional holders from latest 13F filings.
 
+        Searches EFTS for 13F information tables mentioning the company, then
+        parses each filing's XML to extract real shares_held and value data.
+
         Returns list of holders, each with: institution_name, shares_held, value,
         report_date, change_type.
         """
@@ -111,14 +129,25 @@ class EdgarClient:
             return cached.value
 
         try:
-            # Use EFTS full-text search to find 13F-HR filings mentioning this ticker
+            # Resolve company name for searching 13F info tables
+            self._resolve_cik(symbol)
+            company_name = self._company_names.get(symbol, symbol)
+            search_term = _normalize_company_name(company_name) or symbol
+
+            # Date window: last 18 months to get recent filings
+            end_dt = datetime.now()
+            start_dt = end_dt - timedelta(days=540)
+
             resp = self._get(
                 f"{EDGAR_BASE_URL}/search-index",
                 params={
-                    "q": f'"{symbol}"',
+                    "q": f'"{search_term}"',
                     "forms": "13F-HR,13F-HR/A",
+                    "dateRange": "custom",
+                    "startdt": start_dt.strftime("%Y-%m-%d"),
+                    "enddt": end_dt.strftime("%Y-%m-%d"),
                     "from": "0",
-                    "size": str(min(limit, 40)),
+                    "size": str(min(limit * 3, 60)),
                 },
             )
 
@@ -132,23 +161,39 @@ class EdgarClient:
                 for hit in hits:
                     source = hit.get("_source", {})
                     display_names = source.get("display_names", [])
-                    filer_name = source.get("entity_name", display_names[0] if display_names else "Unknown")
-                    filing_date = source.get("file_date", "")
+                    raw_name = display_names[0] if display_names else "Unknown"
+                    # Strip " (CIK ...)" suffix from display name
+                    filer_name = raw_name.split("(CIK")[0].strip() if "(CIK" in raw_name else raw_name
 
                     if filer_name in seen_filers:
                         continue
                     seen_filers.add(filer_name)
 
+                    period = source.get("period_ending", source.get("file_date", ""))
+                    ciks = source.get("ciks", [])
+                    adsh = source.get("adsh", "")
+                    _id = hit.get("_id", "")
+                    filename = _id.split(":", 1)[1] if ":" in _id else ""
+
+                    # Fetch and parse the 13F info table for this filer
+                    shares_held, value = self._parse_13f_for_company(
+                        ciks[0] if ciks else "", adsh, filename,
+                        company_name, symbol,
+                    )
+
                     holders.append({
                         "institution_name": filer_name,
-                        "shares_held": None,
-                        "value": None,
-                        "report_date": filing_date,
+                        "shares_held": shares_held,
+                        "value": value,
+                        "report_date": period,
                         "change_type": "held",
                     })
 
                     if len(holders) >= limit:
                         break
+
+            # Sort by value descending (entries with data first, then nulls)
+            holders.sort(key=lambda h: h["value"] or 0, reverse=True)
 
             self._institutional_cache[symbol] = _CacheEntry(holders, INSTITUTIONAL_TTL)
             return holders
@@ -162,6 +207,81 @@ class EdgarClient:
         except (requests.exceptions.RequestException, ValueError, KeyError) as e:
             logger.warning("edgar 13F: error fetching %s: %s", symbol, e)
             return None
+
+    def _parse_13f_for_company(
+        self, cik: str, adsh: str, filename: str,
+        company_name: str, ticker: str,
+    ) -> tuple[Optional[int], Optional[int]]:
+        """Fetch a 13F information table and extract shares/value for the target company."""
+        if not cik or not adsh or not filename:
+            return None, None
+
+        try:
+            cik_int = str(int(cik))
+            adsh_nodash = adsh.replace("-", "")
+            url = f"{EDGAR_SEC_URL}/Archives/edgar/data/{cik_int}/{adsh_nodash}/{filename}"
+            resp = self._get(url, timeout=20)
+
+            if resp.status_code != 200:
+                return None, None
+
+            root = ElementTree.fromstring(resp.content)
+            name_core = _normalize_company_name(company_name)
+            ticker_upper = ticker.upper()
+
+            # Find all infoTable entries (handle namespace variants)
+            entries = root.findall(f".//{{{_13F_NS}}}infoTable")
+            if not entries:
+                entries = root.findall(".//infoTable")
+
+            total_shares = 0
+            total_value = 0
+            found = False
+
+            for entry in entries:
+                issuer_el = entry.find(f"{{{_13F_NS}}}nameOfIssuer")
+                if issuer_el is None:
+                    issuer_el = entry.find("nameOfIssuer")
+                if issuer_el is None or issuer_el.text is None:
+                    continue
+
+                issuer_name = issuer_el.text.strip().upper()
+                issuer_core = _normalize_company_name(issuer_name)
+
+                # Match by normalized company name (equality) or exact ticker
+                if not (issuer_core == name_core or issuer_name == ticker_upper):
+                    continue
+
+                found = True
+
+                # Value in dollars (as reported in 13F XML)
+                val_el = entry.find(f"{{{_13F_NS}}}value")
+                if val_el is None:
+                    val_el = entry.find("value")
+                if val_el is not None and val_el.text:
+                    try:
+                        total_value += int(val_el.text.strip())
+                    except ValueError:
+                        pass
+
+                # Shares held
+                shr_el = entry.find(f".//{{{_13F_NS}}}sshPrnamt")
+                if shr_el is None:
+                    shr_el = entry.find(".//sshPrnamt")
+                if shr_el is not None and shr_el.text:
+                    try:
+                        total_shares += int(shr_el.text.strip())
+                    except ValueError:
+                        pass
+
+            if found:
+                return total_shares or None, total_value or None
+            return None, None
+
+        except (ElementTree.ParseError, requests.exceptions.RequestException,
+                ValueError, KeyError) as e:
+            logger.warning("edgar 13F XML parse: %s/%s: %s", cik, adsh, e)
+            return None, None
 
     def get_major_position_changes(self, symbol: str, limit: int = 10) -> Optional[list[dict[str, Any]]]:
         """Fetch recent 13D/13G filings (major position changes) for a company.
@@ -251,7 +371,7 @@ class EdgarClient:
         try:
             # Fetch the filing index to get filer info
             acc_no_dashes = accession.replace("-", "")
-            index_url = f"{EDGAR_DATA_URL}/Archives/edgar/data/{cik}/{acc_no_dashes}/{accession}-index.htm"
+            index_url = f"{EDGAR_SEC_URL}/Archives/edgar/data/{cik}/{acc_no_dashes}/{accession}-index.htm"
             resp = self._get(index_url)
             if resp.status_code == 200:
                 text = resp.text
@@ -339,14 +459,16 @@ class EdgarClient:
 
         try:
             acc_no_dashes = accession.replace("-", "")
-            doc_url = f"{EDGAR_DATA_URL}/Archives/edgar/data/{cik}/{acc_no_dashes}/{primary_doc}"
+            # Strip XSL transformation prefix (e.g. "xslF345X06/form4.xml" → "form4.xml")
+            clean_doc = primary_doc.rsplit("/", 1)[-1] if "/" in primary_doc else primary_doc
+            doc_url = f"{EDGAR_SEC_URL}/Archives/edgar/data/{cik}/{acc_no_dashes}/{clean_doc}"
             resp = self._get(doc_url)
 
             if resp.status_code != 200:
                 return transactions
 
             # Form 4 filings are XML
-            if not primary_doc.endswith(".xml"):
+            if not clean_doc.endswith(".xml"):
                 return transactions
 
             root = ElementTree.fromstring(resp.content)

@@ -784,3 +784,53 @@ Add a modal HTML block to `frontend/terminal.html` (after the detail-modal-overl
   - 8 pre-existing test failures in `test_tiers.py`/`test_rate_limit.py` (stale tier config values) — not related to this story
   - Endpoints are auth-gated (`@require_auth`) and rate-limited (60/min)
 ---
+
+## 2026-04-15 - US-017 - TESTER — TEST_FAILED (attempt 1)
+
+- **Judgment: TEST_FAILED** — 7 of 16 acceptance criteria fail due to 2 root-cause bugs
+- All 6 test assertions technically exit 0 (they only check type + exit code)
+- pytest: 13/13 edgar tests pass; mypy: clean
+
+### Bug 1: Wrong CIK lookup URL (edgar_client.py line 86)
+- `EDGAR_DATA_URL + "/files/company_tickers.json"` → `https://data.sec.gov/files/company_tickers.json` → HTTP 404
+- Correct URL: `https://www.sec.gov/files/company_tickers.json` → 200 OK (AAPL CIK 320193)
+- Impact: `_resolve_cik()` always returns None → `get_insider_transactions` and `get_major_position_changes` always return `[]`
+- Fix: change `EDGAR_DATA_URL` to `https://www.sec.gov` on line 86, or add a separate constant
+
+### Bug 2: 13F holders return null shares_held and value (lines 142-148)
+- EFTS search-index returns filing metadata only (entity_name, file_date)
+- Code hardcodes `shares_held: None`, `value: None`, `change_type: "held"` for every entry
+- All 20 AAPL entries have null shares/value; dates range 2002-2023; random small filers (not Vanguard/BlackRock)
+- Fix: parse actual 13F-HR XML/XBRL filing content to extract shares + value, or use companyfacts/frames API
+
+### Artifacts
+- `ralph/test_results/US-017/attempt-1/` — all logs, functional test output, CIK URL verification
+---
+
+## 2026-04-15 — US-017 — IMPLEMENTOR — Rework 1: Fixed SEC EDGAR client bugs
+
+- **Root causes addressed (from tester feedback):**
+  1. CIK lookup URL: `data.sec.gov/files/company_tickers.json` → 404. Fixed to `www.sec.gov/files/company_tickers.json` → 200
+  2. 13F holders returned null shares/value: EFTS search-index only returns metadata. Rewrote to fetch + parse actual 13F info table XML for real data
+  3. All `data.sec.gov/Archives/` URLs return 404. Changed to `www.sec.gov/Archives/` for all filing document fetches
+  4. Form 4 primaryDocument has XSL prefix (e.g. `xslF345X06/form4.xml`). Added prefix stripping
+
+- **Changes made:**
+  - `app/services/edgar_client.py`: Added `EDGAR_SEC_URL` constant, `_normalize_company_name()` helper, `_parse_13f_for_company()` method, `_company_names` cache. Rewrote `get_institutional_holders` to search by company name + date filter, fetch info table XML, parse with namespace handling, and extract real shares/value. Fixed all Archive URLs to use www.sec.gov. Fixed Form 4 XSL prefix stripping.
+  - `tests/test_edgar_client.py`: Added `TestNormalizeCompanyName` (4 tests), updated 13F tests with proper EFTS hit mocking + XML parsing assertions. 17 total tests, all pass.
+
+- **Self-validation:**
+  - mypy: clean (1 source file)
+  - pytest: 17/17 edgar tests pass, 49/49 edgar+market tests pass
+  - Functional (live API): `get_institutional_holders('AAPL')` → 20 holders, 17 with real shares/value (e.g. 740K shares, $185M); `get_insider_transactions('AAPL')` → 20 transactions with names/titles/shares/prices; `get_major_position_changes('AAPL')` → 10 entries
+  - All 6 PRD test assertions pass
+
+- **Environment notes for Tester:**
+  - All 3 methods now hit live SEC EDGAR API and return real data for AAPL
+  - 13F holders are fetched from recent filings (18-month window) and sorted by value desc
+  - Form 4 transactions include insider names, titles, transaction types, share counts, prices
+  - 13D/13G entries have filing dates and types; some filers show as "Unknown Filer" when the filing index doesn't expose the company name
+  - SEC rate limit (10 req/sec) is enforced; calling all 3 methods sequentially may take 10-15 seconds due to multiple API calls per method
+  - `POLYGON_API_KEY not set` warning is expected and unrelated to EDGAR functionality
+  - 8 pre-existing test failures in test_tiers.py/test_rate_limit.py are NOT related to this story
+---

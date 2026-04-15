@@ -2,7 +2,7 @@
 
 from unittest.mock import MagicMock, patch
 
-from app.services.edgar_client import EdgarClient
+from app.services.edgar_client import EdgarClient, _normalize_company_name
 
 
 # Sample Form 4 XML for testing
@@ -262,24 +262,109 @@ class TestEdgarClient13DG:
         assert result == []
 
 
+class TestNormalizeCompanyName:
+    """Tests for company name normalization helper."""
+
+    def test_strips_inc(self):
+        assert _normalize_company_name("Apple Inc.") == "APPLE"
+
+    def test_strips_corp(self):
+        assert _normalize_company_name("Microsoft Corp") == "MICROSOFT"
+
+    def test_strips_corporation(self):
+        assert _normalize_company_name("Tesla Corporation") == "TESLA"
+
+    def test_handles_plain_name(self):
+        assert _normalize_company_name("BERKSHIRE HATHAWAY") == "BERKSHIRE HATHAWAY"
+
+
+# Sample 13F info table XML for testing
+SAMPLE_13F_XML = b"""<?xml version="1.0" encoding="UTF-8"?>
+<informationTable xmlns="http://www.sec.gov/edgar/document/thirteenf/informationtable">
+    <infoTable>
+        <nameOfIssuer>APPLE INC</nameOfIssuer>
+        <titleOfClass>COM</titleOfClass>
+        <cusip>037833100</cusip>
+        <value>153714</value>
+        <shrsOrPrnAmt>
+            <sshPrnamt>692000</sshPrnamt>
+            <sshPrnamtType>SH</sshPrnamtType>
+        </shrsOrPrnAmt>
+        <investmentDiscretion>SOLE</investmentDiscretion>
+        <votingAuthority>
+            <Sole>692000</Sole>
+            <Shared>0</Shared>
+            <None>0</None>
+        </votingAuthority>
+    </infoTable>
+    <infoTable>
+        <nameOfIssuer>MICROSOFT CORP</nameOfIssuer>
+        <titleOfClass>COM</titleOfClass>
+        <cusip>594918104</cusip>
+        <value>50000</value>
+        <shrsOrPrnAmt>
+            <sshPrnamt>100000</sshPrnamt>
+            <sshPrnamtType>SH</sshPrnamtType>
+        </shrsOrPrnAmt>
+        <investmentDiscretion>SOLE</investmentDiscretion>
+        <votingAuthority>
+            <Sole>100000</Sole>
+            <Shared>0</Shared>
+            <None>0</None>
+        </votingAuthority>
+    </infoTable>
+</informationTable>"""
+
+
+def _make_efts_hit(
+    filer_name: str, cik: str, adsh: str, filename: str,
+    period: str, file_date: str,
+) -> dict:
+    """Helper to create a mock EFTS search-index hit."""
+    return {
+        "_id": f"{adsh}:{filename}",
+        "_source": {
+            "ciks": [cik],
+            "adsh": adsh,
+            "display_names": [f"{filer_name}  (CIK {cik})"],
+            "file_date": file_date,
+            "period_ending": period,
+            "file_type": "INFORMATION TABLE",
+        },
+    }
+
+
 class TestEdgarClient13F:
     """Tests for 13F institutional holders."""
 
     @patch("app.services.edgar_client.requests.Session.get")
-    def test_institutional_holders_returns_list(self, mock_get: MagicMock):
-        # EFTS search response — single request
+    def test_institutional_holders_returns_list_with_data(self, mock_get: MagicMock):
+        # 1st call: CIK lookup (company_tickers.json)
+        mock_cik_resp = MagicMock()
+        mock_cik_resp.status_code = 200
+        mock_cik_resp.raise_for_status = MagicMock()
+        mock_cik_resp.json.return_value = {
+            "0": {"cik_str": 320193, "ticker": "AAPL", "title": "Apple Inc."}
+        }
+
+        # 2nd call: EFTS search
         mock_search_resp = MagicMock()
         mock_search_resp.status_code = 200
         mock_search_resp.json.return_value = {
             "hits": {
                 "hits": [
-                    {"_source": {"entity_name": "VANGUARD GROUP", "file_date": "2025-02-14"}},
-                    {"_source": {"entity_name": "BLACKROCK INC", "file_date": "2025-02-10"}},
+                    _make_efts_hit("VANGUARD GROUP", "0001067983", "0001067983-25-000001", "infotable.xml", "2025-03-31", "2025-05-15"),
+                    _make_efts_hit("BLACKROCK INC", "0001364742", "0001364742-25-000001", "infotable.xml", "2025-03-31", "2025-05-14"),
                 ]
             }
         }
 
-        mock_get.return_value = mock_search_resp
+        # 3rd & 4th calls: info table XML fetches
+        mock_xml_resp = MagicMock()
+        mock_xml_resp.status_code = 200
+        mock_xml_resp.content = SAMPLE_13F_XML
+
+        mock_get.side_effect = [mock_cik_resp, mock_search_resp, mock_xml_resp, mock_xml_resp]
 
         client = EdgarClient()
         result = client.get_institutional_holders("AAPL")
@@ -287,25 +372,37 @@ class TestEdgarClient13F:
         assert result is not None
         assert isinstance(result, list)
         assert len(result) == 2
-        assert result[0]["institution_name"] == "VANGUARD GROUP"
-        assert result[1]["institution_name"] == "BLACKROCK INC"
-        assert result[0]["report_date"] == "2025-02-14"
+        # Both should have real shares/value from the parsed XML
+        assert result[0]["shares_held"] == 692000
+        assert result[0]["value"] == 153714
+        assert result[0]["report_date"] == "2025-03-31"
 
     @patch("app.services.edgar_client.requests.Session.get")
     def test_institutional_holders_deduplicates(self, mock_get: MagicMock):
+        mock_cik_resp = MagicMock()
+        mock_cik_resp.status_code = 200
+        mock_cik_resp.raise_for_status = MagicMock()
+        mock_cik_resp.json.return_value = {
+            "0": {"cik_str": 320193, "ticker": "AAPL", "title": "Apple Inc."}
+        }
+
         mock_search_resp = MagicMock()
         mock_search_resp.status_code = 200
         mock_search_resp.json.return_value = {
             "hits": {
                 "hits": [
-                    {"_source": {"entity_name": "VANGUARD GROUP", "file_date": "2025-02-14"}},
-                    {"_source": {"entity_name": "VANGUARD GROUP", "file_date": "2025-01-14"}},
-                    {"_source": {"entity_name": "BLACKROCK INC", "file_date": "2025-02-10"}},
+                    _make_efts_hit("VANGUARD GROUP", "0001067983", "0001067983-25-000001", "infotable.xml", "2025-03-31", "2025-05-15"),
+                    _make_efts_hit("VANGUARD GROUP", "0001067983", "0001067983-25-000002", "infotable.xml", "2024-12-31", "2025-02-14"),
+                    _make_efts_hit("BLACKROCK INC", "0001364742", "0001364742-25-000001", "infotable.xml", "2025-03-31", "2025-05-14"),
                 ]
             }
         }
 
-        mock_get.return_value = mock_search_resp
+        mock_xml_resp = MagicMock()
+        mock_xml_resp.status_code = 200
+        mock_xml_resp.content = SAMPLE_13F_XML
+
+        mock_get.side_effect = [mock_cik_resp, mock_search_resp, mock_xml_resp, mock_xml_resp]
 
         client = EdgarClient()
         result = client.get_institutional_holders("AAPL")
@@ -315,11 +412,16 @@ class TestEdgarClient13F:
 
     @patch("app.services.edgar_client.requests.Session.get")
     def test_institutional_holders_caching(self, mock_get: MagicMock):
+        mock_cik_resp = MagicMock()
+        mock_cik_resp.status_code = 200
+        mock_cik_resp.raise_for_status = MagicMock()
+        mock_cik_resp.json.return_value = {}
+
         mock_search_resp = MagicMock()
         mock_search_resp.status_code = 200
         mock_search_resp.json.return_value = {"hits": {"hits": []}}
 
-        mock_get.return_value = mock_search_resp
+        mock_get.side_effect = [mock_cik_resp, mock_search_resp]
 
         client = EdgarClient()
         client.get_institutional_holders("AAPL")
