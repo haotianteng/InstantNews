@@ -185,6 +185,79 @@ class TestMarketDetails:
         assert resp.headers.get("Retry-After") == "60"
 
 
+class TestMarketCompetitors:
+    """Competitors endpoint response format and error handling."""
+
+    @patch("app.auth.firebase.verify_id_token")
+    @patch("app.routes.market._polygon")
+    def test_competitor_response_fields(self, mock_polygon, mock_verify, client, db_session):
+        mock_verify.return_value = {
+            "uid": "market-test-uid",
+            "email": "market@example.com",
+            "name": "Market Tester",
+        }
+        _create_user(db_session)
+        mock_polygon.enabled = True
+        mock_polygon.get_related_companies.return_value = [
+            {
+                "symbol": "MSFT",
+                "name": "Microsoft Corporation",
+                "market_cap": 3000000000000,
+                "price": 420.50,
+                "change_percent": 1.25,
+            },
+            {
+                "symbol": "GOOG",
+                "name": "Alphabet Inc.",
+                "market_cap": 2000000000000,
+                "price": 175.30,
+                "change_percent": -0.50,
+            },
+        ]
+        resp = client.get("/api/market/AAPL/competitors", headers=_auth_headers())
+        assert resp.status_code == 200
+        data = resp.get_json()
+        assert "symbol" in data
+        assert data["symbol"] == "AAPL"
+        assert "competitors" in data
+        assert len(data["competitors"]) == 2
+        comp = data["competitors"][0]
+        for field in ("symbol", "name", "market_cap", "price", "change_percent"):
+            assert field in comp, f"Missing field: {field}"
+
+    @patch("app.auth.firebase.verify_id_token")
+    @patch("app.routes.market._polygon")
+    def test_competitor_404_unknown_ticker(self, mock_polygon, mock_verify, client, db_session):
+        mock_verify.return_value = {
+            "uid": "market-test-uid",
+            "email": "market@example.com",
+            "name": "Market Tester",
+        }
+        _create_user(db_session)
+        mock_polygon.enabled = True
+        mock_polygon.get_related_companies.return_value = None
+        resp = client.get("/api/market/ZZZZZ/competitors", headers=_auth_headers())
+        assert resp.status_code == 404
+
+    @patch("app.auth.firebase.verify_id_token")
+    @patch("app.routes.market._polygon")
+    def test_competitor_503_when_disabled(self, mock_polygon, mock_verify, client, db_session):
+        mock_verify.return_value = {
+            "uid": "market-test-uid",
+            "email": "market@example.com",
+            "name": "Market Tester",
+        }
+        _create_user(db_session)
+        mock_polygon.enabled = False
+        resp = client.get("/api/market/AAPL/competitors", headers=_auth_headers())
+        assert resp.status_code == 503
+        assert resp.headers.get("Retry-After") == "60"
+
+    def test_competitor_unauthenticated_returns_401(self, client):
+        resp = client.get("/api/market/AAPL/competitors")
+        assert resp.status_code == 401
+
+
 class TestMarketRateLimit:
     """Rate limiting for market endpoints."""
 

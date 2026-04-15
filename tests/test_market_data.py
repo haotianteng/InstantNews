@@ -206,13 +206,152 @@ class TestPolygonClientEnabled:
         result = client.get_ticker_details("AAPL")
         assert result is None
 
+    @patch("app.services.market_data.requests.Session.get")
+    def test_get_related_companies_competitor_success(self, mock_get: MagicMock):
+        """get_related_companies returns top 5 competitors sorted by market cap."""
+        call_count = 0
+
+        def side_effect(url: str, **kwargs):
+            nonlocal call_count
+            call_count += 1
+            mock_resp = MagicMock()
+            mock_resp.raise_for_status = MagicMock()
+
+            if "/v1/related-companies/" in url:
+                mock_resp.json.return_value = {
+                    "results": [
+                        {"ticker": "MSFT"},
+                        {"ticker": "GOOG"},
+                        {"ticker": "META"},
+                    ],
+                }
+            elif "/v3/reference/tickers/" in url:
+                ticker = url.split("/")[-1]
+                caps = {"MSFT": 3000000000000, "GOOG": 2000000000000, "META": 1000000000000}
+                mock_resp.json.return_value = {
+                    "status": "OK",
+                    "results": {
+                        "name": f"{ticker} Inc.",
+                        "sic_description": "Tech",
+                        "market_cap": caps.get(ticker, 0),
+                        "branding": {},
+                        "description": "",
+                        "homepage_url": "",
+                    },
+                }
+            elif "/v2/snapshot/" in url:
+                mock_resp.json.return_value = {
+                    "status": "OK",
+                    "ticker": {
+                        "day": {"c": 200.0, "v": 500000, "vw": 199.0},
+                        "prevDay": {"c": 195.0},
+                        "lastTrade": {"p": 200.0},
+                    },
+                }
+            return mock_resp
+
+        mock_get.side_effect = side_effect
+
+        client = self._make_client()
+        result = client.get_related_companies("AAPL")
+
+        assert result is not None
+        assert isinstance(result, list)
+        assert len(result) == 3
+        # Sorted by market cap descending
+        assert result[0]["symbol"] == "MSFT"
+        assert result[0]["market_cap"] == 3000000000000
+        assert result[1]["symbol"] == "GOOG"
+        assert result[2]["symbol"] == "META"
+        # Each entry has required fields
+        for comp in result:
+            assert "symbol" in comp
+            assert "name" in comp
+            assert "market_cap" in comp
+            assert "price" in comp
+            assert "change_percent" in comp
+
+    @patch("app.services.market_data.requests.Session.get")
+    def test_get_related_companies_competitor_limit_5(self, mock_get: MagicMock):
+        """get_related_companies limits to top 5 by market cap."""
+
+        def side_effect(url: str, **kwargs):
+            mock_resp = MagicMock()
+            mock_resp.raise_for_status = MagicMock()
+
+            if "/v1/related-companies/" in url:
+                mock_resp.json.return_value = {
+                    "results": [{"ticker": f"T{i}"} for i in range(7)],
+                }
+            elif "/v3/reference/tickers/" in url:
+                ticker = url.split("/")[-1]
+                idx = int(ticker[1:]) if ticker[1:].isdigit() else 0
+                mock_resp.json.return_value = {
+                    "status": "OK",
+                    "results": {
+                        "name": f"{ticker} Inc.",
+                        "sic_description": "Tech",
+                        "market_cap": (7 - idx) * 1000000000,
+                        "branding": {},
+                        "description": "",
+                        "homepage_url": "",
+                    },
+                }
+            elif "/v2/snapshot/" in url:
+                mock_resp.json.return_value = {
+                    "status": "OK",
+                    "ticker": {
+                        "day": {"c": 100.0, "v": 100, "vw": 100.0},
+                        "prevDay": {"c": 100.0},
+                        "lastTrade": {"p": 100.0},
+                    },
+                }
+            return mock_resp
+
+        mock_get.side_effect = side_effect
+
+        client = self._make_client()
+        result = client.get_related_companies("AAPL")
+
+        assert result is not None
+        assert len(result) == 5
+
+    @patch("app.services.market_data.requests.Session.get")
+    def test_get_related_companies_competitor_caching(self, mock_get: MagicMock):
+        """get_related_companies caches results."""
+
+        def side_effect(url: str, **kwargs):
+            mock_resp = MagicMock()
+            mock_resp.raise_for_status = MagicMock()
+
+            if "/v1/related-companies/" in url:
+                mock_resp.json.return_value = {"results": []}
+            return mock_resp
+
+        mock_get.side_effect = side_effect
+
+        client = self._make_client()
+        client.get_related_companies("AAPL")
+        client.get_related_companies("AAPL")  # should hit cache
+
+        # Only one call to the related-companies endpoint
+        related_calls = [c for c in mock_get.call_args_list if "/v1/related-companies/" in str(c)]
+        assert len(related_calls) == 1
+
+    def test_get_related_companies_competitor_disabled(self):
+        """get_related_companies returns None when disabled."""
+        client = PolygonClient(api_key="")
+        assert client.get_related_companies("AAPL") is None
+
     def test_clear_cache(self):
         client = self._make_client()
         # Manually populate caches
         from app.services.market_data import _CacheEntry
         client._snapshot_cache["TEST"] = _CacheEntry({"symbol": "TEST"}, 999)
         client._details_cache["TEST"] = _CacheEntry({"symbol": "TEST"}, 999)
+        client._competitors_cache["TEST"] = _CacheEntry([], 999)
 
         client.clear_cache()
         assert len(client._snapshot_cache) == 0
         assert len(client._details_cache) == 0
+        assert len(client._competitors_cache) == 0

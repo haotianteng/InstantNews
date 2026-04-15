@@ -23,6 +23,7 @@ POLYGON_BASE_URL = "https://api.polygon.io"
 SNAPSHOT_TTL = 5  # seconds
 DETAILS_TTL = 3600  # 1 hour
 FINANCIALS_TTL = 3600  # 1 hour
+COMPETITORS_TTL = 3600  # 1 hour
 
 
 class _CacheEntry:
@@ -46,6 +47,7 @@ class PolygonClient:
         self._details_cache: dict[str, _CacheEntry] = {}
         self._financials_cache: dict[str, _CacheEntry] = {}
         self._earnings_cache: dict[str, _CacheEntry] = {}
+        self._competitors_cache: dict[str, _CacheEntry] = {}
         self._session = requests.Session()
         if not self._enabled:
             logger.warning("POLYGON_API_KEY not set — market data service disabled")
@@ -311,9 +313,73 @@ class PolygonClient:
             logger.warning("polygon earnings: error fetching %s: %s", symbol, e)
             return None
 
+    def get_related_companies(self, symbol: str) -> Optional[list[dict[str, Any]]]:
+        """Fetch related companies/competitors for a ticker.
+
+        Returns list of up to 5 competitors sorted by market cap (descending),
+        each with keys: symbol, name, market_cap, price, change_percent.
+        Returns None if service is disabled or API error.
+        """
+        if not self._enabled:
+            return None
+
+        symbol = symbol.upper().strip()
+        cached = self._competitors_cache.get(symbol)
+        if cached and cached.is_valid():
+            return cached.value
+
+        try:
+            url = f"{POLYGON_BASE_URL}/v1/related-companies/{symbol}"
+            resp = self._session.get(url, params={"apiKey": self._api_key}, timeout=10)
+            resp.raise_for_status()
+            data = resp.json()
+
+            related = data.get("results", [])
+            if not related:
+                result: list[dict[str, Any]] = []
+                self._competitors_cache[symbol] = _CacheEntry(result, COMPETITORS_TTL)
+                return result
+
+            # Fetch details and snapshot for each related ticker
+            candidates: list[dict[str, Any]] = []
+            for item in related:
+                ticker = item.get("ticker", "")
+                if not ticker:
+                    continue
+                details = self.get_ticker_details(ticker)
+                snapshot = self.get_ticker_snapshot(ticker)
+                candidates.append({
+                    "symbol": ticker,
+                    "name": details.get("name", "") if details else "",
+                    "market_cap": details.get("market_cap") if details else None,
+                    "price": snapshot.get("price", 0) if snapshot else None,
+                    "change_percent": snapshot.get("change_percent", 0) if snapshot else None,
+                })
+
+            # Sort by market cap descending, limit to top 5
+            candidates.sort(
+                key=lambda c: c.get("market_cap") or 0,
+                reverse=True,
+            )
+            result = candidates[:5]
+
+            self._competitors_cache[symbol] = _CacheEntry(result, COMPETITORS_TTL)
+            return result
+
+        except requests.exceptions.HTTPError as e:
+            if e.response is not None and e.response.status_code == 404:
+                logger.warning("polygon related: ticker %s not found", symbol)
+            else:
+                logger.warning("polygon related: HTTP error for %s: %s", symbol, e)
+            return None
+        except (requests.exceptions.RequestException, ValueError, KeyError) as e:
+            logger.warning("polygon related: error fetching %s: %s", symbol, e)
+            return None
+
     def clear_cache(self) -> None:
         """Clear all cached data."""
         self._snapshot_cache.clear()
         self._details_cache.clear()
         self._financials_cache.clear()
         self._earnings_cache.clear()
+        self._competitors_cache.clear()

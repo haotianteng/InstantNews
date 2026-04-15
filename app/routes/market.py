@@ -85,3 +85,27 @@ def market_financials(symbol: str):
         "financials": financials,
         "earnings": earnings.get("earnings", []) if earnings else [],
     })
+
+
+@market_bp.route("/api/market/<symbol>/competitors")
+@require_auth
+@limiter.limit("60 per minute")
+def market_competitors(symbol: str):
+    """Return competitor comparison data for a ticker symbol."""
+    if not _polygon.enabled:
+        return jsonify({
+            "error": "Market data service unavailable",
+            "message": "Polygon.io integration is not configured",
+        }), 503, {"Retry-After": "60"}
+
+    competitors = _polygon.get_related_companies(symbol)
+    if competitors is None:
+        return jsonify({
+            "error": "Ticker not found",
+            "message": f"No competitor data available for symbol '{symbol.upper()}'",
+        }), 404
+
+    return jsonify({
+        "symbol": symbol.upper(),
+        "competitors": competitors,
+    })
