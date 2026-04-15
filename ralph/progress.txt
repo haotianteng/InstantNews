@@ -557,3 +557,82 @@ Add a modal HTML block to `frontend/terminal.html` (after the detail-modal-overl
   - Modal closes via: X button click, overlay background click, or Escape key
   - Fundamentals tab content is populated by `renderCompanyFundamentals()` after fetch from `/api/market/:symbol/details`
 ---
+
+## 2026-04-15 — US-012 - TESTER — TEST_PASSED (attempt 2, rework)
+
+- **All 4 test assertions passed**, all 7 acceptance criteria met
+- **Rework fix verified**: The missing `#company-profile-overlay` HTML skeleton is now present in `frontend/terminal.html` — all 5 JS selectors (`#company-profile-overlay`, `#company-profile-close`, `#company-profile-title`, `#company-profile-body`, `.company-profile-tabs`) have matching HTML elements
+- Vite build: 29 modules, 364ms — exits 0
+- Playwright browser test (logged in as MAX tier via test account):
+  - Clicked AAPL ticker badge ($258.73 -0.04%) → modal opened (overlay class: `modal-overlay open`, display: flex, opacity: 1)
+  - Fundamentals tab content: Apple Inc., AAPL, ELECTRONIC COMPUTERS sector, $3.80T market cap, Apple logo (Polygon branding API), full company description, homepage link (www.apple.com, target=_blank)
+  - Loading state: skeleton placeholders (`cp-loading` class with `.skeleton` divs) shown immediately before fetch resolves
+  - Modal matches dark terminal theme (dark background, light text, consistent styling)
+  - Close via X button: overlay loses `open` class, opacity 0, pointer-events none
+  - Close via Escape key: also works correctly
+  - Terminal functional after close: 200 news rows, feeds active, items refreshing
+- Console: 187 errors — ALL are 429 rate-limit on `/api/market/*` (expected, per PRD config: ignore). Zero non-429 JS errors.
+- **Artifacts:** `ralph/test_results/US-012/attempt-2/` (vite_build.log, console-errors.log, 5 screenshots)
+---
+
+## 2026-04-15 07:47 EDT - US-013 - IMPLEMENTOR — Implemented Earnings & Financial Ratios via Polygon.io
+
+- Extended `PolygonClient` with `get_financials(symbol)` and `get_earnings(symbol)`
+- `get_financials` calls `/vX/reference/financials?ticker={symbol}&timeframe=quarterly&limit=4` and returns latest quarter's revenue, net_income, EPS, plus TTM P/E ratio computed from current price
+- `get_earnings` calls same endpoint, returns last 4 quarters of actual EPS (`estimated_eps: null` since Polygon.io doesn't provide consensus estimates)
+- Both methods use 1-hour cache (`FINANCIALS_TTL = 3600`), separate cache dicts (`_financials_cache`, `_earnings_cache`)
+- Added `GET /api/market/<symbol>/financials` endpoint (auth-required, rate-limited 60/min), returns combined `{ symbol, financials, earnings }` response
+- Graceful handling: empty Polygon results return null fields instead of errors; endpoint returns 200 with nulls rather than 404
+- Added 13 tests in `tests/test_financials.py`: unit tests for both client methods (disabled, success, empty, cache), endpoint tests (auth 401, success 200, 404, 503, graceful-empty)
+- Self-validation: mypy clean, all 13 financials tests pass, 123 total pass (8 pre-existing failures in test_tiers/test_rate_limit — stale tier config)
+- **Files changed:** `app/services/market_data.py`, `app/routes/market.py`, `tests/test_financials.py`
+- **Environment notes for Tester:**
+  - `POLYGON_API_KEY` env var required for live API calls; without it, `get_financials`/`get_earnings` return None gracefully
+  - Test assertion 1 (`python -c "from app.services.market_data import PolygonClient; ..."`) will print `<class 'NoneType'>` when API key is unset — this is expected (exits 0)
+  - For live testing with API key set: `get_financials('AAPL')` should return a dict with `revenue`, `net_income`, `eps`, `pe_ratio` keys
+  - Endpoint: `curl -H "Authorization: Bearer <token>" http://localhost:8000/api/market/AAPL/financials`
+  - P/E ratio requires 4 quarters of data AND positive TTM EPS AND a valid snapshot price; may be null for some tickers
+  - `estimated_eps` is always null (Polygon doesn't provide consensus estimates)
+  - 8 pre-existing test failures in `test_tiers.py`/`test_rate_limit.py` — not related to this story
+---
+
+## 2026-04-15 - US-013 - TESTER — TEST_PASSED
+
+- **All 3 test assertions passed**, all 6 acceptance criteria verified by execution
+- Assertion 1: `python -c "from app.services.market_data import PolygonClient; c = PolygonClient(); print(type(c.get_financials('AAPL')))"` — exits 0, prints `<class 'NoneType'>` (disabled client without API key)
+- Assertion 2: `python -m pytest tests/ -v -k 'financials'` — 13/13 passed, 118 deselected (exit 0)
+- Assertion 3: `mypy app/services/market_data.py` — "Success: no issues found in 1 source file" (exit 0)
+- AC1: get_financials returns {symbol, fiscal_period, fiscal_year, revenue, net_income, eps, pe_ratio}. Verified: revenue=119575000000, net_income=33916000000, eps=2.19, pe_ratio=26.39 (TTM=7.01, price=185.0)
+- AC2: get_earnings returns {symbol, earnings: [4 quarters with actual_eps, estimated_eps, fiscal_period, fiscal_year]}. EPS values: [2.19, 2.10, 1.46, 1.26]. estimated_eps=None for all (Polygon limitation)
+- AC3: FINANCIALS_TTL=3600 (1 hour). Both _financials_cache and _earnings_cache verified — 2nd call hits cache, 1 API request
+- AC4: GET /api/market/<symbol>/financials — 401 unauth, 503 disabled (Retry-After:60), 200 with {symbol, financials, earnings}, 404 unknown ticker. All verified by 13 test cases
+- AC5: Empty results → all fields present as null; empty earnings → []. Endpoint returns 200 with graceful nulls
+- AC6: mypy clean
+- Full pytest: 123 passed, 8 failed (all pre-existing in test_tiers.py/test_rate_limit.py — stale tier config values, not related to US-013)
+- No regressions: 123 = 110 (US-010) + 13 new financials tests
+- **Artifacts:** `ralph/test_results/US-013/attempt-1/` (assertion1_get_financials.log, assertion2_pytest_financials.log, assertion3_mypy.log, ac_validation.log, pytest_full.log)
+---
+
+## 2026-04-15 - US-014 - IMPLEMENTOR — Company Profile Modal — Earnings & Ratios Tab (Frontend)
+
+- Added "Financials" tab button to company profile modal HTML
+- Implemented tab switching mechanism with active state tracking
+- Created `loadCompanyFinancials(symbol)` — fetches from `/api/market/:symbol/financials`, caches in state
+- Created `renderCompanyFinancials(data)` — renders key metrics + earnings bar chart
+- Created `formatFinancialValue(val)` — formats large dollar amounts (T/B/M/K units)
+- Key metrics displayed in 2x2 grid: Revenue, Net Income, EPS, P/E Ratio
+- Earnings bar chart: last 4 quarters, chronological order, green (positive) / red (negative) bars
+- "No financial data available" message for ETFs/tickers without data
+- Tab state and financials cache reset on modal open/close
+- Added CSS: `.cp-no-data`, `.cp-fin-*`, `.cp-bar-*`, `.cp-legend-*` classes
+- **Files changed:** `frontend/terminal.html`, `frontend/src/terminal-app.js`, `frontend/src/styles/terminal.css`
+- **Self-validation:** Vite build passes, mypy clean, 98 tests pass
+- **Environment notes for Tester:**
+  - The dev server must be running (`cd frontend && npx vite`) for browser testing
+  - The backend must have POLYGON_API_KEY configured (or the financials endpoint returns 503)
+  - Click any ticker badge in the terminal to open company profile, then click "Financials" tab
+  - For AAPL: expect revenue, net income, EPS, P/E ratio metrics + 4-quarter bar chart
+  - For SPY (ETF): expect "No financial data available" message
+  - estimated_eps from Polygon.io is always null — chart shows actual EPS only with positive/negative coloring
+  - 8 pre-existing test failures in `test_tiers.py`/`test_rate_limit.py` — not related to this story
+---

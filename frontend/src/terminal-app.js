@@ -82,6 +82,8 @@ let state = {
   companyProfileSymbol: null,
   companyProfileData: null,
   companyProfileLoading: false,
+  companyProfileActiveTab: "fundamentals",
+  companyProfileFinancials: null,
 };
 
 // ---------------------------------------------------------------------------
@@ -485,7 +487,7 @@ function renderTableHeader() {
   head.innerHTML = '<tr>' + cols.map(col => {
     const w = state.columnWidths[col.id];
     const style = w ? ` style="width:${w}px"` : '';
-    return `<th class="col-${col.id}"${style}>${col.label}<span class="col-resize-handle" data-col-id="${col.id}"></span></th>`;
+    return `<th class="col-${col.id}" draggable="true" data-col-id="${col.id}"${style}><span class="th-drag-label">${col.label}</span><span class="col-resize-handle" data-col-id="${col.id}"></span></th>`;
   }).join('') + '</tr>';
 
   // Apply table-layout: fixed when any custom width is set
@@ -495,6 +497,74 @@ function renderTableHeader() {
   }
 
   bindColumnResizeHandles();
+  bindHeaderDragReorder();
+}
+
+function bindHeaderDragReorder() {
+  const headerRow = document.querySelector('.news-table thead tr');
+  if (!headerRow) return;
+  const ths = headerRow.querySelectorAll('th[draggable]');
+  let dragSrcTh = null;
+
+  ths.forEach(th => {
+    th.addEventListener('dragstart', (e) => {
+      // Don't start drag if user is on the resize handle
+      if (e.target.closest('.col-resize-handle')) { e.preventDefault(); return; }
+      dragSrcTh = th;
+      th.classList.add('th-dragging');
+      e.dataTransfer.effectAllowed = 'move';
+      e.dataTransfer.setData('text/plain', th.dataset.colId);
+    });
+
+    th.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'move';
+      if (!dragSrcTh || th === dragSrcTh) return;
+      headerRow.querySelectorAll('th').forEach(el => el.classList.remove('th-drag-over-left', 'th-drag-over-right'));
+      const rect = th.getBoundingClientRect();
+      const midX = rect.left + rect.width / 2;
+      if (e.clientX < midX) {
+        th.classList.add('th-drag-over-left');
+      } else {
+        th.classList.add('th-drag-over-right');
+      }
+    });
+
+    th.addEventListener('dragleave', () => {
+      th.classList.remove('th-drag-over-left', 'th-drag-over-right');
+    });
+
+    th.addEventListener('drop', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      if (!dragSrcTh || th === dragSrcTh) return;
+      headerRow.querySelectorAll('th').forEach(el => el.classList.remove('th-drag-over-left', 'th-drag-over-right'));
+
+      const srcId = dragSrcTh.dataset.colId;
+      const dstId = th.dataset.colId;
+      const order = [...state.columnOrder];
+      const srcIdx = order.indexOf(srcId);
+      const dstIdx = order.indexOf(dstId);
+      if (srcIdx === -1 || dstIdx === -1) return;
+
+      order.splice(srcIdx, 1);
+      const rect = th.getBoundingClientRect();
+      const midX = rect.left + rect.width / 2;
+      const insertIdx = e.clientX < midX ? order.indexOf(dstId) : order.indexOf(dstId) + 1;
+      order.splice(insertIdx, 0, srcId);
+
+      state.columnOrder = order;
+      saveColumnOrder();
+      renderTableHeader();
+      renderNews();
+      if (state.columnSettingsOpen) renderColumnSettings();
+    });
+
+    th.addEventListener('dragend', () => {
+      th.classList.remove('th-dragging');
+      headerRow.querySelectorAll('th').forEach(el => el.classList.remove('th-drag-over-left', 'th-drag-over-right'));
+    });
+  });
 }
 
 function bindColumnResizeHandles() {
@@ -517,6 +587,17 @@ function onResizeStart(e) {
   const table = document.querySelector('.news-table');
   if (table) table.style.tableLayout = 'fixed';
 
+  // Lock all column widths to their current rendered size so resizing one doesn't shift others
+  const allThs = [...document.querySelectorAll('.news-table thead th')];
+  let totalWidth = 0;
+  allThs.forEach(t => {
+    const w = t.offsetWidth;
+    t.style.width = w + 'px';
+    totalWidth += w;
+  });
+  // Set table width to the sum of columns so it can grow beyond container
+  if (table) table.style.width = totalWidth + 'px';
+
   document.body.style.cursor = 'col-resize';
   document.body.style.userSelect = 'none';
   handle.classList.add('active');
@@ -525,6 +606,7 @@ function onResizeStart(e) {
     const delta = ev.clientX - startX;
     const newWidth = Math.max(MIN_COL_WIDTH, startWidth + delta);
     th.style.width = newWidth + 'px';
+    if (table) table.style.width = (totalWidth + (newWidth - startWidth)) + 'px';
   }
 
   function onMouseUp(ev) {
@@ -534,9 +616,16 @@ function onResizeStart(e) {
     document.body.style.userSelect = '';
     handle.classList.remove('active');
 
+    // Save all column widths (including the ones we locked)
+    allThs.forEach(t => {
+      const cid = t.dataset.colId;
+      if (cid) {
+        state.columnWidths[cid] = t.offsetWidth;
+      }
+    });
     const delta = ev.clientX - startX;
-    const finalWidth = Math.max(MIN_COL_WIDTH, startWidth + delta);
-    state.columnWidths[colId] = finalWidth;
+    state.columnWidths[colId] = Math.max(MIN_COL_WIDTH, startWidth + delta);
+    if (table) table.style.width = '';
     saveColumnWidths();
     renderTableHeader();
     renderNews();
@@ -655,21 +744,15 @@ function renderColumnSettings() {
     const disabled = col.required || locked;
 
     return `<div class="col-toggle-item${locked ? ' locked' : ''}${col.required ? ' required' : ''}" draggable="true" data-col-id="${col.id}">
-      <span class="col-drag-handle" aria-label="Drag to reorder">
-        <svg width="10" height="14" viewBox="0 0 10 14" fill="currentColor">
-          <circle cx="3" cy="2" r="1.2"/><circle cx="7" cy="2" r="1.2"/>
-          <circle cx="3" cy="7" r="1.2"/><circle cx="7" cy="7" r="1.2"/>
-          <circle cx="3" cy="12" r="1.2"/><circle cx="7" cy="12" r="1.2"/>
-        </svg>
-      </span>
+      <span class="col-drag-handle" aria-label="Drag to reorder">≡</span>
       <span class="col-toggle-label">
         ${locked ? '<svg class="col-lock-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>' : ''}
         ${escapeHtml(col.label)}
       </span>
-      <span class="col-toggle-switch${disabled ? ' disabled' : ''}">
+      <label class="col-toggle-switch${disabled ? ' disabled' : ''}">
         <input type="checkbox" ${checked ? 'checked' : ''} ${disabled ? 'disabled' : ''} data-col-id="${col.id}">
         <span class="col-toggle-track"><span class="col-toggle-thumb"></span></span>
-      </span>
+      </label>
     </div>`;
   });
 
@@ -690,10 +773,19 @@ function renderColumnSettings() {
   // Drag-and-drop reorder
   const list = panel.querySelector('.col-settings-list');
   let dragSrcEl = null;
+  let dragHandleActive = false;
+
+  // Only initiate drag from the handle — mousedown on handle sets flag
+  list.querySelectorAll('.col-drag-handle').forEach(handle => {
+    handle.addEventListener('mousedown', () => { dragHandleActive = true; });
+  });
+  document.addEventListener('mouseup', () => { dragHandleActive = false; }, { once: false });
 
   list.querySelectorAll('.col-toggle-item[draggable]').forEach(item => {
     item.addEventListener('dragstart', (e) => {
+      if (!dragHandleActive) { e.preventDefault(); return; }
       dragSrcEl = item;
+      state._dragging = true;
       item.classList.add('dragging');
       e.dataTransfer.effectAllowed = 'move';
       e.dataTransfer.setData('text/plain', item.dataset.colId);
@@ -745,9 +837,13 @@ function renderColumnSettings() {
 
     item.addEventListener('dragend', () => {
       item.classList.remove('dragging');
+      state._dragging = false;
       list.querySelectorAll('.col-toggle-item').forEach(el => el.classList.remove('drag-over-above', 'drag-over-below'));
     });
   });
+
+  // Allow drops on the list container itself
+  list.addEventListener('dragover', (e) => { e.preventDefault(); });
 }
 
 // ---------------------------------------------------------------------------
@@ -1073,8 +1169,9 @@ function bindEvents() {
     });
   }
 
-  // Close column settings on outside click
+  // Close column settings on outside click (skip during drag)
   document.addEventListener('click', (e) => {
+    if (state._dragging) return;
     if (state.columnSettingsOpen && !e.target.closest('#column-settings-wrap')) {
       toggleColumnSettings(false);
     }
@@ -1124,6 +1221,22 @@ function bindEvents() {
       if (e.target === cpOverlay) closeCompanyProfile();
     });
   }
+
+  // Company profile tab switching
+  const cpTabs = document.querySelectorAll(".cp-tab");
+  cpTabs.forEach((tab) => {
+    tab.addEventListener("click", () => {
+      const tabId = tab.dataset.tab;
+      if (tabId === state.companyProfileActiveTab) return;
+      state.companyProfileActiveTab = tabId;
+      cpTabs.forEach((t) => t.classList.toggle("active", t.dataset.tab === tabId));
+      if (tabId === "fundamentals" && state.companyProfileData) {
+        renderCompanyFundamentals(state.companyProfileData);
+      } else if (tabId === "financials") {
+        loadCompanyFinancials(state.companyProfileSymbol);
+      }
+    });
+  });
 
   // Sound toggle
   const soundBtn = $("#btn-sound");
@@ -1356,6 +1469,13 @@ async function openCompanyProfile(symbol) {
   state.companyProfileSymbol = symbol;
   state.companyProfileData = null;
   state.companyProfileLoading = true;
+  state.companyProfileActiveTab = "fundamentals";
+  state.companyProfileFinancials = null;
+
+  // Reset tab UI to fundamentals
+  document.querySelectorAll(".cp-tab").forEach((t) => {
+    t.classList.toggle("active", t.dataset.tab === "fundamentals");
+  });
 
   const overlay = $("#company-profile-overlay");
   if (!overlay) return;
@@ -1450,8 +1570,154 @@ function closeCompanyProfile() {
   state.companyProfileSymbol = null;
   state.companyProfileData = null;
   state.companyProfileLoading = false;
+  state.companyProfileActiveTab = "fundamentals";
+  state.companyProfileFinancials = null;
   const overlay = $("#company-profile-overlay");
   if (overlay) overlay.classList.remove("open");
+}
+
+async function loadCompanyFinancials(symbol) {
+  if (!symbol) return;
+  const body = $("#company-profile-body");
+  if (!body) return;
+
+  // Use cached data if available
+  if (state.companyProfileFinancials) {
+    renderCompanyFinancials(state.companyProfileFinancials);
+    return;
+  }
+
+  // Show loading skeleton
+  body.innerHTML = `<div class="cp-loading">
+    <div class="cp-loading-row"><div class="skeleton" style="width:60%;height:24px"></div></div>
+    <div class="cp-loading-grid">
+      <div class="skeleton" style="width:100%;height:64px"></div>
+      <div class="skeleton" style="width:100%;height:64px"></div>
+      <div class="skeleton" style="width:100%;height:64px"></div>
+      <div class="skeleton" style="width:100%;height:64px"></div>
+    </div>
+    <div class="cp-loading-row" style="margin-top:16px"><div class="skeleton" style="width:100%;height:120px"></div></div>
+  </div>`;
+
+  try {
+    const res = await SignalAuth.fetch(`${API}/market/${encodeURIComponent(symbol)}/financials`);
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.message || `HTTP ${res.status}`);
+    }
+    const data = await res.json();
+    state.companyProfileFinancials = data;
+    // Only render if we're still on the financials tab
+    if (state.companyProfileActiveTab === "financials") {
+      renderCompanyFinancials(data);
+    }
+  } catch (err) {
+    logger.warn("Error fetching financials for", symbol, err);
+    if (state.companyProfileActiveTab === "financials" && body) {
+      body.innerHTML = `<div class="cp-error">
+        <div class="cp-error-icon">!</div>
+        <p>Could not load financial data for <strong>${escapeHtml(symbol)}</strong></p>
+        <span>${escapeHtml(err.message)}</span>
+      </div>`;
+    }
+  }
+}
+
+function formatFinancialValue(val) {
+  if (val == null) return "\u2014";
+  const abs = Math.abs(val);
+  const sign = val < 0 ? "-" : "";
+  if (abs >= 1e12) return sign + "$" + (abs / 1e12).toFixed(2) + "T";
+  if (abs >= 1e9) return sign + "$" + (abs / 1e9).toFixed(2) + "B";
+  if (abs >= 1e6) return sign + "$" + (abs / 1e6).toFixed(2) + "M";
+  if (abs >= 1e3) return sign + "$" + (abs / 1e3).toFixed(2) + "K";
+  return sign + "$" + abs.toFixed(2);
+}
+
+function renderCompanyFinancials(data) {
+  const body = $("#company-profile-body");
+  if (!body) return;
+
+  const fin = data.financials;
+  const earnings = data.earnings || [];
+
+  // Check if there's any meaningful data
+  const hasFinancials = fin && (fin.revenue != null || fin.net_income != null || fin.eps != null);
+  const hasEarnings = earnings.length > 0 && earnings.some((e) => e.actual_eps != null);
+
+  if (!hasFinancials && !hasEarnings) {
+    body.innerHTML = `<div class="cp-no-data">
+      <div class="cp-no-data-icon">\u2014</div>
+      <p>No financial data available</p>
+      <span>Financial data is not available for this ticker (e.g., ETFs, indices).</span>
+    </div>`;
+    return;
+  }
+
+  // Key metrics section
+  const periodLabel = fin && fin.fiscal_period && fin.fiscal_year
+    ? `${fin.fiscal_period} ${fin.fiscal_year}` : "";
+
+  const metricsHtml = hasFinancials ? `
+    ${periodLabel ? `<div class="cp-fin-period">Latest Quarter: ${escapeHtml(periodLabel)}</div>` : ""}
+    <div class="cp-fin-metrics">
+      <div class="detail-metric">
+        <div class="detail-metric-label">Revenue</div>
+        <div class="detail-metric-value">${formatFinancialValue(fin.revenue)}</div>
+      </div>
+      <div class="detail-metric">
+        <div class="detail-metric-label">Net Income</div>
+        <div class="detail-metric-value">${formatFinancialValue(fin.net_income)}</div>
+      </div>
+      <div class="detail-metric">
+        <div class="detail-metric-label">EPS</div>
+        <div class="detail-metric-value">${fin.eps != null ? "$" + fin.eps.toFixed(2) : "\u2014"}</div>
+      </div>
+      <div class="detail-metric">
+        <div class="detail-metric-label">P/E Ratio</div>
+        <div class="detail-metric-value">${fin.pe_ratio != null ? fin.pe_ratio.toFixed(1) + "x" : "\u2014"}</div>
+      </div>
+    </div>` : "";
+
+  // Earnings bar chart section (last 4 quarters, chronological order)
+  let chartHtml = "";
+  if (hasEarnings) {
+    const chronological = [...earnings].reverse();
+    const maxAbs = Math.max(...chronological.map((e) => Math.abs(e.actual_eps || 0)), 0.01);
+
+    const barsHtml = chronological.map((e) => {
+      const eps = e.actual_eps;
+      if (eps == null) return "";
+      const pct = Math.min(Math.abs(eps) / maxAbs * 100, 100);
+      const isPositive = eps >= 0;
+      const barClass = isPositive ? "cp-bar-positive" : "cp-bar-negative";
+      const label = `${e.fiscal_period} ${String(e.fiscal_year).slice(-2)}`;
+      const hasEstimate = e.estimated_eps != null;
+      const beat = hasEstimate && eps >= e.estimated_eps;
+      const colorClass = hasEstimate ? (beat ? "cp-bar-beat" : "cp-bar-miss") : barClass;
+
+      return `<div class="cp-bar-col">
+        <div class="cp-bar-value ${colorClass}">$${eps.toFixed(2)}</div>
+        <div class="cp-bar-track">
+          <div class="cp-bar-fill ${colorClass}" style="height:${pct}%"></div>
+        </div>
+        <div class="cp-bar-label">${escapeHtml(label)}</div>
+        ${hasEstimate ? `<div class="cp-bar-est">Est: $${e.estimated_eps.toFixed(2)}</div>` : ""}
+      </div>`;
+    }).join("");
+
+    chartHtml = `
+    <div class="cp-fin-chart-section">
+      <div class="cp-desc-label">Earnings Per Share — Last 4 Quarters</div>
+      <div class="cp-bar-chart">${barsHtml}</div>
+      <div class="cp-bar-legend">
+        <span class="cp-legend-item"><span class="cp-legend-dot cp-bar-positive"></span>Positive</span>
+        <span class="cp-legend-item"><span class="cp-legend-dot cp-bar-negative"></span>Negative</span>
+      </div>
+    </div>`;
+  }
+
+  body.innerHTML = metricsHtml + chartHtml;
 }
 
 // ---------------------------------------------------------------------------
