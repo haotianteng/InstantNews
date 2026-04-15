@@ -84,6 +84,7 @@ let state = {
   companyProfileLoading: false,
   companyProfileActiveTab: "fundamentals",
   companyProfileFinancials: null,
+  companyProfileCompetitors: null,
 };
 
 // ---------------------------------------------------------------------------
@@ -1234,6 +1235,8 @@ function bindEvents() {
         renderCompanyFundamentals(state.companyProfileData);
       } else if (tabId === "financials") {
         loadCompanyFinancials(state.companyProfileSymbol);
+      } else if (tabId === "competitors") {
+        loadCompanyCompetitors(state.companyProfileSymbol);
       }
     });
   });
@@ -1471,6 +1474,7 @@ async function openCompanyProfile(symbol) {
   state.companyProfileLoading = true;
   state.companyProfileActiveTab = "fundamentals";
   state.companyProfileFinancials = null;
+  state.companyProfileCompetitors = null;
 
   // Reset tab UI to fundamentals
   document.querySelectorAll(".cp-tab").forEach((t) => {
@@ -1572,6 +1576,7 @@ function closeCompanyProfile() {
   state.companyProfileLoading = false;
   state.companyProfileActiveTab = "fundamentals";
   state.companyProfileFinancials = null;
+  state.companyProfileCompetitors = null;
   const overlay = $("#company-profile-overlay");
   if (overlay) overlay.classList.remove("open");
 }
@@ -1718,6 +1723,114 @@ function renderCompanyFinancials(data) {
   }
 
   body.innerHTML = metricsHtml + chartHtml;
+}
+
+// ---------------------------------------------------------------------------
+// Company Profile — Competitors Tab
+// ---------------------------------------------------------------------------
+
+async function loadCompanyCompetitors(symbol) {
+  if (!symbol) return;
+  const body = $("#company-profile-body");
+  if (!body) return;
+
+  // Use cached data if available
+  if (state.companyProfileCompetitors) {
+    renderCompanyCompetitors(state.companyProfileCompetitors);
+    return;
+  }
+
+  // Show loading skeleton
+  body.innerHTML = `<div class="cp-loading">
+    <div class="cp-loading-row"><div class="skeleton" style="width:50%;height:24px"></div></div>
+    <div class="cp-loading-row"><div class="skeleton" style="width:100%;height:40px"></div></div>
+    <div class="cp-loading-row"><div class="skeleton" style="width:100%;height:40px"></div></div>
+    <div class="cp-loading-row"><div class="skeleton" style="width:100%;height:40px"></div></div>
+    <div class="cp-loading-row"><div class="skeleton" style="width:100%;height:40px"></div></div>
+  </div>`;
+
+  try {
+    const res = await SignalAuth.fetch(`${API}/market/${encodeURIComponent(symbol)}/competitors`);
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.message || `HTTP ${res.status}`);
+    }
+    const data = await res.json();
+    state.companyProfileCompetitors = data;
+    if (state.companyProfileActiveTab === "competitors") {
+      renderCompanyCompetitors(data);
+    }
+  } catch (err) {
+    logger.warn("Error fetching competitors for", symbol, err);
+    if (state.companyProfileActiveTab === "competitors" && body) {
+      body.innerHTML = `<div class="cp-error">
+        <div class="cp-error-icon">!</div>
+        <p>Could not load competitor data for <strong>${escapeHtml(symbol)}</strong></p>
+        <span>${escapeHtml(err.message)}</span>
+      </div>`;
+    }
+  }
+}
+
+function renderCompanyCompetitors(data) {
+  const body = $("#company-profile-body");
+  if (!body) return;
+
+  const competitors = data.competitors || [];
+
+  if (competitors.length === 0) {
+    body.innerHTML = `<div class="cp-no-data">
+      <div class="cp-no-data-icon">\u2014</div>
+      <p>No competitor data available</p>
+      <span>Competitor information is not available for this ticker.</span>
+    </div>`;
+    return;
+  }
+
+  const rowsHtml = competitors.map((c) => {
+    const changeVal = c.change_percent != null ? c.change_percent : null;
+    const changeClass = changeVal != null ? (changeVal >= 0 ? "positive" : "negative") : "";
+    const changeText = changeVal != null
+      ? `${changeVal >= 0 ? "+" : ""}${changeVal.toFixed(2)}%`
+      : "\u2014";
+    const priceText = c.price != null ? `$${c.price.toFixed(2)}` : "\u2014";
+    const mcapText = formatFinancialValue(c.market_cap);
+    const sectorText = c.sector || "\u2014";
+
+    return `<tr class="cp-comp-row">
+      <td class="cp-comp-ticker"><span class="cp-comp-ticker-link" data-ticker="${escapeHtml(c.symbol)}">${escapeHtml(c.symbol)}</span></td>
+      <td class="cp-comp-name">${escapeHtml(c.name)}</td>
+      <td class="cp-comp-mcap">${mcapText}</td>
+      <td class="cp-comp-price">${priceText}</td>
+      <td class="cp-comp-change ${changeClass}">${changeText}</td>
+      <td class="cp-comp-sector">${escapeHtml(sectorText)}</td>
+    </tr>`;
+  }).join("");
+
+  body.innerHTML = `
+    <div class="cp-comp-section">
+      <div class="cp-desc-label">Related Companies</div>
+      <table class="cp-comp-table">
+        <thead>
+          <tr>
+            <th>Ticker</th>
+            <th>Company Name</th>
+            <th>Market Cap</th>
+            <th>Price</th>
+            <th>Change%</th>
+            <th>Sector</th>
+          </tr>
+        </thead>
+        <tbody>${rowsHtml}</tbody>
+      </table>
+    </div>`;
+
+  // Bind click handlers for competitor tickers
+  body.querySelectorAll(".cp-comp-ticker-link[data-ticker]").forEach((el) => {
+    el.addEventListener("click", () => {
+      openCompanyProfile(el.dataset.ticker);
+    });
+  });
 }
 
 // ---------------------------------------------------------------------------

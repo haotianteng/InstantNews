@@ -317,7 +317,7 @@ class PolygonClient:
         """Fetch related companies/competitors for a ticker.
 
         Returns list of up to 5 competitors sorted by market cap (descending),
-        each with keys: symbol, name, market_cap, price, change_percent.
+        each with keys: symbol, name, market_cap, price, change_percent, sector.
         Returns None if service is disabled or API error.
         """
         if not self._enabled:
@@ -354,6 +354,7 @@ class PolygonClient:
                     "market_cap": details.get("market_cap") if details else None,
                     "price": snapshot.get("price", 0) if snapshot else None,
                     "change_percent": snapshot.get("change_percent", 0) if snapshot else None,
+                    "sector": details.get("sector", "") if details else "",
                 })
 
             # Sort by market cap descending, limit to top 5

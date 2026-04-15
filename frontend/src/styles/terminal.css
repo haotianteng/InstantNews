@@ -2229,6 +2229,86 @@
   opacity: 0.8;
 }
 
+/* Company Profile — Competitors Tab */
+.cp-comp-section {
+  padding: 4px 0;
+}
+
+.cp-comp-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+  margin-top: 8px;
+}
+
+.cp-comp-table th {
+  text-align: left;
+  color: var(--text-muted);
+  font-weight: 500;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--border);
+}
+
+.cp-comp-table td {
+  padding: 10px;
+  border-bottom: 1px solid var(--border-muted);
+  color: var(--text-primary);
+}
+
+.cp-comp-row:hover {
+  background: var(--bg-hover);
+}
+
+.cp-comp-ticker-link {
+  color: var(--green);
+  cursor: pointer;
+  font-weight: 600;
+  font-family: var(--font-mono, monospace);
+}
+
+.cp-comp-ticker-link:hover {
+  text-decoration: underline;
+}
+
+.cp-comp-name {
+  color: var(--text-secondary);
+  max-width: 180px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cp-comp-mcap,
+.cp-comp-price {
+  font-family: var(--font-mono, monospace);
+  text-align: right;
+}
+
+.cp-comp-change {
+  font-family: var(--font-mono, monospace);
+  text-align: right;
+}
+
+.cp-comp-change.positive {
+  color: var(--green);
+}
+
+.cp-comp-change.negative {
+  color: var(--red);
+}
+
+.cp-comp-sector {
+  color: var(--text-muted);
+  font-size: 12px;
+  max-width: 150px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 /* Make ticker badges look clickable */
 .ticker-badge {
   cursor: pointer;
