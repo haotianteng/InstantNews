@@ -85,6 +85,7 @@ let state = {
   companyProfileActiveTab: "fundamentals",
   companyProfileFinancials: null,
   companyProfileCompetitors: null,
+  companyProfileInstitutions: null,
 };
 
 // ---------------------------------------------------------------------------
@@ -1237,6 +1238,8 @@ function bindEvents() {
         loadCompanyFinancials(state.companyProfileSymbol);
       } else if (tabId === "competitors") {
         loadCompanyCompetitors(state.companyProfileSymbol);
+      } else if (tabId === "institutions") {
+        loadCompanyInstitutions(state.companyProfileSymbol);
       }
     });
   });
@@ -1475,6 +1478,7 @@ async function openCompanyProfile(symbol) {
   state.companyProfileActiveTab = "fundamentals";
   state.companyProfileFinancials = null;
   state.companyProfileCompetitors = null;
+  state.companyProfileInstitutions = null;
 
   // Reset tab UI to fundamentals
   document.querySelectorAll(".cp-tab").forEach((t) => {
@@ -1577,6 +1581,7 @@ function closeCompanyProfile() {
   state.companyProfileActiveTab = "fundamentals";
   state.companyProfileFinancials = null;
   state.companyProfileCompetitors = null;
+  state.companyProfileInstitutions = null;
   const overlay = $("#company-profile-overlay");
   if (overlay) overlay.classList.remove("open");
 }
@@ -1831,6 +1836,208 @@ function renderCompanyCompetitors(data) {
       openCompanyProfile(el.dataset.ticker);
     });
   });
+}
+
+// ---------------------------------------------------------------------------
+// Company Profile — Institutions Tab (13F + 13D/13G)
+// ---------------------------------------------------------------------------
+
+const INST_TOOLTIP_KEY = "inst_tooltip_dismissed";
+
+function formatShareCount(val) {
+  if (val == null) return "\u2014";
+  const abs = Math.abs(val);
+  if (abs >= 1e9) return (abs / 1e9).toFixed(2) + "B";
+  if (abs >= 1e6) return (abs / 1e6).toFixed(2) + "M";
+  if (abs >= 1e3) return (abs / 1e3).toFixed(1) + "K";
+  return abs.toLocaleString();
+}
+
+async function loadCompanyInstitutions(symbol) {
+  if (!symbol) return;
+  const body = $("#company-profile-body");
+  if (!body) return;
+
+  if (state.companyProfileInstitutions) {
+    renderCompanyInstitutions(state.companyProfileInstitutions);
+    return;
+  }
+
+  body.innerHTML = `<div class="cp-loading">
+    <div class="cp-loading-row"><div class="skeleton" style="width:70%;height:20px"></div></div>
+    <div class="cp-loading-row"><div class="skeleton" style="width:50%;height:16px"></div></div>
+    <div class="cp-loading-row" style="margin-top:12px"><div class="skeleton" style="width:100%;height:40px"></div></div>
+    <div class="cp-loading-row"><div class="skeleton" style="width:100%;height:40px"></div></div>
+    <div class="cp-loading-row"><div class="skeleton" style="width:100%;height:40px"></div></div>
+    <div class="cp-loading-row"><div class="skeleton" style="width:100%;height:40px"></div></div>
+    <div class="cp-loading-row"><div class="skeleton" style="width:100%;height:40px"></div></div>
+  </div>`;
+
+  try {
+    const res = await SignalAuth.fetch(`${API}/market/${encodeURIComponent(symbol)}/institutions`);
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.message || `HTTP ${res.status}`);
+    }
+    const data = await res.json();
+    state.companyProfileInstitutions = data;
+    if (state.companyProfileActiveTab === "institutions") {
+      renderCompanyInstitutions(data);
+    }
+  } catch (err) {
+    logger.warn("Error fetching institutions for", symbol, err);
+    if (state.companyProfileActiveTab === "institutions" && body) {
+      body.innerHTML = `<div class="cp-error">
+        <div class="cp-error-icon">!</div>
+        <p>Could not load institutional data for <strong>${escapeHtml(symbol)}</strong></p>
+        <span>${escapeHtml(err.message)}</span>
+      </div>`;
+    }
+  }
+}
+
+function renderCompanyInstitutions(data) {
+  const body = $("#company-profile-body");
+  if (!body) return;
+
+  const holders = data.institutional_holders || [];
+  const positions = data.major_position_changes || [];
+
+  if (holders.length === 0 && positions.length === 0) {
+    body.innerHTML = `<div class="cp-no-data">
+      <div class="cp-no-data-icon">\u2014</div>
+      <p>No institutional data available</p>
+      <span>Institutional holdings data is not available for this ticker.</span>
+    </div>`;
+    return;
+  }
+
+  // --- Date banner ---
+  const latestDate = holders.length > 0 ? holders[0].report_date : null;
+  const dateBannerHtml = latestDate
+    ? `<div class="cp-inst-date-banner">Holdings as of ${escapeHtml(latestDate)}</div>`
+    : "";
+
+  // --- First-time tooltip ---
+  const tooltipDismissed = localStorage.getItem(INST_TOOLTIP_KEY);
+  const tooltipHtml = tooltipDismissed ? "" : `<div class="cp-inst-tooltip" id="cp-inst-tooltip">
+    <div class="cp-inst-tooltip-text">
+      <strong>About this data:</strong> 13F holdings are filed quarterly (up to 45 days after quarter end).
+      13D/13G filings are filed in near-real-time when an investor crosses the 5% ownership threshold.
+    </div>
+    <button class="cp-inst-tooltip-dismiss" id="cp-inst-tooltip-dismiss">\u2715</button>
+  </div>`;
+
+  // --- Summary ---
+  let totalValue = 0;
+  let totalShares = 0;
+  holders.forEach((h) => {
+    if (h.value != null) totalValue += h.value;
+    if (h.shares_held != null) totalShares += h.shares_held;
+  });
+  const summaryHtml = `<div class="cp-inst-summary">
+    <div class="cp-inst-summary-item">
+      <span class="cp-inst-summary-label">Institutions Reporting</span>
+      <span class="cp-inst-summary-value">${holders.length}</span>
+    </div>
+    <div class="cp-inst-summary-item">
+      <span class="cp-inst-summary-label">Total Institutional Value</span>
+      <span class="cp-inst-summary-value">${formatFinancialValue(totalValue)}</span>
+    </div>
+    <div class="cp-inst-summary-item">
+      <span class="cp-inst-summary-label">Total Shares Held</span>
+      <span class="cp-inst-summary-value">${formatShareCount(totalShares)}</span>
+    </div>
+  </div>`;
+
+  // --- 13F holdings table ---
+  const holdersRowsHtml = holders.map((h) => {
+    const sharesText = formatShareCount(h.shares_held);
+    const valueText = formatFinancialValue(h.value);
+    const changeType = h.change_type || "held";
+    let changeBadge = "";
+    if (changeType === "new") {
+      changeBadge = `<span class="cp-inst-badge cp-inst-badge-new">NEW</span>`;
+    } else if (changeType === "increased") {
+      changeBadge = `<span class="cp-inst-change-up">\u25B2</span>`;
+    } else if (changeType === "decreased") {
+      changeBadge = `<span class="cp-inst-change-down">\u25BC</span>`;
+    } else {
+      changeBadge = `<span class="cp-inst-change-flat">\u2014</span>`;
+    }
+    return `<tr class="cp-inst-row">
+      <td class="cp-inst-name">${escapeHtml(h.institution_name || "Unknown")}</td>
+      <td class="cp-inst-shares">${sharesText}</td>
+      <td class="cp-inst-value">${valueText}</td>
+      <td class="cp-inst-change">${changeBadge}</td>
+    </tr>`;
+  }).join("");
+
+  const holdersTableHtml = holders.length > 0 ? `
+    <div class="cp-inst-section">
+      <div class="cp-desc-label">13F Institutional Holdings</div>
+      <table class="cp-inst-table">
+        <thead>
+          <tr>
+            <th>Institution</th>
+            <th>Shares Held</th>
+            <th>Value</th>
+            <th>Change</th>
+          </tr>
+        </thead>
+        <tbody>${holdersRowsHtml}</tbody>
+      </table>
+    </div>` : "";
+
+  // --- 13D/13G Recent Activity ---
+  const now = Date.now();
+  const thirtyDaysMs = 30 * 24 * 60 * 60 * 1000;
+  const positionsRowsHtml = positions.map((p) => {
+    const filingDate = p.filing_date || "";
+    const isRecent = filingDate && (now - new Date(filingDate).getTime()) < thirtyDaysMs;
+    const newBadge = isRecent ? `<span class="cp-inst-badge cp-inst-badge-new">NEW</span> ` : "";
+    const pctText = p.percent_owned != null ? p.percent_owned.toFixed(2) + "%" : "\u2014";
+    const filingType = p.filing_type || "";
+    const is13D = filingType.includes("13D");
+    const colorClass = is13D ? "cp-inst-13d" : "cp-inst-13g";
+    return `<tr class="cp-inst-row ${colorClass}">
+      <td class="cp-inst-filer">${newBadge}${escapeHtml(p.filer_name || "Unknown")}</td>
+      <td class="cp-inst-pct">${pctText}</td>
+      <td class="cp-inst-filing-date">${escapeHtml(filingDate)}</td>
+      <td class="cp-inst-filing-type">${escapeHtml(filingType)}</td>
+    </tr>`;
+  }).join("");
+
+  const positionsHtml = positions.length > 0 ? `
+    <div class="cp-inst-section cp-inst-positions">
+      <div class="cp-desc-label">13D/13G Recent Activity</div>
+      <table class="cp-inst-table">
+        <thead>
+          <tr>
+            <th>Filer</th>
+            <th>% Owned</th>
+            <th>Filing Date</th>
+            <th>Filing Type</th>
+          </tr>
+        </thead>
+        <tbody>${positionsRowsHtml}</tbody>
+      </table>
+    </div>` : "";
+
+  // --- Source attribution ---
+  const sourceHtml = `<div class="cp-inst-source">Source: SEC EDGAR (13F quarterly + 13D/13G real-time filings)</div>`;
+
+  body.innerHTML = dateBannerHtml + tooltipHtml + summaryHtml + holdersTableHtml + positionsHtml + sourceHtml;
+
+  // Bind tooltip dismiss
+  const dismissBtn = document.getElementById("cp-inst-tooltip-dismiss");
+  if (dismissBtn) {
+    dismissBtn.addEventListener("click", () => {
+      localStorage.setItem(INST_TOOLTIP_KEY, "1");
+      const tooltip = document.getElementById("cp-inst-tooltip");
+      if (tooltip) tooltip.remove();
+    });
+  }
 }
 
 // ---------------------------------------------------------------------------

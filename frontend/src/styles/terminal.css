@@ -2314,6 +2314,201 @@
   cursor: pointer;
 }
 
+/* Company Profile — Institutions Tab */
+.cp-inst-date-banner {
+  background: var(--bg-hover);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 10px 14px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--blue);
+  margin-bottom: 12px;
+  font-family: var(--font-mono, monospace);
+}
+
+.cp-inst-tooltip {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  background: color-mix(in srgb, var(--blue) 8%, transparent);
+  border: 1px solid color-mix(in srgb, var(--blue) 25%, transparent);
+  border-radius: var(--radius-md);
+  padding: 10px 14px;
+  margin-bottom: 12px;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--text-secondary);
+}
+
+.cp-inst-tooltip-text {
+  flex: 1;
+}
+
+.cp-inst-tooltip-text strong {
+  color: var(--text-primary);
+}
+
+.cp-inst-tooltip-dismiss {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: 14px;
+  padding: 0 4px;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.cp-inst-tooltip-dismiss:hover {
+  color: var(--text-primary);
+}
+
+.cp-inst-summary {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.cp-inst-summary-item {
+  background: var(--bg-hover);
+  border-radius: var(--radius-md);
+  padding: 10px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.cp-inst-summary-label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+.cp-inst-summary-value {
+  font-size: 16px;
+  font-weight: 600;
+  font-family: var(--font-mono, monospace);
+  color: var(--text-primary);
+}
+
+.cp-inst-section {
+  padding: 4px 0;
+  margin-bottom: 16px;
+}
+
+.cp-inst-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+  margin-top: 8px;
+}
+
+.cp-inst-table th {
+  text-align: left;
+  color: var(--text-muted);
+  font-weight: 500;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--border);
+}
+
+.cp-inst-table td {
+  padding: 10px;
+  border-bottom: 1px solid var(--border-muted);
+  color: var(--text-primary);
+}
+
+.cp-inst-row:hover {
+  background: var(--bg-hover);
+}
+
+.cp-inst-name {
+  max-width: 220px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cp-inst-shares,
+.cp-inst-value,
+.cp-inst-pct {
+  font-family: var(--font-mono, monospace);
+  text-align: right;
+}
+
+.cp-inst-change {
+  text-align: center;
+  width: 60px;
+}
+
+.cp-inst-change-up {
+  color: var(--green);
+}
+
+.cp-inst-change-down {
+  color: var(--red);
+}
+
+.cp-inst-change-flat {
+  color: var(--text-muted);
+}
+
+.cp-inst-badge {
+  display: inline-block;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  padding: 2px 6px;
+  border-radius: 3px;
+  vertical-align: middle;
+}
+
+.cp-inst-badge-new {
+  background: color-mix(in srgb, var(--green) 15%, transparent);
+  color: var(--green);
+}
+
+.cp-inst-13d {
+  border-left: 3px solid var(--red);
+}
+
+.cp-inst-13g {
+  border-left: 3px solid var(--green);
+}
+
+.cp-inst-filer {
+  max-width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cp-inst-filing-date {
+  font-family: var(--font-mono, monospace);
+  white-space: nowrap;
+}
+
+.cp-inst-filing-type {
+  font-size: 12px;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.cp-inst-source {
+  margin-top: 16px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border-muted);
+  font-size: 11px;
+  color: var(--text-muted);
+  text-align: center;
+}
+
 /* =========================================================================
    Reduced motion
    ========================================================================= */
