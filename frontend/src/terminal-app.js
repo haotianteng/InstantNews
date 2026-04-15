@@ -86,6 +86,7 @@ let state = {
   companyProfileFinancials: null,
   companyProfileCompetitors: null,
   companyProfileInstitutions: null,
+  companyProfileInsiders: null,
 };
 
 // ---------------------------------------------------------------------------
@@ -1240,6 +1241,8 @@ function bindEvents() {
         loadCompanyCompetitors(state.companyProfileSymbol);
       } else if (tabId === "institutions") {
         loadCompanyInstitutions(state.companyProfileSymbol);
+      } else if (tabId === "insiders") {
+        loadCompanyInsiders(state.companyProfileSymbol);
       }
     });
   });
@@ -1479,6 +1482,7 @@ async function openCompanyProfile(symbol) {
   state.companyProfileFinancials = null;
   state.companyProfileCompetitors = null;
   state.companyProfileInstitutions = null;
+  state.companyProfileInsiders = null;
 
   // Reset tab UI to fundamentals
   document.querySelectorAll(".cp-tab").forEach((t) => {
@@ -1582,6 +1586,7 @@ function closeCompanyProfile() {
   state.companyProfileFinancials = null;
   state.companyProfileCompetitors = null;
   state.companyProfileInstitutions = null;
+  state.companyProfileInsiders = null;
   const overlay = $("#company-profile-overlay");
   if (overlay) overlay.classList.remove("open");
 }
@@ -2038,6 +2043,168 @@ function renderCompanyInstitutions(data) {
       if (tooltip) tooltip.remove();
     });
   }
+}
+
+// ---------------------------------------------------------------------------
+// Company Profile — Insiders Tab (Form 4)
+// ---------------------------------------------------------------------------
+
+async function loadCompanyInsiders(symbol) {
+  if (!symbol) return;
+  const body = $("#company-profile-body");
+  if (!body) return;
+
+  if (state.companyProfileInsiders) {
+    renderCompanyInsiders(state.companyProfileInsiders);
+    return;
+  }
+
+  body.innerHTML = `<div class="cp-loading">
+    <div class="cp-loading-row"><div class="skeleton" style="width:70%;height:20px"></div></div>
+    <div class="cp-loading-row"><div class="skeleton" style="width:50%;height:16px"></div></div>
+    <div class="cp-loading-row" style="margin-top:12px"><div class="skeleton" style="width:100%;height:40px"></div></div>
+    <div class="cp-loading-row"><div class="skeleton" style="width:100%;height:40px"></div></div>
+    <div class="cp-loading-row"><div class="skeleton" style="width:100%;height:40px"></div></div>
+    <div class="cp-loading-row"><div class="skeleton" style="width:100%;height:40px"></div></div>
+    <div class="cp-loading-row"><div class="skeleton" style="width:100%;height:40px"></div></div>
+  </div>`;
+
+  try {
+    const res = await SignalAuth.fetch(`${API}/market/${encodeURIComponent(symbol)}/insiders`);
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.message || `HTTP ${res.status}`);
+    }
+    const data = await res.json();
+    state.companyProfileInsiders = data;
+    if (state.companyProfileActiveTab === "insiders") {
+      renderCompanyInsiders(data);
+    }
+  } catch (err) {
+    logger.warn("Error fetching insiders for", symbol, err);
+    if (state.companyProfileActiveTab === "insiders" && body) {
+      body.innerHTML = `<div class="cp-error">
+        <div class="cp-error-icon">!</div>
+        <p>Could not load insider trading data for <strong>${escapeHtml(symbol)}</strong></p>
+        <span>${escapeHtml(err.message)}</span>
+      </div>`;
+    }
+  }
+}
+
+function renderCompanyInsiders(data) {
+  const body = $("#company-profile-body");
+  if (!body) return;
+
+  const transactions = data.insider_transactions || [];
+
+  if (transactions.length === 0) {
+    body.innerHTML = `<div class="cp-error">
+      <div class="cp-error-icon">\u2014</div>
+      <p>No insider transaction data available for <strong>${escapeHtml(data.symbol || "")}</strong></p>
+    </div>`;
+    return;
+  }
+
+  // --- Net insider sentiment (last 90 days) ---
+  const ninetyDaysAgo = Date.now() - 90 * 24 * 60 * 60 * 1000;
+  let buyVolume = 0;
+  let sellVolume = 0;
+  let buyCount = 0;
+  let sellCount = 0;
+  for (const t of transactions) {
+    const d = t.filing_date ? new Date(t.filing_date).getTime() : 0;
+    if (d < ninetyDaysAgo) continue;
+    const type = (t.transaction_type || "").toLowerCase();
+    const val = Math.abs(t.total_value || 0);
+    if (type === "purchase") {
+      buyVolume += val;
+      buyCount++;
+    } else if (type === "sale") {
+      sellVolume += val;
+      sellCount++;
+    }
+  }
+  const netVolume = buyVolume - sellVolume;
+  const sentimentClass = netVolume > 0 ? "cp-insider-sentiment-buy" : netVolume < 0 ? "cp-insider-sentiment-sell" : "cp-insider-sentiment-neutral";
+  const sentimentLabel = netVolume > 0 ? "Net Buying" : netVolume < 0 ? "Net Selling" : "Neutral";
+  const sentimentIcon = netVolume > 0 ? "\u25B2" : netVolume < 0 ? "\u25BC" : "\u25CF";
+
+  const sentimentHtml = `<div class="cp-insider-sentiment ${sentimentClass}">
+    <div class="cp-insider-sentiment-header">
+      <span class="cp-insider-sentiment-icon">${sentimentIcon}</span>
+      <span class="cp-insider-sentiment-label">${sentimentLabel}</span>
+      <span class="cp-insider-sentiment-period">90-day insider activity</span>
+    </div>
+    <div class="cp-insider-sentiment-stats">
+      <div class="cp-insider-stat">
+        <span class="cp-insider-stat-value cp-insider-buy-text">${buyCount} buys</span>
+        <span class="cp-insider-stat-amount">$${formatShareCount(buyVolume)}</span>
+      </div>
+      <div class="cp-insider-stat">
+        <span class="cp-insider-stat-value cp-insider-sell-text">${sellCount} sells</span>
+        <span class="cp-insider-stat-amount">$${formatShareCount(sellVolume)}</span>
+      </div>
+      <div class="cp-insider-stat">
+        <span class="cp-insider-stat-value">Net</span>
+        <span class="cp-insider-stat-amount ${sentimentClass}">${netVolume >= 0 ? "+" : ""}$${formatShareCount(Math.abs(netVolume))}</span>
+      </div>
+    </div>
+  </div>`;
+
+  // --- Transactions table ---
+  // Sort by most recent first
+  const sorted = [...transactions].sort((a, b) => {
+    const da = a.filing_date || "";
+    const db = b.filing_date || "";
+    return db.localeCompare(da);
+  });
+
+  const rowsHtml = sorted.map((t) => {
+    const type = (t.transaction_type || "").toLowerCase();
+    let rowClass = "cp-insider-row-other";
+    if (type === "purchase") rowClass = "cp-insider-row-buy";
+    else if (type === "sale") rowClass = "cp-insider-row-sell";
+    else if (type === "option exercise") rowClass = "cp-insider-row-exercise";
+
+    const sharesText = t.shares != null ? formatShareCount(t.shares) : "\u2014";
+    const priceText = t.price_per_share != null ? "$" + t.price_per_share.toFixed(2) : "\u2014";
+    const totalText = t.total_value != null ? "$" + formatShareCount(t.total_value) : "\u2014";
+    const holdingsText = t.shares_held_after != null ? formatShareCount(t.shares_held_after) : "\u2014";
+
+    return `<tr class="cp-insider-row ${rowClass}">
+      <td class="cp-insider-date">${escapeHtml(t.filing_date || "")}</td>
+      <td class="cp-insider-name">${escapeHtml(t.insider_name || "Unknown")}</td>
+      <td class="cp-insider-title">${escapeHtml(t.title || "")}</td>
+      <td class="cp-insider-type">${escapeHtml(t.transaction_type || "")}</td>
+      <td class="cp-insider-shares">${sharesText}</td>
+      <td class="cp-insider-price">${priceText}</td>
+      <td class="cp-insider-total">${totalText}</td>
+      <td class="cp-insider-holdings">${holdingsText}</td>
+    </tr>`;
+  }).join("");
+
+  const tableHtml = `<div class="cp-insider-table-wrap">
+    <table class="cp-insider-table">
+      <thead>
+        <tr>
+          <th>Date</th>
+          <th>Insider Name</th>
+          <th>Title</th>
+          <th>Type</th>
+          <th>Shares</th>
+          <th>Price</th>
+          <th>Total Value</th>
+          <th>Holdings After</th>
+        </tr>
+      </thead>
+      <tbody>${rowsHtml}</tbody>
+    </table>
+  </div>`;
+
+  const sourceHtml = `<div class="cp-insider-source">Source: SEC EDGAR Form 4 (filed within 2 business days of transaction)</div>`;
+
+  body.innerHTML = sentimentHtml + tableHtml + sourceHtml;
 }
 
 // ---------------------------------------------------------------------------

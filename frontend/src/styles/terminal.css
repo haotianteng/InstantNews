@@ -2510,6 +2510,200 @@
 }
 
 /* =========================================================================
+   Company Profile — Insiders Tab
+   ========================================================================= */
+
+.cp-insider-sentiment {
+  padding: var(--sp-3) var(--sp-4);
+  margin-bottom: var(--sp-3);
+  border-radius: var(--radius-md);
+  border-left: 3px solid var(--text-muted);
+  background: var(--bg-hover);
+}
+
+.cp-insider-sentiment-buy {
+  border-left-color: var(--green);
+}
+
+.cp-insider-sentiment-sell {
+  border-left-color: var(--red);
+}
+
+.cp-insider-sentiment-neutral {
+  border-left-color: var(--text-muted);
+}
+
+.cp-insider-sentiment-header {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  margin-bottom: var(--sp-2);
+}
+
+.cp-insider-sentiment-icon {
+  font-size: 14px;
+}
+
+.cp-insider-sentiment-buy .cp-insider-sentiment-icon {
+  color: var(--green);
+}
+
+.cp-insider-sentiment-sell .cp-insider-sentiment-icon {
+  color: var(--red);
+}
+
+.cp-insider-sentiment-label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.cp-insider-sentiment-period {
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-left: auto;
+}
+
+.cp-insider-sentiment-stats {
+  display: flex;
+  gap: var(--sp-4);
+}
+
+.cp-insider-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.cp-insider-stat-value {
+  font-size: 11px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.cp-insider-buy-text {
+  color: var(--green);
+}
+
+.cp-insider-sell-text {
+  color: var(--red);
+}
+
+.cp-insider-stat-amount {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-secondary);
+}
+
+.cp-insider-stat-amount.cp-insider-sentiment-buy {
+  color: var(--green);
+}
+
+.cp-insider-stat-amount.cp-insider-sentiment-sell {
+  color: var(--red);
+}
+
+.cp-insider-table-wrap {
+  overflow-x: auto;
+}
+
+.cp-insider-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+
+.cp-insider-table thead th {
+  padding: var(--sp-2) var(--sp-2);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  text-align: left;
+  border-bottom: 1px solid var(--border);
+  white-space: nowrap;
+}
+
+.cp-insider-table tbody td {
+  padding: var(--sp-2) var(--sp-2);
+  color: var(--text-secondary);
+  border-bottom: 1px solid var(--border-muted);
+  white-space: nowrap;
+}
+
+.cp-insider-row-buy {
+  background: var(--green-bg);
+}
+
+.cp-insider-row-sell {
+  background: var(--red-bg);
+}
+
+.cp-insider-row-exercise {
+  background: rgba(255, 193, 7, 0.06);
+}
+
+.cp-insider-row-buy .cp-insider-type {
+  color: var(--green);
+  font-weight: 600;
+}
+
+.cp-insider-row-sell .cp-insider-type {
+  color: var(--red);
+  font-weight: 600;
+}
+
+.cp-insider-row-exercise .cp-insider-type {
+  color: #ffc107;
+  font-weight: 500;
+}
+
+.cp-insider-date {
+  font-family: var(--font-mono, monospace);
+  color: var(--text-muted);
+}
+
+.cp-insider-name {
+  font-weight: 500;
+  color: var(--text-primary);
+  max-width: 180px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.cp-insider-title {
+  color: var(--text-muted);
+  font-size: 11px;
+  max-width: 120px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.cp-insider-shares,
+.cp-insider-price,
+.cp-insider-total,
+.cp-insider-holdings {
+  font-family: 'JetBrains Mono', monospace;
+  text-align: right;
+}
+
+.cp-insider-source {
+  margin-top: 16px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border-muted);
+  font-size: 11px;
+  color: var(--text-muted);
+  text-align: center;
+}
+
+/* =========================================================================
    Reduced motion
    ========================================================================= */
 
