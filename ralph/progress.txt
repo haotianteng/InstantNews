@@ -730,3 +730,57 @@ Add a modal HTML block to `frontend/terminal.html` (after the detail-modal-overl
   - The API requires a valid Polygon.io API key (POLYGON_API_KEY env var) for live data
   - 8 pre-existing test failures in test_tiers.py/test_rate_limit.py are NOT related to this story
 ---
+
+## 2026-04-15 12:36 EDT - US-016 - TESTER — TEST_PASSED
+
+- **All 4 test assertions passed**, all 7 acceptance criteria verified by browser execution
+- Assertion 1: `cd frontend && npx vite build` — exits 0, 29 modules, 0 errors
+- Assertion 2: Opened AAPL profile → clicked Competitors tab → table rendered with 5 competitors (MSFT, GOOGL, AMZN, META, NVDA)
+- Assertion 3: Clicked MSFT ticker in competitors table → modal switched to MSFT profile (header "// MSFT")
+- Assertion 4: Market caps formatted via `formatFinancialValue()`: $3.10T, $2.80T, $1.90T, $1.40T, $2.50T
+- AC1: Competitors tab button present in modal
+- AC2: Table headers: Ticker, Company Name, Market Cap, Price, Change%, Sector — all 6 columns
+- AC3: Rows rendered in API order; backend (US-015) sorts by market_cap descending
+- AC4: `.cp-comp-ticker-link[data-ticker]` elements with click handlers → `openCompanyProfile()` — verified
+- AC5: Frontend fetches `/api/market/AAPL/competitors` — verified via Playwright route intercept
+- AC6: mypy clean (1 file)
+- AC7: Full browser verification — table renders, change% green/red, tickers clickable
+- Quality: pytest 32/32 market/competitor tests passed, mypy clean, vite build clean
+- **Environment note:** POLYGON_API_KEY not available in test env. Used Playwright route mocking for frontend validation. Backend route confirmed registered (returns 401 unauthenticated, 503 without API key).
+- **Learnings:**
+  - Backend server must be restarted after implementor adds new routes — the running server was stale and returned Flask 404 for the new competitors endpoint
+  - Playwright `page.route()` interception is effective for testing frontend rendering when backend APIs require external credentials
+- **Artifacts:** `ralph/test_results/US-016/attempt-1/` (vite_build.log, mypy_market_data.log, pytest_market.log, test_evidence.log, screenshot-competitors-tab.png, screenshot-competitor-click-msft.png, polygon_check.log)
+---
+
+## 2026-04-15 - US-017 - IMPLEMENTOR — Implemented SEC EDGAR Client (13F, 13D/13G, Form 4)
+
+- Created `app/services/edgar_client.py` with `EdgarClient` class
+  - `get_institutional_holders(symbol, limit=20)`: searches EFTS for 13F-HR filings, returns institution_name, shares_held, value, report_date, change_type
+  - `get_major_position_changes(symbol, limit=10)`: parses SC 13D/13G filings from company submissions API, extracts filer_name, filing_date, filing_type, percent_owned, shares_held, change_description
+  - `get_insider_transactions(symbol, limit=20)`: parses Form 4 XML (nonDerivativeTransaction + derivativeTransaction), extracts insider_name, title, transaction_type, shares, price_per_share, total_value, shares_held_after
+  - CIK resolution via `company_tickers.json` with 24h cache
+  - Rate limiting: 0.1s minimum between requests (10 req/sec SEC limit)
+  - Caching: 24h (13F), 6h (13D/13G), 1h (Form 4) per acceptance criteria
+  - User-Agent: `InstantNews dev@instnews.net` per SEC EDGAR policy
+  - Always enabled (no API key needed — free public data)
+- Added two API endpoints in `app/routes/market.py`:
+  - `GET /api/market/<symbol>/institutions` — returns 13F holders + 13D/13G position changes
+  - `GET /api/market/<symbol>/insiders` — returns Form 4 insider transactions
+- Created `tests/test_edgar_client.py` with 13 unit tests:
+  - CIK resolution (success, not found, caching)
+  - Form 4 XML parsing (success, caching, no CIK)
+  - 13D/13G parsing (success, empty)
+  - 13F search (success, deduplication, caching)
+- Self-validation: mypy clean, 13/13 edgar tests pass, 144/152 full suite pass (8 pre-existing failures in test_tiers.py/test_rate_limit.py)
+- **Files changed:** `app/services/edgar_client.py`, `app/routes/market.py`, `tests/test_edgar_client.py`
+- **Environment notes for Tester:**
+  - No API key needed — SEC EDGAR is free public data
+  - Live calls to SEC EDGAR require network access and proper User-Agent header
+  - `get_institutional_holders` uses EFTS full-text search (may return empty if EFTS is unreachable)
+  - `get_insider_transactions` and `get_major_position_changes` require CIK resolution via `company_tickers.json`, then parse company submissions
+  - Form 4 parsing requires XML documents ending in `.xml` — non-XML Form 4 filings are skipped
+  - The SEC rate throttle adds ~0.1s per request — live calls will be slower than mocked tests
+  - 8 pre-existing test failures in `test_tiers.py`/`test_rate_limit.py` (stale tier config values) — not related to this story
+  - Endpoints are auth-gated (`@require_auth`) and rate-limited (60/min)
+---

@@ -1,4 +1,4 @@
-"""GET /api/market/<symbol> — real-time market data and company details."""
+"""GET /api/market/<symbol> — real-time market data, company details, and SEC filings."""
 
 import logging
 from datetime import datetime, timezone
@@ -7,14 +7,16 @@ from flask import Blueprint, jsonify
 
 from app.auth.middleware import require_auth
 from app.middleware.rate_limit import limiter
+from app.services.edgar_client import EdgarClient
 from app.services.market_data import PolygonClient
 
 logger = logging.getLogger("signal.market")
 
 market_bp = Blueprint("market", __name__)
 
-# Singleton client — disabled gracefully when POLYGON_API_KEY is unset
+# Singleton clients
 _polygon = PolygonClient()
+_edgar = EdgarClient()
 
 
 @market_bp.route("/api/market/<symbol>")
@@ -108,4 +110,44 @@ def market_competitors(symbol: str):
     return jsonify({
         "symbol": symbol.upper(),
         "competitors": competitors,
+    })
+
+
+@market_bp.route("/api/market/<symbol>/institutions")
+@require_auth
+@limiter.limit("60 per minute")
+def market_institutions(symbol: str):
+    """Return institutional holdings (13F) and major position changes (13D/13G)."""
+    holders = _edgar.get_institutional_holders(symbol)
+    positions = _edgar.get_major_position_changes(symbol)
+
+    if holders is None and positions is None:
+        return jsonify({
+            "error": "Ticker not found",
+            "message": f"No institutional data available for symbol '{symbol.upper()}'",
+        }), 404
+
+    return jsonify({
+        "symbol": symbol.upper(),
+        "institutional_holders": holders or [],
+        "major_position_changes": positions or [],
+    })
+
+
+@market_bp.route("/api/market/<symbol>/insiders")
+@require_auth
+@limiter.limit("60 per minute")
+def market_insiders(symbol: str):
+    """Return insider transactions from Form 4 filings."""
+    transactions = _edgar.get_insider_transactions(symbol)
+
+    if transactions is None:
+        return jsonify({
+            "error": "Ticker not found",
+            "message": f"No insider transaction data available for symbol '{symbol.upper()}'",
+        }), 404
+
+    return jsonify({
+        "symbol": symbol.upper(),
+        "insider_transactions": transactions,
     })
