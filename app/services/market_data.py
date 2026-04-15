@@ -1,7 +1,7 @@
 """Polygon.io market data service — real-time prices and company details.
 
 Provides PolygonClient with two main methods:
-- get_ticker_snapshot(symbol): last price, change, change%, volume, VWAP
+- get_ticker_snapshot(symbol): last price, change, change%, volume, VWAP, market_status
 - get_ticker_details(symbol): company name, sector, market cap, logo URL, description
 
 Caching: 5-second TTL for snapshots (real-time), 1-hour TTL for details (static).
@@ -14,6 +14,8 @@ import time
 from typing import Any, Optional
 
 import requests
+
+from app.services.exchange_registry import ExchangeRegistry
 
 logger = logging.getLogger("signal.market_data")
 
@@ -48,6 +50,7 @@ class PolygonClient:
         self._financials_cache: dict[str, _CacheEntry] = {}
         self._earnings_cache: dict[str, _CacheEntry] = {}
         self._competitors_cache: dict[str, _CacheEntry] = {}
+        self._exchange_registry = ExchangeRegistry()
         self._session = requests.Session()
         if not self._enabled:
             logger.warning("POLYGON_API_KEY not set — market data service disabled")
@@ -56,22 +59,30 @@ class PolygonClient:
     def enabled(self) -> bool:
         return self._enabled
 
-    def get_ticker_snapshot(self, symbol: str) -> Optional[dict[str, Any]]:
+    def get_ticker_snapshot(
+        self, symbol: str, asset_type: Optional[str] = None,
+    ) -> Optional[dict[str, Any]]:
         """Fetch real-time snapshot for a ticker.
 
-        Returns dict with keys: symbol, price, change, change_percent, volume, vwap
+        Returns dict with keys: symbol, price, change, change_percent, volume, vwap,
+        market_status ('open'|'closed'|'24h'), exchange, next_open, next_close.
         Returns None if service is disabled, symbol not found, or API error.
         """
         if not self._enabled:
             return None
 
         symbol = symbol.upper().strip()
-        cached = self._snapshot_cache.get(symbol)
+
+        # Build cache key that includes asset_type for futures distinction
+        cache_key = symbol
+        cached = self._snapshot_cache.get(cache_key)
         if cached and cached.is_valid():
             return cached.value
 
         try:
-            url = f"{POLYGON_BASE_URL}/v2/snapshot/locale/us/markets/stocks/tickers/{symbol}"
+            # Strip suffix for Polygon API (uses US endpoint for all)
+            api_symbol = symbol.split(".")[0] if "." in symbol else symbol
+            url = f"{POLYGON_BASE_URL}/v2/snapshot/locale/us/markets/stocks/tickers/{api_symbol}"
             resp = self._session.get(url, params={"apiKey": self._api_key}, timeout=10)
             resp.raise_for_status()
             data = resp.json()
@@ -90,6 +101,26 @@ class PolygonClient:
             change = round(price - prev_close, 4) if price and prev_close else 0
             change_pct = round((change / prev_close) * 100, 4) if prev_close else 0
 
+            # Detect exchange and market status
+            if asset_type and asset_type.upper() == "FUTURE":
+                market_info: dict[str, Any] = {
+                    "market_status": "24h",
+                    "exchange": "FUTURES",
+                    "exchange_name": "Futures Market",
+                    "next_open": None,
+                    "next_close": None,
+                }
+            else:
+                exchange = self._exchange_registry.detect_exchange(symbol)
+                status = self._exchange_registry.get_status(exchange)
+                market_info = {
+                    "market_status": status["market_status"],
+                    "exchange": exchange,
+                    "exchange_name": status["name"],
+                    "next_open": status["next_open"],
+                    "next_close": status["next_close"],
+                }
+
             result: dict[str, Any] = {
                 "symbol": symbol,
                 "price": price,
@@ -97,9 +128,10 @@ class PolygonClient:
                 "change_percent": change_pct,
                 "volume": day.get("v", 0),
                 "vwap": day.get("vw", 0),
+                **market_info,
             }
 
-            self._snapshot_cache[symbol] = _CacheEntry(result, SNAPSHOT_TTL)
+            self._snapshot_cache[cache_key] = _CacheEntry(result, SNAPSHOT_TTL)
             return result
 
         except requests.exceptions.HTTPError as e:

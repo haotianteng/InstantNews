@@ -975,3 +975,59 @@ Add a modal HTML block to `frontend/terminal.html` (after the detail-modal-overl
   - Null values for shares/price/total_value/shares_held_after render as em-dash (—)
   - 8 pre-existing test failures in test_tiers.py/test_rate_limit.py are NOT related to this story
 ---
+
+## 2026-04-15 10:20 EDT - US-019 - TESTER — TEST_PASSED
+
+- **All 5 test assertions passed**, all 9 acceptance criteria met
+- Opened company profile modal for AAPL, clicked "Insiders" tab (5th tab)
+- **20 Form 4 transactions displayed**: O'BRIEN DEIRDRE (SVP), Khan Sabih (COO), COOK TIMOTHY D (CEO)
+- **Row color coding verified**:
+  - Sale rows: `rgba(248,81,73,0.1)` red tint — 8 rows confirmed
+  - Exercise rows: `rgba(255,193,7,0.06)` yellow tint — 3 rows confirmed
+  - Other rows (tax withholding, derivative exercises): transparent — 9 rows confirmed
+  - Buy rows: CSS `.cp-insider-row-buy { background: var(--green-bg) }` = `rgba(63,185,80,0.1)` defined — no purchase transactions in AAPL data, but CSS+JS fully wired
+- **Net insider sentiment indicator**: "Net Selling" with red left border (3px solid), ▼ icon, 0 buys/$0, 8 sells/$24.17M, Net $24.17M. Color coding: buy text green (rgb(63,185,80)), sell text red (rgb(248,81,73))
+- **Table columns**: Date, Insider Name, Title, Type, Shares, Price, Total Value, Holdings After — all 8 present
+- **Sorted by most recent first**: all transactions dated 2026-04-03
+- **Source attribution**: "Source: SEC EDGAR Form 4 (filed within 2 business days of transaction)" at bottom
+- **API**: GET /api/market/AAPL/insiders returned 200 OK (via network tab)
+- **Null handling**: em-dash (—) for option exercises without price/value
+- **Vite build**: 375ms, clean
+- **pytest**: 149 passed, 8 failed (all pre-existing in test_tiers.py/test_rate_limit.py)
+- **Console errors**: 54 total, all pre-existing (TSE 404s, rate limiting 429s) — zero related to insiders tab
+- **Artifacts:** `ralph/test_results/US-019/attempt-1/` (screenshots, vite_build.log, pytest.log, console.log, test_summary.md)
+---
+
+## 2026-04-15 10:30 EDT - US-020 - IMPLEMENTOR — Implemented Market Hours Indicator & International Ticker Support
+
+- **Created `app/services/exchange_registry.py`** — data-driven exchange hours registry
+  - EXCHANGES config: NYSE/NASDAQ (9:30-16:00 ET), LSE (8:00-16:30 GMT), TSE (9:00-11:30+12:30-15:00 JST), HKEX (9:30-12:00+13:00-16:00 HKT)
+  - get_status(exchange) returns market_status ('open'|'closed'), next_open/next_close timestamps
+  - detect_exchange(symbol) from suffix: .L→LSE, .T→TSE, .HK→HKEX, no suffix→NYSE
+  - Extensible: add SSE/SZSE by appending to EXCHANGES dict — zero code changes
+  - Handles weekends and lunch breaks (TSE, HKEX)
+- **Modified `app/services/market_data.py`** — PolygonClient enriches snapshots with market status
+  - get_ticker_snapshot() accepts optional asset_type param
+  - Futures → market_status='24h'; otherwise detects exchange from suffix
+  - Response now includes: market_status, exchange, exchange_name, next_open, next_close
+- **Modified `app/routes/market.py`** — /api/market/<symbol> accepts ?asset_type= query param
+- **Modified `frontend/src/terminal-app.js`** — ticker badge renders market status dots
+  - fetchMarketPrices builds ticker→asset_type map, passes in query param
+  - Green dot = open, gray dot = closed, blue dot = 24H futures
+  - 'Closed' label shown when market closed; '24H' badge for futures
+- **Modified `frontend/src/styles/terminal.css`** — market dot + label styles (green/gray/blue)
+- **Created `tests/test_exchange_registry.py`** — 16 tests for exchange detection, hours, extensibility
+- **Self-validation**: mypy clean, Vite build 379ms, pytest 165 passed (8 pre-existing failures in test_tiers.py/test_rate_limit.py)
+- **Files changed:** `app/services/exchange_registry.py`, `app/services/market_data.py`, `app/routes/market.py`, `frontend/src/terminal-app.js`, `frontend/src/styles/terminal.css`, `tests/test_exchange_registry.py`
+- **Environment notes for Tester:**
+  - Test assertion 1: `python -c "from app.services.exchange_registry import ExchangeRegistry; r = ExchangeRegistry(); print(r.get_status('NYSE'))"` exits 0
+  - Test assertion 2: `python -m pytest tests/ -v -k 'market_hours or exchange'` — 16 tests, all pass
+  - Test assertion 3: `mypy app/services/exchange_registry.py app/services/market_data.py` — "Success: no issues found in 2 source files"
+  - Browser assertions (4-6): run `python run.py` and open terminal at http://localhost:5000/terminal
+    - US tickers (AAPL, MSFT) show green/gray dot based on NYSE hours
+    - International tickers need to appear in the news feed (e.g., HSBA.L for LSE). If no international tickers in feed, market status dot defaults to NYSE for plain symbols.
+    - Futures tickers (asset_type=FUTURE in news data) show blue dot with '24H' badge
+    - Outside US market hours (after 4 PM ET / weekends), US ticker badges show gray dot + 'Closed' label
+  - 8 pre-existing test failures in test_tiers.py/test_rate_limit.py are NOT related to this story
+  - Vite build required: `cd frontend && npx vite build`
+---

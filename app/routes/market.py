@@ -3,7 +3,7 @@
 import logging
 from datetime import datetime, timezone
 
-from flask import Blueprint, jsonify
+from flask import Blueprint, jsonify, request
 
 from app.auth.middleware import require_auth
 from app.middleware.rate_limit import limiter
@@ -30,7 +30,8 @@ def market_snapshot(symbol: str):
             "message": "Polygon.io integration is not configured",
         }), 503, {"Retry-After": "60"}
 
-    data = _polygon.get_ticker_snapshot(symbol)
+    asset_type = request.args.get("asset_type")
+    data = _polygon.get_ticker_snapshot(symbol, asset_type=asset_type)
     if data is None:
         return jsonify({
             "error": "Ticker not found",

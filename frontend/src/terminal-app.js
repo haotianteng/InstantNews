@@ -249,14 +249,23 @@ async function fetchMarketPrices() {
   if (!state.userFeatures.ai_ticker_recommendations) return;
   if (!state.columnVisibility.ticker) return;
 
-  const tickers = [...new Set(state.items.map(i => i.target_asset).filter(Boolean))];
+  // Build ticker → asset_type map (first occurrence wins)
+  const tickerAssetTypes = {};
+  state.items.forEach(i => {
+    if (i.target_asset && !tickerAssetTypes[i.target_asset]) {
+      tickerAssetTypes[i.target_asset] = i.asset_type || '';
+    }
+  });
+  const tickers = Object.keys(tickerAssetTypes);
   if (tickers.length === 0) return;
 
   for (let i = 0; i < tickers.length; i += MAX_CONCURRENT_FETCHES) {
     const batch = tickers.slice(i, i + MAX_CONCURRENT_FETCHES);
     const promises = batch.map(async (symbol) => {
       try {
-        const res = await SignalAuth.fetch(`${API}/market/${encodeURIComponent(symbol)}`);
+        const assetType = tickerAssetTypes[symbol];
+        const qs = assetType ? `?asset_type=${encodeURIComponent(assetType)}` : '';
+        const res = await SignalAuth.fetch(`${API}/market/${encodeURIComponent(symbol)}${qs}`);
         if (res.ok) {
           state.marketPrices[symbol] = await res.json();
         }
@@ -701,13 +710,31 @@ function renderCell(colId, item, isFresh, dupBadge) {
       const ticker = escapeHtml(item.target_asset);
       const mkt = state.marketPrices[item.target_asset];
       let priceHtml = '';
-      if (mkt && mkt.price != null) {
-        const pct = mkt.change_percent || 0;
-        const sign = pct >= 0 ? '+' : '';
-        const cls = pct > 0 ? 'price-up' : pct < 0 ? 'price-down' : 'price-flat';
-        priceHtml = `<span class="ticker-price ${cls}">$${mkt.price.toFixed(2)} <span class="ticker-change">${sign}${pct.toFixed(2)}%</span></span>`;
+      let marketDot = '';
+      if (mkt) {
+        // Market status dot: green=open, gray=closed, blue=24h futures
+        const ms = mkt.market_status;
+        if (ms === '24h') {
+          marketDot = '<span class="market-dot market-dot-24h" title="24H Futures"></span>';
+        } else if (ms === 'open') {
+          marketDot = '<span class="market-dot market-dot-open" title="Market Open"></span>';
+        } else {
+          marketDot = '<span class="market-dot market-dot-closed" title="Market Closed"></span>';
+        }
+        if (mkt.price != null) {
+          const pct = mkt.change_percent || 0;
+          const sign = pct >= 0 ? '+' : '';
+          const cls = pct > 0 ? 'price-up' : pct < 0 ? 'price-down' : 'price-flat';
+          if (ms === 'closed') {
+            priceHtml = `<span class="ticker-price ${cls}">$${mkt.price.toFixed(2)} <span class="ticker-change">${sign}${pct.toFixed(2)}%</span><span class="market-label-closed">Closed</span></span>`;
+          } else if (ms === '24h') {
+            priceHtml = `<span class="ticker-price ${cls}">$${mkt.price.toFixed(2)} <span class="ticker-change">${sign}${pct.toFixed(2)}%</span><span class="market-label-24h">24H</span></span>`;
+          } else {
+            priceHtml = `<span class="ticker-price ${cls}">$${mkt.price.toFixed(2)} <span class="ticker-change">${sign}${pct.toFixed(2)}%</span></span>`;
+          }
+        }
       }
-      return `<td class="cell-ticker"><span class="ticker-badge" data-ticker="${ticker}">${ticker}${priceHtml}</span></td>`;
+      return `<td class="cell-ticker"><span class="ticker-badge" data-ticker="${ticker}">${marketDot}${ticker}${priceHtml}</span></td>`;
     }
     case 'confidence':
       return `<td class="cell-confidence">${item.confidence != null ? Math.round(item.confidence * 100) + '%' : '<span class="cell-dash">\u2014</span>'}</td>`;

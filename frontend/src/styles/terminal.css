@@ -788,6 +788,47 @@
   opacity: 0.85;
 }
 
+/* Market status dot indicator */
+.market-dot {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.market-dot-open {
+  background: var(--green);
+  box-shadow: 0 0 4px var(--green);
+}
+
+.market-dot-closed {
+  background: var(--text-muted);
+}
+
+.market-dot-24h {
+  background: var(--blue);
+  box-shadow: 0 0 4px var(--blue);
+}
+
+.market-label-closed,
+.market-label-24h {
+  margin-left: 4px;
+  font-size: 8px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  vertical-align: middle;
+}
+
+.market-label-closed {
+  color: var(--text-muted);
+}
+
+.market-label-24h {
+  color: var(--blue);
+}
+
 /* Confidence */
 .cell-confidence {
   font-family: 'JetBrains Mono', monospace;
