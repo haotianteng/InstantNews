@@ -834,3 +834,56 @@ Add a modal HTML block to `frontend/terminal.html` (after the detail-modal-overl
   - `POLYGON_API_KEY not set` warning is expected and unrelated to EDGAR functionality
   - 8 pre-existing test failures in test_tiers.py/test_rate_limit.py are NOT related to this story
 ---
+
+## 2026-04-15 — US-017 — TESTER — TEST_FAILED (attempt 2)
+
+- **Judgment: TEST_FAILED** — 15/16 acceptance criteria pass, 1 fails (AC9: 13D/13G data quality)
+- All 6 test assertions exit 0 (17/17 pytest, mypy clean)
+- **Major progress from attempt 1**: Bugs 1-4 all FIXED. 13F and Form 4 now work excellently.
+
+### What's FIXED (from attempt 1)
+- CIK URL: www.sec.gov resolves correctly → Form 4 and 13D/13G return data
+- 13F holders: 20 entries, 17/20 with real shares_held and value (e.g., RK Capital 740K shares, $185M)
+- Form 4 insiders: 20 entries with real AAPL insiders — COOK TIMOTHY D (CEO), O'BRIEN DEIRDRE (SVP), Khan Sabih (COO). Prices, shares, transaction types all correct.
+
+### What FAILS (AC9)
+- `get_major_position_changes('AAPL')` returns 10 entries, but ALL have:
+  - `filer_name='Unknown Filer'` (0/10 real names)
+  - `percent_owned=None` (0/10)
+  - `shares_held=None` (0/10)
+- Only `filing_date` and `filing_type` have real data
+- AC9 requires: "filer_name, filing_date, filing_type, percent_owned, shares_held, change_description"
+- For AAPL, 13G/A filers should be identifiable (Vanguard, BlackRock, State Street, Berkshire Hathaway)
+
+### Fix suggestion
+- The submissions API lists 13G/A filings under AAPL's CIK, but current code doesn't extract filer name from the filing metadata or document
+- Options: (1) fetch each filing's index.json for filer entity info, (2) parse the filing document for name/percent/shares
+- At minimum, extracting filer_name from filing index would make the data useful
+
+### Quality checks
+- pytest (edgar): 17/17 passed
+- pytest (full): 148 passed, 8 failed (all pre-existing in test_tiers.py/test_rate_limit.py)
+- mypy: clean, no regressions
+
+### Artifacts
+- `ralph/test_results/US-017/attempt-2/` — assertion logs, deep inspections, pytest/mypy output
+---
+
+## 2026-04-15 - US-017 - IMPLEMENTOR — Rework 2: Fixed 13D/13G filer names and ownership data (AC9)
+
+- **Root cause**: Old approach used AAPL's submissions API + filing index fetch with AAPL's CIK. But 13D/13G filings are stored under the FILER's CIK (Vanguard, BlackRock), not the subject company. Index URLs 404'd → all entries got "Unknown Filer".
+- **Fix**: Rewrote `get_major_position_changes` to use EFTS full-text search (same pattern as 13F `get_institutional_holders`).
+  - EFTS returns both subject + filer in `display_names` and `ciks`
+  - CIK filtering excludes false positives (e.g., "Apple Hospitality REIT" filtered out for AAPL)
+  - Filer name from `display_names[1]` with ticker/CIK suffix cleaning
+  - New `_parse_13dg_ownership`: fetches filing doc using filer's CIK, parses HTML for Item 9 (shares) and Item 11 (percent of class)
+  - Deduplication by filer name
+- **Live results**: get_major_position_changes('AAPL') → BlackRock Inc. (6.7%, 1.04B shares), VANGUARD GROUP INC (8.47%, 1.32B shares), BERKSHIRE HATHAWAY INC (ownership None — Exhibit 99 format)
+- **All 6 PRD test assertions pass**, mypy clean, 18/18 unit tests pass
+- **Files changed**: `app/services/edgar_client.py`, `tests/test_edgar_client.py`
+- **Environment notes for Tester:**
+  - `get_major_position_changes('AAPL')` now returns ~3 entries (deduplicated by filer) instead of 10 (with amendments). Fewer entries but all have REAL filer names.
+  - Ownership parsing is best-effort: works for standard SC 13G format (Vanguard, BlackRock), may return None for non-standard formats (Berkshire Hathaway uses Exhibit 99).
+  - EFTS search covers 3-year window for 13D/13G filings
+  - 8 pre-existing test failures in test_tiers.py/test_rate_limit.py — not related
+---

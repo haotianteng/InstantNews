@@ -192,8 +192,41 @@ class TestEdgarClientForm4:
         assert result == []
 
 
+def _make_13dg_hit(
+    subject_name: str, subject_cik: str, filer_name: str, filer_cik: str,
+    adsh: str, filename: str, filing_date: str, form: str,
+) -> dict:
+    """Helper to create a mock EFTS search-index hit for 13D/13G."""
+    return {
+        "_id": f"{adsh}:{filename}",
+        "_source": {
+            "ciks": [subject_cik, filer_cik],
+            "display_names": [
+                f"{subject_name}  (CIK {subject_cik})",
+                f"{filer_name}  (CIK {filer_cik})",
+            ],
+            "file_date": filing_date,
+            "form": form,
+            "file_type": form,
+            "adsh": adsh,
+        },
+    }
+
+
+SAMPLE_13G_HTML = """
+<html><body>
+<p>9.  AGGREGATE AMOUNT BENEFICIALLY OWNED BY EACH REPORTING PERSON</p>
+<p>1,317,966,471</p>
+<p>10.  CHECK BOX IF THE AGGREGATE AMOUNT IN ROW (9) EXCLUDES CERTAIN SHARES</p>
+<p>11.  PERCENT OF CLASS REPRESENTED BY AMOUNT IN ROW 9</p>
+<p>8.47%</p>
+<p>12.  TYPE OF REPORTING PERSON</p>
+</body></html>
+"""
+
+
 class TestEdgarClient13DG:
-    """Tests for 13D/13G position changes."""
+    """Tests for 13D/13G position changes via EFTS search."""
 
     @patch("app.services.edgar_client.requests.Session.get")
     def test_major_position_changes_success(self, mock_get: MagicMock):
@@ -204,40 +237,86 @@ class TestEdgarClient13DG:
             "0": {"cik_str": 320193, "ticker": "AAPL", "title": "Apple Inc."}
         }
 
-        mock_submissions_resp = MagicMock()
-        mock_submissions_resp.status_code = 200
-        mock_submissions_resp.raise_for_status = MagicMock()
-        mock_submissions_resp.json.return_value = {
-            "filings": {
-                "recent": {
-                    "form": ["SC 13G", "10-K", "SC 13D/A"],
-                    "filingDate": ["2025-02-14", "2025-01-28", "2025-01-10"],
-                    "accessionNumber": ["0001-25-000001", "0002-25-000002", "0003-25-000003"],
-                    "primaryDocument": ["sc13g.htm", "10k.htm", "sc13da.htm"],
-                }
+        mock_search_resp = MagicMock()
+        mock_search_resp.status_code = 200
+        mock_search_resp.json.return_value = {
+            "hits": {
+                "hits": [
+                    _make_13dg_hit(
+                        "Apple Inc.", "0000320193", "VANGUARD GROUP INC", "0000102909",
+                        "0001104659-24-020009", "tv0017-appleinc.htm", "2024-02-13", "SC 13G/A",
+                    ),
+                    _make_13dg_hit(
+                        "Apple Inc.", "0000320193", "BlackRock Inc.  (BLK)", "0001364742",
+                        "0001086364-24-006980", "filing.htm", "2024-02-12", "SC 13G/A",
+                    ),
+                ]
             }
         }
 
-        # Filing index response for 13D/G
-        mock_index_resp = MagicMock()
-        mock_index_resp.status_code = 200
-        mock_index_resp.text = "COMPANY CONFORMED NAME:			VANGUARD GROUP\nSomething else"
+        # Document response for ownership parsing
+        mock_doc_resp = MagicMock()
+        mock_doc_resp.status_code = 200
+        mock_doc_resp.text = SAMPLE_13G_HTML
 
-        mock_get.side_effect = [mock_cik_resp, mock_submissions_resp, mock_index_resp, mock_index_resp]
+        mock_get.side_effect = [mock_cik_resp, mock_search_resp, mock_doc_resp, mock_doc_resp]
 
         client = EdgarClient()
         result = client.get_major_position_changes("AAPL")
 
         assert result is not None
         assert isinstance(result, list)
-        assert len(result) == 2  # SC 13G and SC 13D/A, not 10-K
+        assert len(result) == 2
 
-        assert result[0]["filing_type"] == "SC 13G"
-        assert result[0]["filing_date"] == "2025-02-14"
-        assert "13G" in result[0]["change_description"]
+        assert result[0]["filer_name"] == "VANGUARD GROUP INC"
+        assert result[0]["filing_type"] == "SC 13G/A"
+        assert result[0]["filing_date"] == "2024-02-13"
+        assert "Amended" in result[0]["change_description"]
+        assert result[0]["percent_owned"] == 8.47
+        assert result[0]["shares_held"] == 1317966471
 
-        assert result[1]["filing_type"] == "SC 13D/A"
-        assert "Amended" in result[1]["change_description"]
+        # Second filer: ticker parenthetical "(BLK)" stripped from name
+        assert result[1]["filer_name"] == "BlackRock Inc."
+
+    @patch("app.services.edgar_client.requests.Session.get")
+    def test_major_position_changes_filters_by_cik(self, mock_get: MagicMock):
+        """Non-matching subject CIKs (e.g., Apple Hospitality REIT) are filtered out."""
+        mock_cik_resp = MagicMock()
+        mock_cik_resp.status_code = 200
+        mock_cik_resp.raise_for_status = MagicMock()
+        mock_cik_resp.json.return_value = {
+            "0": {"cik_str": 320193, "ticker": "AAPL", "title": "Apple Inc."}
+        }
+
+        mock_search_resp = MagicMock()
+        mock_search_resp.status_code = 200
+        mock_search_resp.json.return_value = {
+            "hits": {
+                "hits": [
+                    _make_13dg_hit(
+                        "Apple Inc.", "0000320193", "VANGUARD GROUP INC", "0000102909",
+                        "0001104659-24-020009", "filing.htm", "2024-02-13", "SC 13G/A",
+                    ),
+                    _make_13dg_hit(
+                        "Apple Hospitality REIT", "0001418121", "BlackRock Inc.", "0001364742",
+                        "0001306550-23-003482", "filing.txt", "2023-01-25", "SC 13G/A",
+                    ),
+                ]
+            }
+        }
+
+        mock_doc_resp = MagicMock()
+        mock_doc_resp.status_code = 200
+        mock_doc_resp.text = SAMPLE_13G_HTML
+
+        mock_get.side_effect = [mock_cik_resp, mock_search_resp, mock_doc_resp]
+
+        client = EdgarClient()
+        result = client.get_major_position_changes("AAPL")
+
+        assert result is not None
+        assert len(result) == 1  # Apple Hospitality REIT filtered out
+        assert result[0]["filer_name"] == "VANGUARD GROUP INC"
 
     @patch("app.services.edgar_client.requests.Session.get")
     def test_major_position_changes_empty(self, mock_get: MagicMock):
@@ -248,14 +327,11 @@ class TestEdgarClient13DG:
             "0": {"cik_str": 320193, "ticker": "AAPL", "title": "Apple Inc."}
         }
 
-        mock_submissions_resp = MagicMock()
-        mock_submissions_resp.status_code = 200
-        mock_submissions_resp.raise_for_status = MagicMock()
-        mock_submissions_resp.json.return_value = {
-            "filings": {"recent": {"form": ["10-K", "10-Q"], "filingDate": ["2025-01-28", "2025-01-10"], "accessionNumber": ["a", "b"], "primaryDocument": ["a.htm", "b.htm"]}}
-        }
+        mock_search_resp = MagicMock()
+        mock_search_resp.status_code = 200
+        mock_search_resp.json.return_value = {"hits": {"hits": []}}
 
-        mock_get.side_effect = [mock_cik_resp, mock_submissions_resp]
+        mock_get.side_effect = [mock_cik_resp, mock_search_resp]
 
         client = EdgarClient()
         result = client.get_major_position_changes("AAPL")

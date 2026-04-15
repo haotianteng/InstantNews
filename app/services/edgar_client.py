@@ -10,6 +10,7 @@ No API key required — SEC EDGAR is free public data.
 """
 
 import logging
+import re
 import time
 from datetime import datetime, timedelta
 from typing import Any, Optional
@@ -286,6 +287,10 @@ class EdgarClient:
     def get_major_position_changes(self, symbol: str, limit: int = 10) -> Optional[list[dict[str, Any]]]:
         """Fetch recent 13D/13G filings (major position changes) for a company.
 
+        Uses EFTS full-text search to find SC 13D/13G filings mentioning the
+        company, extracting filer names from search results and ownership data
+        from the filing documents.
+
         Returns list of filings, each with: filer_name, filing_date, filing_type,
         percent_owned, shares_held, change_description.
         """
@@ -295,59 +300,88 @@ class EdgarClient:
             return cached.value
 
         try:
-            cik = self._resolve_cik(symbol)
-            if not cik:
-                result: list[dict[str, Any]] = []
-                self._position_cache[symbol] = _CacheEntry(result, POSITION_CHANGE_TTL)
-                return result
+            # Resolve CIK and company name for search filtering
+            target_cik = self._resolve_cik(symbol)
+            company_name = self._company_names.get(symbol, symbol)
+            search_term = _normalize_company_name(company_name) or symbol
 
-            # Fetch company submissions to find SC 13D and SC 13G filings
-            url = f"{EDGAR_DATA_URL}/submissions/CIK{cik}.json"
-            resp = self._get(url)
-            resp.raise_for_status()
-            data = resp.json()
+            end_dt = datetime.now()
+            start_dt = end_dt - timedelta(days=1095)
 
-            recent = data.get("filings", {}).get("recent", {})
-            forms = recent.get("form", [])
-            dates = recent.get("filingDate", [])
-            accessions = recent.get("accessionNumber", [])
-            primary_docs = recent.get("primaryDocument", [])
+            resp = self._get(
+                f"{EDGAR_BASE_URL}/search-index",
+                params={
+                    "q": f'"{search_term}"',
+                    "forms": "SC 13D,SC 13D/A,SC 13G,SC 13G/A",
+                    "dateRange": "custom",
+                    "startdt": start_dt.strftime("%Y-%m-%d"),
+                    "enddt": end_dt.strftime("%Y-%m-%d"),
+                    "from": "0",
+                    "size": str(min(limit * 5, 50)),
+                },
+            )
 
             results: list[dict[str, Any]] = []
 
-            for i, form_type in enumerate(forms):
-                if form_type not in ("SC 13D", "SC 13D/A", "SC 13G", "SC 13G/A"):
-                    continue
+            if resp.status_code == 200:
+                data = resp.json()
+                hits = data.get("hits", {}).get("hits", [])
 
-                filing_date = dates[i] if i < len(dates) else ""
-                accession = accessions[i] if i < len(accessions) else ""
-                primary_doc = primary_docs[i] if i < len(primary_docs) else ""
+                seen_filers: set[str] = set()
+                for hit in hits:
+                    source = hit.get("_source", {})
+                    ciks = source.get("ciks", [])
+                    display_names = source.get("display_names", [])
 
-                # Try to extract ownership details from the filing
-                percent_owned = None
-                shares_held_val = None
-                filer_name = "Unknown Filer"
+                    # Filter: subject company CIK must match our target
+                    if target_cik and ciks and ciks[0] != target_cik:
+                        continue
 
-                # Attempt to fetch filing details
-                if accession and primary_doc:
-                    filer_name, percent_owned, shares_held_val = self._parse_13dg_filing(
-                        cik, accession, primary_doc
-                    )
+                    # Filer name is the second display_name (subject company is first)
+                    if len(display_names) >= 2:
+                        raw_filer = display_names[1]
+                    elif display_names:
+                        raw_filer = display_names[0]
+                    else:
+                        continue
 
-                is_amendment = "/A" in form_type
-                change_desc = f"{'Amended ' if is_amendment else ''}{'Schedule 13D' if '13D' in form_type else 'Schedule 13G'} filing"
+                    # Clean: strip "(CIK ...)" and ticker symbol parentheticals
+                    filer_name = raw_filer.split("(CIK")[0].strip()
+                    filer_name = re.sub(r"\s*\([A-Z0-9, -]+\)\s*$", "", filer_name).strip()
 
-                results.append({
-                    "filer_name": filer_name,
-                    "filing_date": filing_date,
-                    "filing_type": form_type,
-                    "percent_owned": percent_owned,
-                    "shares_held": shares_held_val,
-                    "change_description": change_desc,
-                })
+                    if not filer_name or filer_name in seen_filers:
+                        continue
+                    seen_filers.add(filer_name)
 
-                if len(results) >= limit:
-                    break
+                    filing_date = source.get("file_date", "")
+                    form_type = source.get("form", "") or source.get("file_type", "") or "SC 13G"
+                    adsh = source.get("adsh", "")
+                    _id = hit.get("_id", "")
+                    filename = _id.split(":", 1)[1] if ":" in _id else ""
+
+                    # Try to fetch ownership data from the filing document
+                    percent_owned = None
+                    shares_held_val = None
+                    filer_cik = ciks[1] if len(ciks) >= 2 else ""
+                    if filer_cik and adsh and filename:
+                        percent_owned, shares_held_val = self._parse_13dg_ownership(
+                            filer_cik, adsh, filename
+                        )
+
+                    is_amendment = "/A" in form_type
+                    change_desc = f"{'Amended ' if is_amendment else ''}{'Schedule 13D' if '13D' in form_type else 'Schedule 13G'} filing"
+
+                    results.append({
+                        "filer_name": filer_name,
+                        "filing_date": filing_date,
+                        "filing_type": form_type,
+                        "percent_owned": percent_owned,
+                        "shares_held": shares_held_val,
+                        "change_description": change_desc,
+                    })
+
+                    if len(results) >= limit:
+                        break
 
             self._position_cache[symbol] = _CacheEntry(results, POSITION_CHANGE_TTL)
             return results
@@ -362,28 +396,61 @@ class EdgarClient:
             logger.warning("edgar 13D/G: error fetching %s: %s", symbol, e)
             return None
 
-    def _parse_13dg_filing(self, cik: str, accession: str, primary_doc: str) -> tuple[str, Optional[float], Optional[int]]:
-        """Try to extract filer name and ownership from a 13D/13G filing."""
-        filer_name = "Unknown Filer"
+    def _parse_13dg_ownership(
+        self, filer_cik: str, adsh: str, filename: str,
+    ) -> tuple[Optional[float], Optional[int]]:
+        """Fetch a 13D/13G filing document and extract percent_owned and shares_held."""
         percent_owned: Optional[float] = None
         shares_held: Optional[int] = None
 
         try:
-            # Fetch the filing index to get filer info
-            acc_no_dashes = accession.replace("-", "")
-            index_url = f"{EDGAR_SEC_URL}/Archives/edgar/data/{cik}/{acc_no_dashes}/{accession}-index.htm"
-            resp = self._get(index_url)
-            if resp.status_code == 200:
-                text = resp.text
-                # Try to extract filer name from filing header
-                if "COMPANY CONFORMED NAME:" in text:
-                    start = text.index("COMPANY CONFORMED NAME:") + len("COMPANY CONFORMED NAME:")
-                    end = text.index("\n", start) if "\n" in text[start:start+200] else start + 100
-                    filer_name = text[start:end].strip()[:100]
-        except (requests.exceptions.RequestException, ValueError):
-            pass
+            cik_int = str(int(filer_cik))
+            adsh_nodash = adsh.replace("-", "")
+            url = f"{EDGAR_SEC_URL}/Archives/edgar/data/{cik_int}/{adsh_nodash}/{filename}"
+            resp = self._get(url, timeout=15)
 
-        return filer_name, percent_owned, shares_held
+            if resp.status_code != 200:
+                return None, None
+
+            # Strip HTML tags for text-based parsing
+            text = re.sub(r"<[^>]+>", "\n", resp.text)
+            text = re.sub(r"&\w+;", " ", text)
+            lines = [line.strip() for line in text.split("\n") if line.strip()]
+
+            for i, line in enumerate(lines):
+                # Item 9: AGGREGATE AMOUNT BENEFICIALLY OWNED
+                if shares_held is None and re.search(
+                    r"AGGREGATE\s+AMOUNT\s+BENEFICIALLY\s+OWNED", line, re.I,
+                ):
+                    for j in range(i + 1, min(i + 5, len(lines))):
+                        m = re.search(r"^([\d,]+)$", lines[j])
+                        if m:
+                            try:
+                                shares_held = int(m.group(1).replace(",", ""))
+                            except ValueError:
+                                pass
+                            break
+
+                # Item 11: PERCENT OF CLASS
+                if percent_owned is None and re.search(
+                    r"PERCENT\s+OF\s+CLASS", line, re.I,
+                ):
+                    for j in range(i + 1, min(i + 5, len(lines))):
+                        m = re.search(r"([\d.]+)\s*%", lines[j])
+                        if m:
+                            try:
+                                percent_owned = float(m.group(1))
+                            except ValueError:
+                                pass
+                            break
+
+            if shares_held is not None or percent_owned is not None:
+                return percent_owned, shares_held
+
+        except (requests.exceptions.RequestException, ValueError) as e:
+            logger.warning("edgar 13D/G parse: %s/%s: %s", filer_cik, adsh, e)
+
+        return percent_owned, shares_held
 
     def get_insider_transactions(self, symbol: str, limit: int = 20) -> Optional[list[dict[str, Any]]]:
         """Fetch recent Form 4 insider transactions for a company.
