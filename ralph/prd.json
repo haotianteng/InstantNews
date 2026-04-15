@@ -464,13 +464,13 @@
         "Earnings chart shows 4 quarters with beat/miss colors",
         "Open company profile for 'SPY' (ETF) — shows 'No data available' gracefully"
       ],
-      "status": "READY_FOR_TEST",
-      "passes": false,
+      "status": "TEST_PASSED",
+      "passes": true,
       "implementation_notes": "Added 'Financials' tab to company profile modal. Implemented tab switching mechanism (fundamentals/financials) with active state management. Financials tab fetches from /api/market/:symbol/financials, displays key metrics (revenue, net income, EPS, P/E ratio) in a 2x2 grid, and renders a mini bar chart of last 4 quarters EPS with green (positive) / red (negative) color coding. ETFs and tickers without financial data show 'No financial data available' gracefully. Financial data is cached in state to avoid re-fetching when switching tabs. All values formatted with appropriate units (T/B/M/K). Vite build passes, mypy clean, 98 tests pass (8 pre-existing failures in test_rate_limit/test_tiers excluded).",
       "files_changed": ["frontend/terminal.html", "frontend/src/terminal-app.js", "frontend/src/styles/terminal.css"],
       "failure_reason": null,
-      "test_evidence": null,
-      "test_report": null,
+      "test_evidence": "All 4 test assertions passed, all 7 acceptance criteria verified by browser execution. See ralph/test_results/US-014/attempt-1/ for full artifacts.\n\nAssertion 1: `cd frontend && npx vite build` — exits 0, 29 modules, 0 errors (vite_build.log).\nAssertion 2: Opened AAPL company profile, clicked Financials tab — Revenue $143.76B, Net Income $42.10B, EPS $2.85, P/E Ratio 32.6x all displayed in 2x2 grid (screenshot-aapl-financials.png).\nAssertion 3: Bar chart shows 4 quarters: Q2 25 ($1.65), Q3 25 ($1.57), Q4 25 ($1.85), Q1 26 ($2.85). All positive bars green rgb(63,185,80), negative legend red rgb(248,81,73). Heights proportional (screenshot-aapl-chart.png).\nAssertion 4: Opened SPY (ETF) company profile, Financials tab shows 'No financial data available' with subtext 'Financial data is not available for this ticker (e.g., ETFs, indices).' (screenshot-spy-no-data.png).\n\nQuality: Vite build clean. mypy app/routes/market.py clean. pytest 123 passed, 8 failed (all pre-existing in test_tiers.py/test_rate_limit.py).",
+      "test_report": "## US-014 Test Report — PASSED\n\n### Test Assertions\n1. PASS: `cd frontend && npx vite build` — exits 0, 29 modules, 0 errors\n2. PASS: AAPL Financials tab — Revenue $143.76B, Net Income $42.10B, EPS $2.85, P/E 32.6x\n3. PASS: 4-quarter bar chart — Q2 25 ($1.65), Q3 25 ($1.57), Q4 25 ($1.85), Q1 26 ($2.85), green positive bars, red negative legend\n4. PASS: SPY (ETF) — 'No financial data available' graceful message\n\n### Acceptance Criteria\n1. PASS (AC1): 'Financials' tab button present in modal, clickable, switches to active state\n2. PASS (AC2): Revenue ($143.76B), Net Income ($42.10B), EPS ($2.85), P/E Ratio (32.6x) — all formatted in 2x2 grid\n3. PASS (AC3): Mini bar chart with 4 quarters, green (positive) / red (negative) color coding. estimated_eps=null from Polygon, chart shows actual EPS only\n4. PASS (AC4): Data fetched from /api/market/AAPL/financials endpoint\n5. PASS (AC5): SPY shows 'No financial data available' with ETF explanation\n6. PASS (AC6): Vite build clean (29 modules). mypy clean (market.py)\n7. PASS (AC7): Full visual verification via Playwright — screenshots captured\n\n### Quality Checks\n- Vite build: clean (29 modules, 0 errors)\n- mypy (market.py): clean\n- pytest: 123/131 passed; 8 pre-existing failures in test_tiers.py/test_rate_limit.py\n\n### Artifacts\n- ralph/test_results/US-014/attempt-1/vite_build.log\n- ralph/test_results/US-014/attempt-1/pytest_full.log\n- ralph/test_results/US-014/attempt-1/mypy_market.log\n- ralph/test_results/US-014/attempt-1/screenshot-aapl-financials.png\n- ralph/test_results/US-014/attempt-1/screenshot-aapl-chart.png\n- ralph/test_results/US-014/attempt-1/screenshot-spy-no-data.png\n- ralph/test_results/US-014/attempt-1/test_evidence.log",
       "fail_count": 0
     },
     {
@@ -493,13 +493,13 @@
         "python -m pytest tests/ -v -k 'competitor' exits 0",
         "mypy app/services/market_data.py exits 0"
       ],
-      "status": "REQUIRE_IMPLEMENT",
-      "passes": false,
-      "implementation_notes": null,
-      "files_changed": [],
+      "status": "TEST_PASSED",
+      "passes": true,
+      "implementation_notes": "Extended PolygonClient with get_related_companies(symbol) using /v1/related-companies/{symbol} endpoint. For each related ticker, fetches snapshot (price, change%) and details (name, market_cap) via existing methods. Results sorted by market_cap descending, limited to top 5. Added GET /api/market/<symbol>/competitors route with auth + rate limiting. 1-hour cache TTL via _competitors_cache. Added 8 tests (4 client-level, 4 route-level) all passing. mypy clean.",
+      "files_changed": ["app/services/market_data.py", "app/routes/market.py", "tests/test_market_data.py", "tests/test_market_routes.py"],
       "failure_reason": null,
-      "test_evidence": null,
-      "test_report": null,
+      "test_evidence": "All 3 test assertions passed, all 6 acceptance criteria verified by execution. See ralph/test_results/US-015/attempt-1/ for full artifacts.\n\nAssertion 1: `python -c \"from app.services.market_data import PolygonClient; c = PolygonClient(); print(type(c.get_related_companies('AAPL')))\"` — exits 0, returns `<class 'NoneType'>` (expected without API key). Method exists with correct signature (assertion1_stdout.log).\nAssertion 2: `python -m pytest tests/ -v -k 'competitor'` — 8 passed, 131 deselected in 0.24s. Tests: test_get_related_companies_competitor_success, test_get_related_companies_competitor_limit_5, test_get_related_companies_competitor_caching, test_get_related_companies_competitor_disabled, test_competitor_response_fields, test_competitor_404_unknown_ticker, test_competitor_503_when_disabled, test_competitor_unauthenticated_returns_401 (assertion2_pytest.log).\nAssertion 3: `mypy app/services/market_data.py` — 'Success: no issues found in 1 source file' (assertion3_mypy.log).\n\nAC1: get_related_companies(symbol) exists and callable (ac1_ac6_verify.log).\nAC2: Each competitor has symbol, name, market_cap, price, change_percent (verified via route test test_competitor_response_fields).\nAC3: Top 5 limit enforced — 6 input tickers yield 5 results (test_get_related_companies_competitor_limit_5).\nAC4: GET /api/market/<symbol>/competitors registered with GET method (ac4_endpoint_verify.log). Returns {symbol, competitors} with 200 (test_competitor_response_fields). 404 for unknown, 503 when disabled, 401 unauthenticated.\nAC5: 1-hour cache TTL confirmed — new entries expire in 3600s, fresh entries serve from cache (0 API calls), expired entries trigger refresh (ac5_cache_verify.log).\nAC6: mypy clean (assertion3_mypy.log).\n\nFull suite: 131 passed, 8 failed (all pre-existing in test_tiers.py/test_rate_limit.py).",
+      "test_report": "## US-015 Test Report — PASSED\n\n### Test Assertions\n1. PASS: `python -c \"from app.services.market_data import PolygonClient; c = PolygonClient(); print(type(c.get_related_companies('AAPL')))\"` — exits 0, returns NoneType (no API key)\n2. PASS: `python -m pytest tests/ -v -k 'competitor'` — 8 passed, 131 deselected in 0.24s\n3. PASS: `mypy app/services/market_data.py` — Success: no issues found in 1 source file\n\n### Acceptance Criteria\n1. PASS (AC1): get_related_companies(symbol) method exists and callable on PolygonClient\n2. PASS (AC2): Each competitor has symbol, name, market_cap, price, change_percent fields\n3. PASS (AC3): Top 5 limit enforced (6 input tickers → 5 results, sorted by market_cap desc)\n4. PASS (AC4): GET /api/market/<symbol>/competitors endpoint registered, returns correct JSON structure\n5. PASS (AC5): 1-hour cache TTL — entries expire in 3600s, cache hits avoid API calls, stale entries refresh\n6. PASS (AC6): mypy clean — 'Success: no issues found in 1 source file'\n\n### Quality Checks\n- pytest (competitor): 8/8 passed\n- pytest (full): 131 passed, 8 failed (all pre-existing in test_tiers.py/test_rate_limit.py)\n- mypy: clean\n\n### Artifacts\n- ralph/test_results/US-015/attempt-1/assertion1_stdout.log\n- ralph/test_results/US-015/attempt-1/assertion1_stderr.log\n- ralph/test_results/US-015/attempt-1/assertion2_pytest.log\n- ralph/test_results/US-015/attempt-1/assertion3_mypy.log\n- ralph/test_results/US-015/attempt-1/ac1_ac6_verify.log\n- ralph/test_results/US-015/attempt-1/ac4_endpoint_verify.log\n- ralph/test_results/US-015/attempt-1/ac5_cache_verify.log\n- ralph/test_results/US-015/attempt-1/pytest_full.log",
       "fail_count": 0
     },
     {
@@ -524,10 +524,10 @@
         "Click a competitor ticker — opens that company's profile modal",
         "Verify market caps are formatted (e.g., '$2.8T')"
       ],
-      "status": "REQUIRE_IMPLEMENT",
+      "status": "READY_FOR_TEST",
       "passes": false,
-      "implementation_notes": null,
-      "files_changed": [],
+      "implementation_notes": "Added 'Competitors' tab to the company profile modal as the third tab after Fundamentals and Financials. Backend: added 'sector' field to get_related_companies() response from existing ticker details data. Frontend: added companyProfileCompetitors state field with reset in open/close, tab switch handler for 'competitors', loadCompanyCompetitors() with caching and loading skeleton (same pattern as financials), renderCompanyCompetitors() rendering a table with columns Ticker/Company Name/Market Cap/Price/Change%/Sector. Ticker column uses clickable links with data-ticker attribute that call openCompanyProfile() to navigate to that company's profile. Market caps formatted via existing formatFinancialValue() (e.g., '$2.80T'). Change% colored green/red. Empty state and error state match existing tab patterns. CSS follows cp-* naming convention. Vite build passes, all 32 market/competitor tests pass, mypy clean.",
+      "files_changed": ["app/services/market_data.py", "frontend/terminal.html", "frontend/src/terminal-app.js", "frontend/src/styles/terminal.css"],
       "failure_reason": null,
       "test_evidence": null,
       "test_report": null,

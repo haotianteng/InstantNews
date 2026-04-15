@@ -636,3 +636,97 @@ Add a modal HTML block to `frontend/terminal.html` (after the detail-modal-overl
   - estimated_eps from Polygon.io is always null — chart shows actual EPS only with positive/negative coloring
   - 8 pre-existing test failures in `test_tiers.py`/`test_rate_limit.py` — not related to this story
 ---
+
+## 2026-04-15 08:07 EDT - US-014 - TESTER — TEST_PASSED
+
+- **All 4 test assertions passed**, all 7 acceptance criteria verified by browser execution
+- Assertion 1: `npx vite build` exits 0 (29 modules, 0 errors)
+- Assertion 2: AAPL Financials tab — Revenue $143.76B, Net Income $42.10B, EPS $2.85, P/E Ratio 32.6x in 2x2 grid
+- Assertion 3: 4-quarter bar chart — Q2 25 ($1.65), Q3 25 ($1.57), Q4 25 ($1.85), Q1 26 ($2.85). Green positive bars rgb(63,185,80), red negative legend rgb(248,81,73). Heights proportional.
+- Assertion 4: SPY (ETF) — "No financial data available" with subtext "Financial data is not available for this ticker (e.g., ETFs, indices)."
+- AC1: Financials tab button present, clickable, switches active state with underline
+- AC2: Revenue, Net Income, EPS, P/E all formatted (T/B/M/K units) in 2x2 grid
+- AC3: Mini bar chart with 4 quarters, green/red color coding. estimated_eps=null → actual EPS only
+- AC4: Data fetched from /api/market/AAPL/financials (required server restart to register US-013 route)
+- AC5: SPY shows graceful no-data message
+- AC6: Vite build clean, mypy market.py clean
+- AC7: Full visual verification via Playwright browser automation
+- **Quality:** pytest 123 passed, 8 failed (all pre-existing in test_tiers.py/test_rate_limit.py)
+- **Learnings:**
+  - Backend server needed restart to pick up financials route from US-013 — running server was stale
+  - Rate limiter (60/min) can cause 429s on page load due to bulk ticker price fetches
+  - SPY ticker not in current news feed — tested by injecting ticker badge into DOM to trigger event handler
+- **Artifacts:** `ralph/test_results/US-014/attempt-1/` (vite_build.log, pytest_full.log, mypy_market.log, screenshot-aapl-financials.png, screenshot-aapl-chart.png, screenshot-spy-no-data.png, test_evidence.log)
+---
+
+## 2026-04-15 08:15 EDT - US-015 - IMPLEMENTOR — Implemented Competitor Comparison via Polygon.io
+
+- Extended `PolygonClient` with `get_related_companies(symbol)` method
+  - Calls `/v1/related-companies/{symbol}` to get related tickers
+  - For each related ticker, fetches snapshot (price, change%) and details (name, market_cap) via existing methods
+  - Sorts by market_cap descending, limits to top 5
+  - 1-hour cache TTL via `_competitors_cache`
+- Added `GET /api/market/<symbol>/competitors` route with auth + rate limiting (60/min)
+  - Returns `{ symbol, competitors: [{symbol, name, market_cap, price, change_percent}, ...] }`
+  - 503 when Polygon disabled, 404 when get_related_companies returns None
+- Added 8 tests (4 client-level, 4 route-level), all passing via `pytest -k 'competitor'`
+- mypy clean: `Success: no issues found in 1 source file`
+- Full suite: 131 passed, 8 failed (all pre-existing in test_tiers.py/test_rate_limit.py)
+- **Files changed:** `app/services/market_data.py`, `app/routes/market.py`, `tests/test_market_data.py`, `tests/test_market_routes.py`
+- **Environment notes for Tester:**
+  - Test assertion 1: `python -c "from app.services.market_data import PolygonClient; c = PolygonClient(); print(type(c.get_related_companies('AAPL')))"` — exits 0 (returns `<class 'NoneType'>` without API key, `<class 'list'>` with)
+  - Test assertion 2: `python -m pytest tests/ -v -k 'competitor'` — 8 passed
+  - Test assertion 3: `mypy app/services/market_data.py` — "Success: no issues found in 1 source file"
+  - No real API calls in tests (all mocked). To test live: set `POLYGON_API_KEY` env var
+  - 8 pre-existing test failures in test_tiers.py/test_rate_limit.py — NOT related to this story
+---
+
+## 2026-04-15 08:20 EDT - US-015 - TESTER — TEST_PASSED
+
+- **All 3 test assertions passed:**
+  1. `python -c "from app.services.market_data import PolygonClient; c = PolygonClient(); print(type(c.get_related_companies('AAPL')))"` — exits 0, returns `<class 'NoneType'>` (no API key)
+  2. `python -m pytest tests/ -v -k 'competitor'` — 8 passed, 131 deselected in 0.24s
+  3. `mypy app/services/market_data.py` — "Success: no issues found in 1 source file"
+
+- **All 6 acceptance criteria verified by execution:**
+  - AC1: get_related_companies(symbol) exists and callable
+  - AC2: Each competitor has symbol, name, market_cap, price, change_percent fields
+  - AC3: Top 5 limit enforced (6 input → 5 output, sorted by market_cap desc)
+  - AC4: GET /api/market/<symbol>/competitors endpoint registered with correct structure
+  - AC5: 1-hour cache TTL confirmed — 3600s expiry, cache hits, stale refresh
+  - AC6: mypy clean
+
+- **Quality:** 131 passed, 8 failed (all pre-existing in test_tiers.py/test_rate_limit.py)
+- **Artifacts:** ralph/test_results/US-015/attempt-1/
+- **Learnings:**
+  - _CacheEntry uses `__slots__` with `(value, expires_at)` and constructor signature `(value, ttl)` — `expires_at` is computed as `time.monotonic() + ttl`
+  - Route tests mock at `app.routes.market._polygon` level, client tests mock at `app.services.market_data.requests.Session.get` level
+---
+## 2026-04-15 08:30 EDT - US-016 - IMPLEMENTOR — Implemented Competitors Tab (Frontend)
+
+- Added "Competitors" tab as the third tab in the company profile modal
+- **Backend change:** Added `sector` field to `get_related_companies()` response (already available from `get_ticker_details()`)
+- **Frontend HTML:** Added `<button class="cp-tab" data-tab="competitors">Competitors</button>` to `.company-profile-tabs`
+- **Frontend JS:**
+  - Added `companyProfileCompetitors` state field with reset in open/close
+  - Added `else if (tabId === "competitors")` branch in tab switch handler
+  - `loadCompanyCompetitors(symbol)` — fetches `/api/market/{symbol}/competitors`, caches in state, shows loading skeleton
+  - `renderCompanyCompetitors(data)` — renders table with Ticker, Company Name, Market Cap, Price, Change%, Sector columns
+  - Clickable tickers via `.cp-comp-ticker-link[data-ticker]` elements that call `openCompanyProfile()`
+  - Market caps formatted via existing `formatFinancialValue()` (e.g., '$2.80T')
+  - Change% colored green (positive) / red (negative)
+  - Empty state and error state matching existing tab patterns
+- **Frontend CSS:** Added `.cp-comp-*` styles for table, rows, ticker links, formatted values
+- **Self-validation:** Vite build passes, 32 market/competitor tests pass, mypy clean, 131 passed / 8 failed (all pre-existing)
+- **Files changed:** `app/services/market_data.py`, `frontend/terminal.html`, `frontend/src/terminal-app.js`, `frontend/src/styles/terminal.css`
+- **Environment notes for Tester:**
+  - Start backend: `python server.py` (port 8000)
+  - Start frontend: `cd frontend && npm run dev` (port 5173)
+  - Navigate to http://localhost:5173/terminal
+  - Log in with test account, open a company profile (e.g., click any ticker badge)
+  - Click the "Competitors" tab — should show table with up to 5 related companies
+  - Click a competitor ticker in the table — should open that company's profile modal
+  - Market caps should be formatted (e.g., '$2.80T', '$3.10T')
+  - The API requires a valid Polygon.io API key (POLYGON_API_KEY env var) for live data
+  - 8 pre-existing test failures in test_tiers.py/test_rate_limit.py are NOT related to this story
+---
