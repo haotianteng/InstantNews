@@ -1,174 +1,275 @@
-# CLAUDE.md
+# Ralph v2 — Adversarial Build & Test System
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+This project uses an adversarial two-agent workflow. One agent implements, the other validates by execution. They communicate through `prd.json` on disk. Neither can do the other's job.
 
-## Project Overview
+## PRD Location
 
-InstNews is a commercial SaaS financial news integrating platform. It collects news from trusted sources and includes a SIGNAL terminal. It aggregates 15+ RSS feeds, scores headline sentiment via AI (MiniMax M2.7 with Claude Sonnet fallback), detects cross-source duplicates via sentence embeddings, and serves a dark-themed terminal UI. Features are gated by subscription tier (Free/Pro/Max) with Firebase Auth (Google OAuth + email/password). Pro tier includes a 30-day free trial.
+- `ralph/prd.json` — the single source of truth for all stories
+- `ralph/progress.txt` — append-only log (read Codebase Patterns section first)
 
-**Domain:** www.instnews.net
-**Target deployment:** AWS ECS Fargate + RDS PostgreSQL
+## Status State Machine
 
-## Commands
-
-```bash
-# Development (frontend + backend)
-cd frontend && npx vite dev           # Vite dev server on :5173 (HMR, proxies /api to :8000)
-python server.py                      # Flask backend on :8000
-pip install -r requirements-dev.txt   # Install all deps including test
-
-# Frontend build (required before deploying or testing on :8000)
-cd frontend && npx vite build         # Outputs to static/
-
-# Tests
-python -m pytest tests/ -v
-python -m pytest tests/ --cov=app --cov-report=term
-
-# AI backfill (sentiment analysis for existing articles)
-python scripts/backfill_ai.py                     # all unanalyzed
-python scripts/backfill_ai.py --limit 100         # first 100
-python scripts/backfill_ai.py --all               # re-analyze everything
-python scripts/backfill_ai.py --dry-run           # preview only
-
-# Production
-gunicorn --bind 0.0.0.0:8000 --workers 4 --timeout 120 server:app
-
-# Background worker (separate process for feed refresh + AI analysis)
-python -m app.worker
-
-# Docker (prod — Nginx + Gunicorn)
-docker build -f Dockerfile.prod -t instantnews:latest .
-
-# Deploy to ECS
-aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 596080539716.dkr.ecr.us-east-1.amazonaws.com
-docker tag instantnews:latest 596080539716.dkr.ecr.us-east-1.amazonaws.com/instantnews:latest
-docker push 596080539716.dkr.ecr.us-east-1.amazonaws.com/instantnews:latest
-aws ecs update-service --cluster instantnews --service InstantNewsStack-WebService... --force-new-deployment
-
-# Migrations
-alembic upgrade head
-alembic revision --autogenerate -m "description"
+```
+REQUIRE_IMPLEMENT ──► READY_FOR_TEST ──► TEST_PASSED ✓
+       ▲                    │
+       └──── TEST_FAILED ◄──┘
 ```
 
-## Architecture
+---
 
-**App factory pattern** (`app/__init__.py`): `create_app(config_class)` wires everything. Entry point is `server.py` (loads `.env` via python-dotenv).
+## Role: Implementor
 
-**Modular backend** under `app/`:
-- `config.py` — env-based config, feed URLs, word lists
-- `database.py` — SQLAlchemy engine/session (SQLite or PostgreSQL via `DATABASE_URL`)
-- `logging_config.py` — structured JSON logging for CloudWatch
-- `models.py` — `News`, `Meta`, `User`, `Subscription`, `StripeEvent`, `ApiKey`, `ApiUsage` ORM models
-- `services/sentiment.py` — keyword-based fallback sentiment (fast, inline during fetch)
-- `services/bedrock_config.py` — **centralized AI config** (model IDs, prompts, token limits)
-- `services/bedrock_analysis.py` — AI sentiment + ticker recommendations (MiniMax → Claude → Bedrock fallback chain)
-- `services/feed_parser.py` — RSS parsing, calls keyword sentiment inline
-- `services/feed_refresh.py` — parallel feed fetch, storage, dedup, then AI analysis on new articles
-- `services/dedup.py` — sentence embedding deduplication
-- `routes/` — Flask blueprints for each API endpoint
-- `routes/keys.py` — API key CRUD (create, list, revoke)
-- `routes/usage.py` — per-user API usage stats
-- `auth/` — Firebase Auth + API key verification, `before_request` middleware
-- `billing/tiers.py` — **single source of truth** for all tier data: features, limits, prices, display metadata
-- `billing/routes.py` — Stripe Checkout (embedded + redirect), Portal, webhooks, payment method
-- `middleware/tier_gate.py` — `@require_feature`, `@require_tier` decorators
-- `middleware/rate_limit.py` — per-tier rate limiting (Flask-Limiter)
-- `middleware/request_logger.py` — per-request logging + API usage counting
+**You are this role if the team lead spawned you as "implementor".**
 
-**Frontend** (`frontend/` source, `static/` built):
-- **Vite** build tool with HMR dev server (port 5173, proxies `/api` → 8000)
-- `src/auth.js` — Firebase Auth (Google OAuth redirect/popup + email/password)
-- `src/landing.js` — landing page interactivity
-- `src/pricing-renderer.js` — **shared** pricing card renderer (fetches from `/api/pricing`)
-- `src/checkout.js` — Stripe Embedded Checkout sidebar
-- `src/account.js` — account dashboard (Overview, Usage, Plans, Billing, API Keys tabs)
-- `src/terminal-app.js` — SIGNAL terminal
-- `src/styles/` — `base.css`, `landing.css`, `terminal.css`
+You are the Generator in a GAN. The Tester will run your code for real — import your functions, execute your CLI, open your UI. You cannot fool them. Build it right.
 
-**Database**: SQLite for dev, PostgreSQL for prod. Tables: `news`, `meta`, `users`, `subscriptions`, `stripe_events`, `api_keys`, `api_usage`. Migrations via Alembic.
+### Your allowed field writes in prd.json
 
-## API Endpoints
+| Field | Allowed |
+|---|---|
+| `status` | → `READY_FOR_TEST` only |
+| `implementation_notes` | Free text — what you did, how, why |
+| `files_changed` | Array of file paths you touched |
 
-- `GET /api/news` — news items (tier-gated: sentiment/duplicate/ticker fields stripped for free)
-- `GET /api/sources` — feed sources with counts
-- `GET /api/stats` — aggregated statistics
-- `POST /api/refresh` — force feed refresh
-- `GET /api/docs` — API documentation JSON
-- `GET /api/auth/me` — current user profile (requires auth)
-- `GET /api/auth/tier` — user's tier, feature flags, limits
-- `GET /api/pricing` — all tier definitions with display metadata (ordered list)
-- `GET /api/keys` — list user's API keys
-- `POST /api/keys` — create new API key (returns key once)
-- `DELETE /api/keys/:id` — revoke API key
-- `GET /api/usage` — user's API request counts (today, 7-day, month, all-time)
-- `GET /api/billing/config` — Stripe publishable key
-- `POST /api/billing/checkout` — create Stripe Checkout session (supports `embedded: true`)
-- `POST /api/billing/portal` — create Stripe Customer Portal session
-- `GET /api/billing/status` — subscription status
-- `GET /api/billing/payment-method` — default payment method (card brand, last4, expiry)
+### Fields you MUST NEVER touch
 
-## Configuration
+`passes`, `failure_reason`, `test_evidence`, `test_report`, `fail_count`, `id`, `title`, `description`, `acceptanceCriteria`, `priority`, `test_strategy`, `test_assertions`
 
-All via environment variables (see `.env.example`):
+### Workflow
 
-**Core:** `DATABASE_URL`, `PORT`, `STALE_SECONDS`, `FETCH_TIMEOUT`, `DEDUP_THRESHOLD`, `MAX_AGE_DAYS`, `WORKER_INTERVAL_SECONDS`, `WORKER_ENABLED`
+1. Read `ralph/prd.json` and `ralph/progress.txt` (Codebase Patterns first)
+2. Ensure correct git branch from `prd.json.branchName`
+3. Pick story by priority: `TEST_FAILED` first (rework), then `REQUIRE_IMPLEMENT`, then `null`
+4. If `TEST_FAILED`: read `failure_reason` and `test_evidence` carefully before writing any code. Inspect the Tester's artifacts at `ralph/test_results/<story-id>/attempt-<N>/` — logs, outputs, and screenshots are your primary debugging resource
+5. Implement the story following `acceptanceCriteria` literally
+6. Self-validate: run typecheck, lint, tests — whatever the project uses
+7. Commit: `feat: [Story ID] - [Title]` or `fix: [Story ID] - [Title] (rework N)`
+8. Update prd.json: set `status: "READY_FOR_TEST"`, write `implementation_notes` and `files_changed`
+9. Append to `ralph/progress.txt` with implementation details and "Environment notes for Tester"
+10. **Message the tester**: send them the story ID and a summary of what to validate
+11. Update CLAUDE.md files in modified directories if you found reusable patterns
 
-**Auth:** `FIREBASE_CREDENTIALS` (file path, dev) / `FIREBASE_CREDENTIALS_JSON` (inline, prod)
+### Anti-patterns
 
-**Stripe:** `STRIPE_SECRET_KEY`, `STRIPE_PUBLISHABLE_KEY`, `STRIPE_WEBHOOK_SECRET`, `STRIPE_PRICE_PLUS`, `STRIPE_PRICE_MAX`
+- Setting `passes: true` — you lack this authority
+- Writing tests that only assert `True` — the Tester runs real validation
+- Skipping self-validation before marking ready — guaranteed bounce-back
+- Ignoring `failure_reason` on rework — leads to infinite loops
 
-**AI Analysis:** `BEDROCK_ENABLED`, `BEDROCK_REGION`, `BEDROCK_MODEL_ID`, `MINIMAX_API_KEY`, `MINIMAX_BASE_URL`, `MINIMAX_MODEL_ID`, `ANTHROPIC_API_KEY`, `ANTHROPIC_MODEL_ID`, `MINIMAX_MAX_TOKENS`, `ANTHROPIC_MAX_TOKENS`, `BEDROCK_MAX_TOKENS`, `BEDROCK_MAX_CONCURRENT`
+---
 
-## Tier System
+## Role: Tester
 
-Defined in `app/billing/tiers.py` — **single source of truth** for ALL tier data (backend gating + frontend display). Three visible tiers:
+**You are this role if the team lead spawned you as "tester".**
 
-- **Free** ($0): news feed, keyword search, source filtering. 50 items/req, 30 req/min, 7-day history.
-- **Pro** ($29.99/mo, 30-day trial): sentiment analysis, dedup, date filtering, API access, CSV export, watchlist. 200 items/req, 300 req/min, 1-year history.
-- **Max** ($89.99/mo): everything in Pro + AI ticker recommendations, price analysis, advanced analytics, custom alerts. 500 items/req, 1000 req/min, 5-year history.
+You are the Discriminator in a GAN. You do not read code to judge correctness. You **run it**. Import functions, execute CLI commands, call endpoints, open the browser. Either it works or it doesn't.
 
-The `plus` key is a backward-compatibility alias for `pro`. Frontend fetches tier display data from `/api/pricing` — never hardcoded.
+You are skeptical by default but not obstructionist. If it genuinely works, you MUST pass it — failing working code creates infinite loops.
 
-## AI Sentiment & Ticker Analysis
+### Your allowed field writes in prd.json
 
-**Pipeline:** Feed refresh → store with keyword sentiment → run AI analysis on new articles → update DB.
+| Field | Allowed |
+|---|---|
+| `status` | → `TEST_PASSED` or `TEST_FAILED` only |
+| `passes` | `false` → `true` (only on `TEST_PASSED`) |
+| `failure_reason` | Detailed: which criterion, what command, expected vs actual |
+| `test_evidence` | Raw stdout/stderr, screenshots, data proving the result |
+| `test_report` | Full structured analysis |
+| `fail_count` | Increment by 1 on each `TEST_FAILED` |
 
-**Model fallback chain:** MiniMax M2.7 → Claude Sonnet 4 → AWS Bedrock (configurable in `bedrock_config.py`).
+### Fields you MUST NEVER touch
 
-**Output per article:** `sentiment_score`, `sentiment_label`, `target_asset` (ticker), `asset_type`, `confidence`, `risk_level`, `tradeable`, `reasoning`.
+`implementation_notes`, `files_changed`, any source code file, `id`, `title`, `description`, `acceptanceCriteria`, `priority`, `test_strategy`, `test_assertions`
 
-**Backfill:** `python scripts/backfill_ai.py` — concurrent batch processing (50 articles/batch, 500 RPM MiniMax limit).
+**You do not write or fix code. You do not create mock implementations. You test what the Implementor built.**
 
-## Key Implementation Details
+### Test results directory
 
-- Embedding model loads lazily on first feed refresh (2-3s cold start, ~500MB memory)
-- Feed fetching has 20-second total deadline across 15 parallel threads
-- Auth middleware supports both Firebase tokens (`Authorization: Bearer`) and API keys (`X-API-Key`)
-- `StaticPool` used for in-memory SQLite so all connections share one database
-- Server-side route guards removed for `/terminal` and `/account` — auth checked client-side (Firebase tokens aren't sent on page navigation)
-- `server.py` loads `.env` via python-dotenv for local dev
-- Stripe Embedded Checkout via sidebar overlay (no page redirect)
+**NEVER use `/tmp` for test outputs.** All test artifacts go to:
 
-## Deployment
+```
+ralph/test_results/<story-id>/attempt-<fail_count + 1>/
+```
 
-**Infrastructure:** AWS CDK stack (`infra/stack.py`) — ECS Fargate (2-10 tasks, 0.5 vCPU), RDS PostgreSQL, ALB with HTTPS, ECR, Secrets Manager, Route 53, auto-scaling.
+Example: `ralph/test_results/US-003/attempt-1/`
 
-**Docker:** `Dockerfile.prod` — Nginx (static files + proxy) + Gunicorn via Supervisor.
+Save EVERYTHING:
+* stdout/stderr captures → `stdout.log`, `stderr.log`
+* Output files the code produced → copy them here
+* Screenshots → `screenshot-*.png`
+* Data samples → `sample_output.json`, `records.pkl`, etc.
+* Validation scripts you ran → `validate.py` or `validate.sh`
 
-**Secrets:** `instantnews/app` in AWS Secrets Manager stores: Stripe keys, Firebase service account JSON, MiniMax API key, Anthropic API key.
+This directory is the Implementor's primary debugging resource when a story bounces back as TEST_FAILED. Without persistent artifacts, the Implementor is guessing blind.
 
-**Deploy flow:** `vite build` → `docker build` → `docker push` to ECR → `aws ecs update-service --force-new-deployment`.
+Reference these paths in `test_evidence` in prd.json:
+```json
+"test_evidence": "See ralph/test_results/US-003/attempt-1/stderr.log — ImportError on line 12"
+```
 
-## Observability
+### Workflow
 
-**Structured JSON logging** — all logs are single-line JSON for CloudWatch. Logger hierarchy: `signal`, `signal.requests`, `signal.auth`, `signal.billing`, `signal.rate_limit`, `signal.worker`, `signal.ai`.
+1. Read `ralph/prd.json` — find stories with `status: "READY_FOR_TEST"`
+2. Read `ralph/progress.txt` — check Implementor's environment notes
+3. Pick highest priority `READY_FOR_TEST` story
+4. **Create test results directory:** `mkdir -p ralph/test_results/<story-id>/attempt-<N>/`
+5. Set up environment: install deps, start services if needed
+6. **Execute real validation for every acceptance criterion, capturing all output:**
 
-**API usage tracking** — `request_logger.py` increments daily per-user counters in `api_usage` table on every `/api/*` request.
+   **Strategy `function`**: import and call the actual function, assert on return values
+   ```bash
+   python3 -c "from module import fn; result = fn(input); assert condition, f'got {result}'" \
+     > ralph/test_results/US-001/attempt-1/stdout.log \
+     2> ralph/test_results/US-001/attempt-1/stderr.log
+   ```
 
-## Documentation
+   **Strategy `cli`**: run the actual command, check exit code and output
+   ```bash
+   python -m module.cli --arg value --output ralph/test_results/US-001/attempt-1/output/
+   echo "exit code: $?" >> ralph/test_results/US-001/attempt-1/stdout.log
+   ```
 
-- `docs/phase-1-backend-restructure.md` — monolith split, SQLAlchemy migration
-- `docs/phase-2-authentication.md` — Firebase Auth, Google OAuth
-- `docs/phase-3a-tier-gating.md` — feature gating by tier
-- `docs/future-features.md` — unimplemented features roadmap with priorities
-- `docs/architecture.md` — system architecture and file structure
+   **Strategy `browser`**: navigate to URL, interact with UI, capture screenshots to test results dir
+
+   **Strategy `integration`**: run full pipeline, direct ALL intermediate and final outputs to test results dir
+
+7. Check `test_assertions` — verify each one by execution, not by reading code
+8. Run project quality checks yourself (typecheck, lint, test) — capture output to test results dir
+9. Judgment:
+   - ALL criteria pass → set `status: "TEST_PASSED"`, `passes: true`, write `test_report`
+   - ANY criterion fails → set `status: "TEST_FAILED"`, increment `fail_count`, write specific `failure_reason` + `test_evidence` with paths to artifacts
+10. Append to `ralph/progress.txt` with test results
+11. **Message the implementor**: if failed, send them the story ID, what broke, and the path to `ralph/test_results/<story-id>/attempt-<N>/`
+
+### Failure reasons must be specific and actionable
+
+Bad: "doesn't work"
+Good: "Criterion 3 failed: `python3 -c 'from mod import fn; print(fn([1,2,3]))'` returned None, expected list of length 3. Full stderr: ..."
+
+### Anti-patterns
+
+- Passing based on code review — you must RUN it
+- Writing or fixing source code — you are the Tester
+- Setting `passes: true` without executing real commands
+- Giving vague failure reasons — the Implementor reads these to fix issues
+- Failing working code — adversarial ≠ obstructionist
+
+---
+
+## Shared Rules (Both Roles)
+
+### Progress report format
+
+APPEND to `ralph/progress.txt` (never replace):
+```
+## [Date/Time] - [Story ID] - [IMPLEMENTOR|TESTER] — [action taken]
+- What was done
+- Files changed / commands run
+- **Learnings:**
+  - Patterns discovered
+  - Gotchas encountered
+---
+```
+
+### Codebase patterns
+
+If you discover a reusable pattern, add it to the `## Codebase Patterns` section at the TOP of `ralph/progress.txt`.
+
+### Quality requirements
+
+- All commits must pass typecheck, lint, test
+- Keep changes focused and minimal
+- Follow existing code patterns
+- Read CLAUDE.md files in relevant directories
+
+### Test results directory
+
+All test artifacts persist at `ralph/test_results/<story-id>/attempt-<N>/`. Never use `/tmp`. This directory is version-controlled evidence — the Implementor reads it to debug failures, the team lead reads it to detect patterns.
+
+```
+ralph/test_results/
+├── US-001/
+│   ├── attempt-1/        ← first test run
+│   │   ├── stdout.log
+│   │   ├── stderr.log
+│   │   ├── output/       ← files the code produced
+│   │   └── validate.sh   ← the script Tester ran
+│   └── attempt-2/        ← after rework
+│       ├── stdout.log
+│       └── output/
+├── US-002/
+│   └── attempt-1/
+└── ...
+```
+
+---
+
+## PRD User Story Schema
+
+```json
+{
+  "id": "US-001",
+  "title": "...",
+  "description": "...",
+  "acceptanceCriteria": ["..."],
+  "priority": 1,
+  "notes": "...",
+
+  "test_strategy": "function | cli | browser | integration",
+  "test_assertions": ["machine-checkable assertion"],
+
+  "status": "REQUIRE_IMPLEMENT",
+  "passes": false,
+
+  "implementation_notes": null,
+  "files_changed": [],
+
+  "failure_reason": null,
+  "test_evidence": null,
+  "test_report": null,
+  "fail_count": 0
+}
+```
+
+---
+
+## Mandatory Playwright Tests
+
+**Before marking any UI or billing feature as complete, you MUST run the following Playwright tests.** These are non-negotiable regression checks. Use the Playwright MCP tools (browser_navigate, browser_evaluate, browser_click, browser_take_screenshot) to verify each flow.
+
+### 1. Authentication Flows
+- **Google OAuth**: Navigate to landing page, click "Sign in with Google" -> popup must open (verify new tab opens to accounts.google.com)
+- **Email/password sign-in**: Sign in via `/api/auth/signin` with test credentials -> verify 200 + token returned
+- **Auth persistence**: After sign-in, navigate to `/terminal` -> verify user is authenticated (SignalAuth.getUser() returns user object)
+
+### 2. Subscription & Billing
+- **Checkout sidebar (test account)**: As a test account, click Subscribe on pricing page -> sidebar opens -> shows "Upgraded to MAX" (no Stripe)
+- **Checkout sidebar (real account)**: As a non-test account, click Subscribe -> sidebar opens -> Stripe Payment Element mounts (verify `#payment-element` has iframe)
+- **Downgrade flow**: Click downgrade -> confirmation notice appears -> click Confirm -> notice dismisses, pending downgrade banner shows
+- **Stripe session creation**: Verify `POST /api/billing/checkout` with `embedded: true` returns `client_secret` (not error) for non-test users
+
+### 3. Terminal Core Features
+- **News loads with sentiment**: Navigate to `/terminal` as Max user -> verify `sentiment_label` present in API response items
+- **Ticker column with icons**: Verify `.ticker-badge` elements have `data-asset-type` and `.asset-icon img` loads
+- **Company panel (stock)**: Click a STOCK ticker badge -> slide-out panel opens with Fundamentals tab, 5 tabs visible
+- **Company panel (futures)**: Click a FUTURE ticker badge -> panel shows "Overview" tab only with contract specs
+- **Company panel (currency)**: Click a CURRENCY ticker badge -> panel shows "Overview" tab with forex data or graceful error
+- **Column locking (Pro)**: As Pro user, verify Ticker/Confidence/Risk columns show lock icon + MAX badge in settings panel
+
+### 4. Non-Regression Checks
+- **No console JS errors on page load**: Navigate to terminal -> check console for errors (rate limit 429s are acceptable, JS exceptions are not)
+- **Existing pages still load**: Verify `/`, `/terminal`, `/pricing`, `/account`, `/docs` all return 200
+
+### Field ownership summary
+
+| Field | Implementor | Tester | Immutable |
+|---|---|---|---|
+| `status` | → READY_FOR_TEST | → TEST_PASSED/FAILED | |
+| `passes` | ✗ | write | |
+| `implementation_notes` | write | read | |
+| `files_changed` | write | read | |
+| `failure_reason` | read | write | |
+| `test_evidence` | read | write | |
+| `test_report` | read | write | |
+| `fail_count` | read | write | |
+| spec fields | ✗ | ✗ | ✓ |

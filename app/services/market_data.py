@@ -455,6 +455,62 @@ class PolygonClient:
             logger.warning("polygon related: error fetching %s: %s", symbol, e)
             return None
 
+    def get_forex_snapshot(self, currency: str) -> Optional[dict[str, Any]]:
+        """Fetch forex snapshot for a currency pair (vs USD).
+
+        Maps single currency codes (GBP) to Polygon pair format (C:GBPUSD).
+        Returns dict with: symbol, pair, price, change, change_percent, day_high, day_low.
+        """
+        if not self._enabled:
+            return None
+
+        currency = currency.upper().strip()
+        # Normalize: if already a pair like GBPUSD, extract base currency
+        if len(currency) == 6:
+            currency = currency[:3]
+
+        cache_key = f"FX:{currency}"
+        cached = self._snapshot_cache.get(cache_key)
+        if cached and cached.is_valid():
+            return cached.value
+
+        pair = f"C:{currency}USD"
+        try:
+            url = f"{POLYGON_BASE_URL}/v2/snapshot/locale/global/markets/forex/tickers/{pair}"
+            resp = self._session.get(url, params={"apiKey": self._api_key}, timeout=10)
+            resp.raise_for_status()
+            data = resp.json()
+
+            ticker_data = data.get("ticker", {})
+            day = ticker_data.get("day", {})
+            prev_day = ticker_data.get("prevDay", {})
+            last = ticker_data.get("lastQuote", {})
+
+            price = last.get("a") or day.get("c") or 0
+            prev_close = prev_day.get("c") or 0
+            change = round(price - prev_close, 6) if prev_close else 0
+            change_pct = round((change / prev_close) * 100, 4) if prev_close else 0
+
+            result: dict[str, Any] = {
+                "symbol": currency,
+                "pair": f"{currency}/USD",
+                "price": price,
+                "change": change,
+                "change_percent": change_pct,
+                "day_high": day.get("h"),
+                "day_low": day.get("l"),
+            }
+
+            self._snapshot_cache[cache_key] = _CacheEntry(result, SNAPSHOT_TTL)
+            return result
+
+        except requests.exceptions.HTTPError as e:
+            logger.warning("polygon forex: HTTP error for %s: %s", currency, e)
+            return None
+        except (requests.exceptions.RequestException, ValueError, KeyError) as e:
+            logger.warning("polygon forex: error fetching %s: %s", currency, e)
+            return None
+
     def clear_cache(self) -> None:
         """Clear all cached data."""
         self._snapshot_cache.clear()

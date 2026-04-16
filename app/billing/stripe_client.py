@@ -45,7 +45,7 @@ def create_checkout_session(customer_id, price_id, client_reference_id,
     }
 
     if embedded:
-        params["ui_mode"] = "embedded_page"
+        params["ui_mode"] = "elements"
         params["return_url"] = return_url
     else:
         params["success_url"] = success_url

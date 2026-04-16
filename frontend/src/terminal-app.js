@@ -67,6 +67,38 @@ const COLUMN_PRESETS = {
 };
 
 // ---------------------------------------------------------------------------
+// Asset Type Icons & Futures Registry
+// ---------------------------------------------------------------------------
+
+// Asset type icons — configurable via assets/icons/ folder.
+// Replace .file with custom SVG/PNG to rebrand instrument icons.
+// .fallback is the Unicode glyph used if the image fails to load.
+const ASSET_TYPE_ICONS = {
+  STOCK:    { file: 'stock.svg',    fallback: '\u25B3', label: 'Stock' },
+  ETF:      { file: 'etf.svg',      fallback: '\u25C7', label: 'ETF' },
+  FUTURE:   { file: 'future.svg',   fallback: '\u25CE', label: 'Futures' },
+  CURRENCY: { file: 'currency.svg', fallback: '\u00A4', label: 'Currency' },
+  CRYPTO:   { file: 'crypto.svg',   fallback: '\u20BF', label: 'Crypto' },
+  BOND:     { file: 'bond.svg',     fallback: '\u25AC', label: 'Bond' },
+  OPTION:   { file: 'option.svg',   fallback: '\u2295', label: 'Option' },
+  '':       { file: 'stock.svg',    fallback: '\u25B3', label: 'Equity' },
+};
+
+const FUTURES_CONTRACTS = {
+  CL: { name: 'Crude Oil (WTI)', exchange: 'NYMEX', unit: '1,000 barrels', tickSize: '$0.01', hours: 'Sun\u2013Fri 6:00pm\u20135:00pm ET' },
+  NG: { name: 'Natural Gas', exchange: 'NYMEX', unit: '10,000 MMBtu', tickSize: '$0.001', hours: 'Sun\u2013Fri 6:00pm\u20135:00pm ET' },
+  GC: { name: 'Gold', exchange: 'COMEX', unit: '100 troy oz', tickSize: '$0.10', hours: 'Sun\u2013Fri 6:00pm\u20135:00pm ET' },
+  SI: { name: 'Silver', exchange: 'COMEX', unit: '5,000 troy oz', tickSize: '$0.005', hours: 'Sun\u2013Fri 6:00pm\u20135:00pm ET' },
+  ES: { name: 'E-mini S&P 500', exchange: 'CME', unit: '$50 \u00D7 index', tickSize: '$0.25', hours: 'Sun\u2013Fri 6:00pm\u20135:00pm ET' },
+  NQ: { name: 'E-mini Nasdaq 100', exchange: 'CME', unit: '$20 \u00D7 index', tickSize: '$0.25', hours: 'Sun\u2013Fri 6:00pm\u20135:00pm ET' },
+  YM: { name: 'E-mini Dow', exchange: 'CBOT', unit: '$5 \u00D7 index', tickSize: '$1.00', hours: 'Sun\u2013Fri 6:00pm\u20135:00pm ET' },
+  ZB: { name: '30-Year T-Bond', exchange: 'CBOT', unit: '$100,000 face', tickSize: '1/32 point', hours: 'Sun\u2013Fri 7:20pm\u20136:00pm ET' },
+  ZC: { name: 'Corn', exchange: 'CBOT', unit: '5,000 bushels', tickSize: '$0.25/bu', hours: 'Sun\u2013Fri 7:00pm\u20137:45am, 8:30am\u20131:20pm CT' },
+  ZW: { name: 'Wheat', exchange: 'CBOT', unit: '5,000 bushels', tickSize: '$0.25/bu', hours: 'Sun\u2013Fri 7:00pm\u20137:45am, 8:30am\u20131:20pm CT' },
+  HG: { name: 'Copper', exchange: 'COMEX', unit: '25,000 lbs', tickSize: '$0.0005/lb', hours: 'Sun\u2013Fri 6:00pm\u20135:00pm ET' },
+};
+
+// ---------------------------------------------------------------------------
 // State
 // ---------------------------------------------------------------------------
 
@@ -827,33 +859,20 @@ function renderCell(colId, item, isFresh, dupBadge) {
     case 'ticker': {
       if (!item.target_asset) return '<td class="cell-ticker"><span class="cell-dash">\u2014</span></td>';
       const ticker = escapeHtml(item.target_asset);
+      const assetType = (item.asset_type || '').toUpperCase();
+      const typeIcon = ASSET_TYPE_ICONS[assetType] || ASSET_TYPE_ICONS[''];
       const mkt = state.marketPrices[item.target_asset];
       let priceHtml = '';
-      let marketDot = '';
-      if (mkt) {
-        // Market status dot: green=open, gray=closed, blue=24h futures
+      if (mkt && mkt.price != null && mkt.price > 0) {
+        const pct = mkt.change_percent || 0;
+        const sign = pct >= 0 ? '+' : '';
+        const cls = pct > 0 ? 'price-up' : pct < 0 ? 'price-down' : 'price-flat';
         const ms = mkt.market_status;
-        if (ms === '24h') {
-          marketDot = '<span class="market-dot market-dot-24h" title="24H Futures"></span>';
-        } else if (ms === 'open') {
-          marketDot = '<span class="market-dot market-dot-open" title="Market Open"></span>';
-        } else {
-          marketDot = '<span class="market-dot market-dot-closed" title="Market Closed"></span>';
-        }
-        if (mkt.price != null) {
-          const pct = mkt.change_percent || 0;
-          const sign = pct >= 0 ? '+' : '';
-          const cls = pct > 0 ? 'price-up' : pct < 0 ? 'price-down' : 'price-flat';
-          if (ms === 'closed') {
-            priceHtml = `<span class="ticker-price ${cls}">$${mkt.price.toFixed(2)} <span class="ticker-change">${sign}${pct.toFixed(2)}%</span><span class="market-label-closed">Closed</span></span>`;
-          } else if (ms === '24h') {
-            priceHtml = `<span class="ticker-price ${cls}">$${mkt.price.toFixed(2)} <span class="ticker-change">${sign}${pct.toFixed(2)}%</span><span class="market-label-24h">24H</span></span>`;
-          } else {
-            priceHtml = `<span class="ticker-price ${cls}">$${mkt.price.toFixed(2)} <span class="ticker-change">${sign}${pct.toFixed(2)}%</span></span>`;
-          }
-        }
+        const label = ms === 'closed' ? '<span class="market-label-closed">Closed</span>'
+          : ms === '24h' ? '<span class="market-label-24h">24H</span>' : '';
+        priceHtml = `<span class="ticker-price ${cls}">$${mkt.price.toFixed(2)} <span class="ticker-change">${sign}${pct.toFixed(2)}%</span>${label}</span>`;
       }
-      return `<td class="cell-ticker"><span class="ticker-badge" data-ticker="${ticker}">${marketDot}${ticker}${priceHtml}</span></td>`;
+      return `<td class="cell-ticker"><span class="ticker-badge" data-ticker="${ticker}" data-asset-type="${escapeHtml(assetType)}"><span class="asset-icon" title="${escapeHtml(typeIcon.label)}"><img src="./assets/icons/${typeIcon.file}" alt="${escapeHtml(typeIcon.label)}" onerror="this.parentElement.textContent='${typeIcon.fallback}'"></span>${ticker}${priceHtml}</span></td>`;
     }
     case 'confidence':
       return `<td class="cell-confidence">${item.confidence != null ? Math.round(item.confidence * 100) + '%' : '<span class="cell-dash">\u2014</span>'}</td>`;
@@ -890,9 +909,9 @@ function renderColumnSettings() {
     const disabled = col.required || locked;
 
     return `<div class="col-toggle-item${locked ? ' locked' : ''}${col.required ? ' required' : ''}" draggable="true" data-col-id="${col.id}">
-      <span class="col-drag-handle" aria-label="Drag to reorder">≡</span>
+      <span class="col-drag-handle" aria-label="Drag to reorder">\u2261</span>
       <span class="col-toggle-label">
-        ${locked ? '<svg class="col-lock-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>' : ''}
+        ${locked ? '<svg class="col-lock-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg><span class="col-max-badge">MAX</span>' : ''}
         ${escapeHtml(col.label)}
       </span>
       <label class="col-toggle-switch${disabled ? ' disabled' : ''}">
@@ -913,6 +932,15 @@ function renderColumnSettings() {
       saveColumnVisibility();
       renderTableHeader();
       renderNews();
+    });
+  });
+
+  // Locked column click → show Max upgrade prompt
+  panel.querySelectorAll('.col-toggle-item.locked').forEach(item => {
+    item.style.cursor = 'pointer';
+    item.addEventListener('click', (e) => {
+      if (e.target.closest('input')) return; // ignore checkbox clicks
+      showMaxUpgradePrompt();
     });
   });
 
@@ -1333,7 +1361,7 @@ function bindEvents() {
       const badge = e.target.closest(".ticker-badge[data-ticker]");
       if (badge) {
         e.stopPropagation();
-        openCompanyProfile(badge.dataset.ticker);
+        openCompanyProfile(badge.dataset.ticker, badge.dataset.assetType || '');
         return;
       }
       const row = e.target.closest("tr[data-id]");
@@ -1356,16 +1384,10 @@ function bindEvents() {
     });
   }
 
-  // Company profile modal close
-  const cpClose = $("#company-profile-close");
+  // Company profile panel close
+  const cpClose = document.getElementById("company-profile-close");
   if (cpClose) {
     cpClose.addEventListener("click", closeCompanyProfile);
-  }
-  const cpOverlay = $("#company-profile-overlay");
-  if (cpOverlay) {
-    cpOverlay.addEventListener("click", (e) => {
-      if (e.target === cpOverlay) closeCompanyProfile();
-    });
   }
 
   // Company profile tab switching
@@ -1376,7 +1398,9 @@ function bindEvents() {
       if (tabId === state.companyProfileActiveTab) return;
       state.companyProfileActiveTab = tabId;
       cpTabs.forEach((t) => t.classList.toggle("active", t.dataset.tab === tabId));
-      if (tabId === "fundamentals" && state.companyProfileData) {
+      if (tabId === "overview") {
+        // Already rendered during openCompanyProfile — no lazy-load needed
+      } else if (tabId === "fundamentals" && state.companyProfileData) {
         renderCompanyFundamentals(state.companyProfileData);
       } else if (tabId === "financials") {
         loadCompanyFinancials(state.companyProfileSymbol);
@@ -1616,46 +1640,63 @@ function closeDetailModal() {
 // Company Profile Modal
 // ---------------------------------------------------------------------------
 
-async function openCompanyProfile(symbol) {
+async function openCompanyProfile(symbol, assetType = '') {
+  const type = assetType.toUpperCase();
   state.companyProfileOpen = true;
   state.companyProfileSymbol = symbol;
+  state.companyProfileAssetType = type;
   state.companyProfileData = null;
   state.companyProfileLoading = true;
-  state.companyProfileActiveTab = "fundamentals";
   state.companyProfileFinancials = null;
   state.companyProfileCompetitors = null;
   state.companyProfileInstitutions = null;
   state.companyProfileInsiders = null;
 
-  // Reset tab UI to fundamentals
-  document.querySelectorAll(".cp-tab").forEach((t) => {
-    t.classList.toggle("active", t.dataset.tab === "fundamentals");
+  // Configure tab visibility per asset type
+  const stockTabs = ['fundamentals', 'financials', 'competitors', 'institutions', 'insiders'];
+  const overviewOnly = ['overview'];
+  const visibleTabs = (type === 'FUTURE' || type === 'CURRENCY') ? overviewOnly : stockTabs;
+  const firstTab = visibleTabs[0];
+  state.companyProfileActiveTab = firstTab;
+
+  document.querySelectorAll('.cp-tab').forEach((t) => {
+    t.style.display = visibleTabs.includes(t.dataset.tab) ? '' : 'none';
+    t.classList.toggle('active', t.dataset.tab === firstTab);
   });
 
-  const overlay = $("#company-profile-overlay");
-  if (!overlay) return;
+  const panel = $("#company-profile-panel");
+  if (!panel) return;
 
-  // Update title
   const titleEl = $("#company-profile-title");
-  if (titleEl) titleEl.textContent = `// ${symbol.toUpperCase()}`;
+  const typeIcon = ASSET_TYPE_ICONS[type] || ASSET_TYPE_ICONS[''];
+  if (titleEl) {
+    const suffix = type === 'FUTURE' ? ' FUTURES' : type === 'CURRENCY' ? ' FX' : '';
+    titleEl.textContent = `// ${symbol.toUpperCase()}${suffix}`;
+  }
 
-  // Show loading state
   const body = $("#company-profile-body");
   if (body) {
-    body.innerHTML = `<div class="cp-loading">
-      <div class="cp-loading-row"><div class="skeleton" style="width:60%;height:24px"></div></div>
-      <div class="cp-loading-row"><div class="skeleton" style="width:40%;height:16px"></div></div>
-      <div class="cp-loading-row" style="margin-top:16px"><div class="skeleton" style="width:100%;height:80px"></div></div>
-      <div class="cp-loading-grid">
-        <div class="skeleton" style="width:100%;height:64px"></div>
-        <div class="skeleton" style="width:100%;height:64px"></div>
-      </div>
+    body.innerHTML = `<div class="cp-spinner-wrap">
+      <div class="cp-spinner"></div>
+      <span class="cp-spinner-text">Loading${type === 'FUTURE' ? ' contract' : type === 'CURRENCY' ? ' forex' : ' company'} data\u2026</span>
     </div>`;
   }
 
-  overlay.classList.add("open");
+  panel.classList.add("open");
+  document.querySelector(".dashboard").classList.add("cp-open");
 
-  // Fetch company details
+  if (type === 'FUTURE') {
+    loadFuturesProfile(symbol);
+  } else if (type === 'CURRENCY') {
+    loadCurrencyProfile(symbol);
+  } else {
+    loadStockProfile(symbol);
+  }
+}
+
+async function loadStockProfile(symbol) {
+  const body = $("#company-profile-body");
+  if (!body) return;
   try {
     const res = await SignalAuth.fetch(`${API}/market/${encodeURIComponent(symbol)}/details`);
     if (!res.ok) {
@@ -1676,6 +1717,114 @@ async function openCompanyProfile(symbol) {
         <span>${escapeHtml(err.message)}</span>
       </div>`;
     }
+  }
+}
+
+function loadFuturesProfile(symbol) {
+  const body = $("#company-profile-body");
+  if (!body) return;
+
+  const contract = FUTURES_CONTRACTS[symbol.toUpperCase()] || null;
+  const name = contract ? contract.name : 'Futures Contract';
+  const mkt = state.marketPrices[symbol];
+
+  let priceHtml = '';
+  if (mkt && mkt.price != null) {
+    const pct = mkt.change_percent || 0;
+    const sign = pct >= 0 ? '+' : '';
+    const cls = pct > 0 ? 'price-up' : pct < 0 ? 'price-down' : 'price-flat';
+    priceHtml = `
+      <div class="cp-section">
+        <div class="cp-section-title">CURRENT PRICE</div>
+        <div class="cp-futures-price">
+          <span class="cp-big-price ${cls}">$${mkt.price.toFixed(2)}</span>
+          <span class="ticker-change ${cls}">${sign}${pct.toFixed(2)}%</span>
+        </div>
+      </div>`;
+  }
+
+  let specsHtml = '';
+  if (contract) {
+    specsHtml = `
+      <div class="cp-section">
+        <div class="cp-section-title">CONTRACT SPECIFICATIONS</div>
+        <div class="cp-specs-grid">
+          <div class="cp-spec"><span class="cp-spec-label">Exchange</span><span class="cp-spec-value">${escapeHtml(contract.exchange)}</span></div>
+          <div class="cp-spec"><span class="cp-spec-label">Contract Unit</span><span class="cp-spec-value">${escapeHtml(contract.unit)}</span></div>
+          <div class="cp-spec"><span class="cp-spec-label">Tick Size</span><span class="cp-spec-value">${escapeHtml(contract.tickSize)}</span></div>
+          <div class="cp-spec"><span class="cp-spec-label">Trading Hours</span><span class="cp-spec-value">${escapeHtml(contract.hours)}</span></div>
+        </div>
+      </div>`;
+  }
+
+  body.innerHTML = `
+    <div class="cp-instrument-header">
+      <div class="cp-instrument-icon">\u25CE</div>
+      <div>
+        <div class="cp-instrument-name">${escapeHtml(name)}</div>
+        <div class="cp-instrument-meta">
+          <span class="cp-instrument-symbol">${escapeHtml(symbol.toUpperCase())}</span>
+          <span class="cp-instrument-type">FUTURE</span>
+        </div>
+      </div>
+    </div>
+    ${priceHtml}
+    ${specsHtml}`;
+  state.companyProfileLoading = false;
+}
+
+async function loadCurrencyProfile(symbol) {
+  const body = $("#company-profile-body");
+  if (!body) return;
+
+  const pair = symbol.toUpperCase() + '/USD';
+
+  try {
+    const res = await SignalAuth.fetch(`${API}/market/forex/${encodeURIComponent(symbol)}`);
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.message || `HTTP ${res.status}`);
+    }
+    const data = await res.json();
+    state.companyProfileLoading = false;
+
+    const pct = data.change_percent || 0;
+    const sign = pct >= 0 ? '+' : '';
+    const cls = pct > 0 ? 'price-up' : pct < 0 ? 'price-down' : 'price-flat';
+    const rangeHtml = (data.day_high != null && data.day_low != null)
+      ? `<div class="cp-section">
+          <div class="cp-section-title">DAY RANGE</div>
+          <div class="cp-range">${data.day_low.toFixed(4)} \u2014 ${data.day_high.toFixed(4)}</div>
+        </div>`
+      : '';
+
+    body.innerHTML = `
+      <div class="cp-instrument-header">
+        <div class="cp-instrument-icon">\u00A4</div>
+        <div>
+          <div class="cp-instrument-name">${escapeHtml(pair)}</div>
+          <div class="cp-instrument-meta">
+            <span class="cp-instrument-symbol">${escapeHtml(symbol.toUpperCase())}</span>
+            <span class="cp-instrument-type">CURRENCY</span>
+          </div>
+        </div>
+      </div>
+      <div class="cp-section">
+        <div class="cp-section-title">EXCHANGE RATE</div>
+        <div class="cp-futures-price">
+          <span class="cp-big-price ${cls}">${data.price != null ? data.price.toFixed(4) : '\u2014'}</span>
+          <span class="ticker-change ${cls}">${sign}${pct.toFixed(2)}%</span>
+        </div>
+      </div>
+      ${rangeHtml}`;
+  } catch (err) {
+    state.companyProfileLoading = false;
+    logger.warn("Error fetching forex data for", symbol, err);
+    body.innerHTML = `<div class="cp-error">
+      <div class="cp-error-icon">\u00A4</div>
+      <p>Currency data not available for <strong>${escapeHtml(symbol.toUpperCase())}</strong></p>
+      <span>${escapeHtml(err.message)}</span>
+    </div>`;
   }
 }
 
@@ -1730,8 +1879,10 @@ function closeCompanyProfile() {
   state.companyProfileCompetitors = null;
   state.companyProfileInstitutions = null;
   state.companyProfileInsiders = null;
-  const overlay = $("#company-profile-overlay");
-  if (overlay) overlay.classList.remove("open");
+  const panel = $("#company-profile-panel");
+  if (panel) panel.classList.remove("open");
+  const dash = document.querySelector(".dashboard");
+  if (dash) dash.classList.remove("cp-open");
 }
 
 async function loadCompanyFinancials(symbol) {
@@ -1745,16 +1896,9 @@ async function loadCompanyFinancials(symbol) {
     return;
   }
 
-  // Show loading skeleton
-  body.innerHTML = `<div class="cp-loading">
-    <div class="cp-loading-row"><div class="skeleton" style="width:60%;height:24px"></div></div>
-    <div class="cp-loading-grid">
-      <div class="skeleton" style="width:100%;height:64px"></div>
-      <div class="skeleton" style="width:100%;height:64px"></div>
-      <div class="skeleton" style="width:100%;height:64px"></div>
-      <div class="skeleton" style="width:100%;height:64px"></div>
-    </div>
-    <div class="cp-loading-row" style="margin-top:16px"><div class="skeleton" style="width:100%;height:120px"></div></div>
+  body.innerHTML = `<div class="cp-spinner-wrap">
+    <div class="cp-spinner"></div>
+    <span class="cp-spinner-text">Loading financials\u2026</span>
   </div>`;
 
   try {
@@ -1893,13 +2037,9 @@ async function loadCompanyCompetitors(symbol) {
     return;
   }
 
-  // Show loading skeleton
-  body.innerHTML = `<div class="cp-loading">
-    <div class="cp-loading-row"><div class="skeleton" style="width:50%;height:24px"></div></div>
-    <div class="cp-loading-row"><div class="skeleton" style="width:100%;height:40px"></div></div>
-    <div class="cp-loading-row"><div class="skeleton" style="width:100%;height:40px"></div></div>
-    <div class="cp-loading-row"><div class="skeleton" style="width:100%;height:40px"></div></div>
-    <div class="cp-loading-row"><div class="skeleton" style="width:100%;height:40px"></div></div>
+  body.innerHTML = `<div class="cp-spinner-wrap">
+    <div class="cp-spinner"></div>
+    <span class="cp-spinner-text">Loading competitors\u2026</span>
   </div>`;
 
   try {
@@ -2432,7 +2572,9 @@ async function fetchTier() {
     // Re-render columns with tier-based locks
     renderColumnSettings();
     renderTableHeader();
-    renderNews();
+
+    // Re-fetch news with auth token to get tier-gated fields (sentiment, tickers)
+    await fetchNews();
 
     // Start market price refresh for Max users
     fetchMarketPrices();
@@ -2504,6 +2646,43 @@ function hideUpgradeGate() {
   if (overlay) overlay.remove();
 }
 
+/**
+ * Show a modal prompting Pro users to upgrade to Max for locked columns.
+ */
+function showMaxUpgradePrompt() {
+  if ($("#max-upgrade-prompt")) return;
+
+  const overlay = document.createElement("div");
+  overlay.id = "max-upgrade-prompt";
+  overlay.className = "modal-overlay open";
+  overlay.innerHTML =
+    '<div class="modal" style="width:min(420px,90vw);text-align:center;padding:32px;">' +
+    '<div style="font-size:28px;margin-bottom:12px;">\u{1F680}</div>' +
+    '<h2 style="color:var(--text-primary);margin:0 0 12px;font-size:18px;">Upgrade to Max</h2>' +
+    '<p style="color:var(--text-secondary);margin:0 0 8px;line-height:1.5;font-size:13px;">' +
+    "AI-powered ticker recommendations, confidence scores, risk levels, and real-time market data " +
+    "are exclusive to the <strong>Max</strong> plan." +
+    "</p>" +
+    '<p style="color:var(--text-muted);margin:0 0 24px;font-size:12px;">' +
+    "Unlock the full trading terminal experience." +
+    "</p>" +
+    '<a href="/pricing" style="display:inline-block;padding:10px 28px;' +
+    "background:var(--blue);color:#fff;border-radius:6px;text-decoration:none;" +
+    'font-weight:600;font-size:14px;">View Max Plan</a>' +
+    '<div style="margin-top:12px;">' +
+    '<button id="max-upgrade-dismiss" style="background:none;border:none;color:var(--text-muted);' +
+    'font-size:13px;cursor:pointer;padding:8px;">Maybe later</button>' +
+    "</div></div>";
+
+  overlay.addEventListener("click", (e) => {
+    if (e.target === overlay || e.target.id === "max-upgrade-dismiss") {
+      overlay.remove();
+    }
+  });
+
+  document.body.appendChild(overlay);
+}
+
 
 function init() {
   loadColumnVisibility();
@@ -2519,7 +2698,9 @@ function init() {
   // Start clock
   setInterval(updateClock, 1000);
 
-  // Initial fetch
+  // Initial data fetch happens in fetchTier() after auth resolves.
+  // Fetch news immediately as anonymous (shows data without gated columns),
+  // then fetchTier() re-fetches with auth to get sentiment/ticker data.
   fetchNews();
   fetchStats();
   fetchSources();

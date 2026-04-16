@@ -90,12 +90,17 @@ def create_checkout():
     if not price_id:
         return jsonify({"error": f"Price not configured for {tier} tier."}), 500
 
-    # Look up existing Stripe customer ID
+    # Look up existing Stripe customer ID and check for pending downgrade
     session_factory = current_app.config["SESSION_FACTORY"]
     db = session_factory()
     try:
         sub = db.query(Subscription).filter_by(user_id=g.current_user.id).first()
         customer_id = sub.stripe_customer_id if sub else None
+        if sub and sub.pending_tier:
+            return jsonify({
+                "error": f"A downgrade to {sub.pending_tier.title()} is already scheduled. "
+                         "Please wait for the current billing period to end before making changes."
+            }), 409
     finally:
         db.close()
 
@@ -156,6 +161,148 @@ def create_portal():
     )
 
     return jsonify({"url": portal_session.url})
+
+
+@billing_bp.route("/api/billing/downgrade", methods=["POST"])
+@require_auth
+def downgrade():
+    """Schedule a downgrade to a lower tier at the end of the current billing period.
+
+    Body: {"tier": "pro"} or {"tier": "free"}
+    For test accounts, downgrades immediately.
+    For real accounts, updates the Stripe subscription to the new price,
+    with proration_behavior="none" so the change takes effect at period end.
+    """
+    import stripe
+
+    # Test accounts: downgrade immediately
+    if getattr(g.current_user, "is_test_account", False):
+        data = request.get_json() or {}
+        tier = data.get("tier", "free")
+        session_factory = current_app.config["SESSION_FACTORY"]
+        db = session_factory()
+        try:
+            from app.models import User
+            user = db.query(User).filter_by(id=g.current_user.id).first()
+            if user:
+                user.tier = tier
+                user.test_tier_override = tier
+                from app.services.feed_parser import utc_iso
+                user.updated_at = utc_iso(datetime.now(timezone.utc))
+                db.commit()
+            return jsonify({
+                "test_account": True,
+                "tier": tier,
+                "message": f"Test account downgraded to {tier}.",
+            })
+        finally:
+            db.close()
+
+    if not stripe_client.is_configured():
+        return jsonify({"error": "Payment system is not yet configured."}), 503
+
+    data = request.get_json() or {}
+    target_tier = data.get("tier", "free")
+    if target_tier == "plus":
+        target_tier = "pro"
+
+    session_factory = current_app.config["SESSION_FACTORY"]
+    db = session_factory()
+    try:
+        sub = db.query(Subscription).filter_by(user_id=g.current_user.id).first()
+        if not sub or not sub.stripe_subscription_id:
+            # No Stripe subscription — only allow direct downgrade for
+            # test accounts and admin/superadmin roles
+            is_test = getattr(g.current_user, "is_test_account", False)
+            is_admin = getattr(g.current_user, "role", "user") in ("admin", "superadmin")
+            if not is_test and not is_admin:
+                return jsonify({"error": "No active subscription found."}), 404
+
+            from app.models import User
+            user = db.query(User).filter_by(id=g.current_user.id).first()
+            if user:
+                user.tier = target_tier
+                from app.services.feed_parser import utc_iso
+                user.updated_at = utc_iso(datetime.now(timezone.utc))
+                db.commit()
+                return jsonify({
+                    "success": True,
+                    "tier": target_tier,
+                    "message": f"Account downgraded to {target_tier.title()}.",
+                })
+            return jsonify({"error": "User not found."}), 404
+
+        # Block if a downgrade is already pending
+        if sub.pending_tier:
+            return jsonify({
+                "error": f"A downgrade to {sub.pending_tier.title()} is already scheduled. "
+                         f"It will take effect on {sub.current_period_end[:10] if sub.current_period_end else 'the end of your billing period'}."
+            }), 409
+
+        stripe_sub = stripe.Subscription.retrieve(sub.stripe_subscription_id)
+        from app.services.feed_parser import utc_iso
+        now = utc_iso(datetime.now(timezone.utc))
+        period_end = stripe_sub.get("current_period_end")
+
+        if target_tier == "free":
+            # Cancel at period end (downgrade to free)
+            stripe.Subscription.modify(
+                sub.stripe_subscription_id,
+                cancel_at_period_end=True,
+            )
+            sub.cancel_at_period_end = True
+            sub.pending_tier = "free"
+            sub.updated_at = now
+            db.commit()
+        else:
+            # Downgrade to a different paid tier — schedule via Stripe
+            target_price = stripe_client.get_price_id(target_tier)
+            if not target_price:
+                return jsonify({"error": f"Price not configured for {target_tier}."}), 500
+
+            items = stripe_sub.get("items", {}).get("data", [])
+            if not items:
+                return jsonify({"error": "No subscription items found."}), 500
+
+            # Use Stripe subscription schedule to change price at period end
+            stripe.Subscription.modify(
+                sub.stripe_subscription_id,
+                items=[{"id": items[0]["id"], "price": target_price}],
+                proration_behavior="none",
+                billing_cycle_anchor="unchanged",
+            )
+
+            # Record pending downgrade — do NOT change user.tier or sub.tier yet
+            sub.pending_tier = target_tier
+            sub.updated_at = now
+            db.commit()
+
+        # User keeps current tier — webhook handles actual change at period end
+
+        return jsonify({
+            "success": True,
+            "tier": target_tier,
+            "effective_date": period_end,
+            "message": f"Your plan will change to {target_tier.title()} at the end of the current billing period.",
+        })
+
+    except stripe.error.StripeError as e:
+        logger.warning("Stripe downgrade error", extra={
+            "event": "stripe_downgrade_error",
+            "user_id": g.current_user.id,
+            "error": str(e),
+        })
+        return jsonify({"error": str(e)}), 400
+    except Exception as e:
+        db.rollback()
+        logger.warning("Downgrade error", extra={
+            "event": "downgrade_error",
+            "user_id": g.current_user.id,
+            "error": str(e),
+        })
+        return jsonify({"error": "Failed to process downgrade."}), 500
+    finally:
+        db.close()
 
 
 @billing_bp.route("/api/billing/status")
@@ -364,6 +511,10 @@ def _handle_subscription_updated(db, stripe_sub):
     sub.cancel_at_period_end = stripe_sub.get("cancel_at_period_end", False)
     sub.updated_at = now
 
+    # Clear pending downgrade if the tier change has taken effect
+    if sub.pending_tier and sub.pending_tier == tier:
+        sub.pending_tier = None
+
     # Update user tier (downgrade if subscription is no longer active/trialing)
     user = db.query(User).filter_by(id=sub.user_id).first()
     if user:
@@ -383,6 +534,7 @@ def _handle_subscription_deleted(db, stripe_sub):
     now = utc_iso(datetime.now(timezone.utc))
     sub.status = "canceled"
     sub.tier = "free"
+    sub.pending_tier = None
     sub.updated_at = now
 
     user = db.query(User).filter_by(id=sub.user_id).first()

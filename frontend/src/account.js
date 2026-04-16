@@ -91,6 +91,15 @@ import { openCheckoutSidebar } from './checkout.js';
         populatePlans();
         populateBilling(pmData);
         populateKeys();
+
+        // Show pending downgrade/cancel banner
+        var sub = (_billingData && _billingData.subscription) ? _billingData.subscription : null;
+        if (sub && sub.pending_downgrade) {
+          showPendingDowngradeBanner(sub.pending_downgrade, sub.downgrade_date, "Your plan will change at the end of the current billing period.");
+        } else if (sub && sub.cancel_at_period_end) {
+          showPendingDowngradeBanner("free", sub.current_period_end, "Your subscription will be canceled at the end of the current billing period.");
+        }
+
         loadingEl.style.display = "none";
         contentEl.style.display = "block";
       })
@@ -527,11 +536,11 @@ import { openCheckoutSidebar } from './checkout.js';
       var overlayNotice = notice.cloneNode(true);
       overlayNotice.id = "downgrade-notice-overlay";
       overlayGrid.parentNode.insertBefore(overlayNotice, overlayGrid.nextSibling);
-      overlayNotice.querySelector("#btn-confirm-downgrade").addEventListener("click", function () { confirmDowngrade(sub); });
+      overlayNotice.querySelector("#btn-confirm-downgrade").addEventListener("click", function () { confirmDowngrade(targetTier); });
       overlayNotice.querySelector("#btn-cancel-downgrade").addEventListener("click", function () { overlayNotice.remove(); });
     }
 
-    document.getElementById("btn-confirm-downgrade").addEventListener("click", function () { confirmDowngrade(sub); });
+    document.getElementById("btn-confirm-downgrade").addEventListener("click", function () { confirmDowngrade(targetTier); });
     document.getElementById("btn-cancel-downgrade").addEventListener("click", function () {
       notice.remove();
       var on = document.getElementById("downgrade-notice-overlay");
@@ -539,12 +548,60 @@ import { openCheckoutSidebar } from './checkout.js';
     });
   }
 
-  function confirmDowngrade(sub) {
-    if (sub.stripe_customer_id) {
-      openPortal();
-    } else {
-      alert("To complete the downgrade, please contact support@instnews.net");
-    }
+  function confirmDowngrade(targetTier) {
+    var btn = document.getElementById("btn-confirm-downgrade");
+    if (btn) { btn.disabled = true; btn.textContent = "Processing..."; }
+
+    SignalAuth.fetch("/api/billing/downgrade", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ tier: targetTier }),
+    })
+      .then(function (r) { return r.json(); })
+      .then(function (data) {
+        if (data.error) {
+          alert(data.error);
+          if (btn) { btn.disabled = false; btn.textContent = "Confirm Downgrade"; }
+          return;
+        }
+
+        // Dismiss the downgrade notice
+        var notice = document.getElementById("downgrade-notice");
+        if (notice) notice.remove();
+        var overlayNotice = document.getElementById("downgrade-notice-overlay");
+        if (overlayNotice) overlayNotice.remove();
+
+        // Show pending downgrade banner
+        showPendingDowngradeBanner(data.tier, data.effective_date, data.message);
+
+        // Reload the page to reflect changes
+        setTimeout(function () { location.reload(); }, 2000);
+      })
+      .catch(function (err) {
+        alert("Failed to process downgrade. Please try again.");
+        if (btn) { btn.disabled = false; btn.textContent = "Confirm Downgrade"; }
+      });
+  }
+
+  function showPendingDowngradeBanner(tier, effectiveDate, message) {
+    var existing = document.getElementById("pending-downgrade-banner");
+    if (existing) existing.remove();
+
+    var tl = _tierLookup[tier];
+    var tierName = tl ? tl.name : tier;
+    var dateStr = effectiveDate ? formatDate(effectiveDate) : "end of billing period";
+
+    var banner = document.createElement("div");
+    banner.id = "pending-downgrade-banner";
+    banner.style.cssText = "background:rgba(210,153,34,0.08);border:1px solid rgba(210,153,34,0.3);border-radius:10px;padding:16px 20px;margin-bottom:16px;color:#d29922;font-size:13px;line-height:1.6;";
+    banner.innerHTML =
+      '<strong>Pending plan change</strong><br>' +
+      'Your plan will change to <strong>' + tierName + '</strong> on <strong>' + dateStr + '</strong>. ' +
+      'You have full access to your current plan until then.';
+
+    // Insert at top of account content
+    var content = document.querySelector(".account-content") || document.querySelector("main");
+    if (content) content.insertBefore(banner, content.firstChild);
   }
 
   function handleSubscribe(tier) {
@@ -556,7 +613,8 @@ import { openCheckoutSidebar } from './checkout.js';
   }
 
   function doCheckout(tier) {
-    openCheckoutSidebar(tier);
+    // Redirect to pricing page where the checkout sidebar works properly
+    window.location.href = "/pricing?upgrade=" + encodeURIComponent(tier);
   }
 
   function openPortal() {

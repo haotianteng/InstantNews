@@ -230,13 +230,16 @@ def create_test_account():
         })
         return jsonify({"error": f"Firebase user creation failed: {str(e)}"}), 400
 
-    # Step 2: Create DB record
+    # Step 2: Create DB record (store bcrypt hash so email/password login works)
+    from app.auth.own_auth import hash_password
     db = _get_write_db()
     try:
         user = User(
             firebase_uid=firebase_uid,
             email=email,
             display_name=display_name,
+            password_hash=hash_password(password),
+            email_verified=True,
             tier=tier,
             is_test_account=True,
             test_tier_override=tier,

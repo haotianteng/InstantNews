@@ -412,29 +412,28 @@
   <!-- ================================================================= -->
   <!-- Company Profile Modal                                           -->
   <!-- ================================================================= -->
-  <div class="modal-overlay" id="company-profile-overlay">
-    <div class="modal company-profile-modal">
-      <div class="modal-header">
-        <h2 id="company-profile-title">// COMPANY</h2>
-        <button class="modal-close" id="company-profile-close" aria-label="Close">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
-            <line x1="18" y1="6" x2="6" y2="18"/>
-            <line x1="6" y1="6" x2="18" y2="18"/>
-          </svg>
-        </button>
-      </div>
-      <div class="company-profile-tabs">
-        <button class="cp-tab active" data-tab="fundamentals">Fundamentals</button>
-        <button class="cp-tab" data-tab="financials">Financials</button>
-        <button class="cp-tab" data-tab="competitors">Competitors</button>
-        <button class="cp-tab" data-tab="institutions">Institutions</button>
-        <button class="cp-tab" data-tab="insiders">Insiders</button>
-      </div>
-      <div class="modal-body" id="company-profile-body">
-        <!-- Populated by JS -->
-      </div>
+  <aside class="cp-panel" id="company-profile-panel">
+    <div class="cp-panel-header">
+      <h2 id="company-profile-title">// COMPANY</h2>
+      <button class="cp-panel-close" id="company-profile-close" aria-label="Close">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+          <line x1="18" y1="6" x2="6" y2="18"/>
+          <line x1="6" y1="6" x2="18" y2="18"/>
+        </svg>
+      </button>
     </div>
-  </div>
+    <div class="company-profile-tabs">
+      <button class="cp-tab" data-tab="overview" style="display:none">Overview</button>
+      <button class="cp-tab active" data-tab="fundamentals">Fundamentals</button>
+      <button class="cp-tab" data-tab="financials">Financials</button>
+      <button class="cp-tab" data-tab="competitors">Competitors</button>
+      <button class="cp-tab" data-tab="institutions">Institutions</button>
+      <button class="cp-tab" data-tab="insiders">Insiders</button>
+    </div>
+    <div class="cp-panel-body" id="company-profile-body">
+      <!-- Populated by JS -->
+    </div>
+  </aside>
 
   <!-- Auth Gate Overlay -->
   <div class="auth-gate" id="auth-gate">

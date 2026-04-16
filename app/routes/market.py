@@ -23,7 +23,7 @@ _edgar = EdgarClient(db_cache=_cache)
 
 @market_bp.route("/api/market/<symbol>")
 @require_auth
-@limiter.limit("60 per minute")
+@limiter.limit("600 per minute")
 def market_snapshot(symbol: str):
     """Return real-time price data for a ticker symbol."""
     if not _polygon.enabled:
@@ -46,7 +46,7 @@ def market_snapshot(symbol: str):
 
 @market_bp.route("/api/market/<symbol>/details")
 @require_auth
-@limiter.limit("60 per minute")
+@limiter.limit("600 per minute")
 def market_details(symbol: str):
     """Return company fundamentals for a ticker symbol."""
     if not _polygon.enabled:
@@ -54,6 +54,14 @@ def market_details(symbol: str):
             "error": "Market data service unavailable",
             "message": "Polygon.io integration is not configured",
         }), 503, {"Retry-After": "60"}
+
+    # Prevent ticker collision for non-stock assets (e.g., CL=Crude Oil vs CL=Colgate)
+    asset_type = request.args.get("asset_type", "").upper()
+    if asset_type in ("FUTURE", "CURRENCY"):
+        return jsonify({
+            "error": "Not a stock",
+            "message": f"'{symbol.upper()}' is a {asset_type.lower()}, not a stock",
+        }), 400
 
     data = _polygon.get_ticker_details(symbol)
     if data is None:
@@ -65,9 +73,30 @@ def market_details(symbol: str):
     return jsonify(data)
 
 
+@market_bp.route("/api/market/forex/<currency>")
+@require_auth
+@limiter.limit("600 per minute")
+def market_forex(currency: str):
+    """Return forex snapshot for a currency pair vs USD."""
+    if not _polygon.enabled:
+        return jsonify({
+            "error": "Market data service unavailable",
+            "message": "Polygon.io integration is not configured",
+        }), 503, {"Retry-After": "60"}
+
+    data = _polygon.get_forex_snapshot(currency)
+    if data is None:
+        return jsonify({
+            "error": "Currency not found",
+            "message": f"No forex data available for '{currency.upper()}'",
+        }), 404
+
+    return jsonify(data)
+
+
 @market_bp.route("/api/market/<symbol>/financials")
 @require_auth
-@limiter.limit("60 per minute")
+@limiter.limit("600 per minute")
 def market_financials(symbol: str):
     """Return earnings and financial ratios for a ticker symbol."""
     if not _polygon.enabled:
@@ -94,7 +123,7 @@ def market_financials(symbol: str):
 
 @market_bp.route("/api/market/<symbol>/competitors")
 @require_auth
-@limiter.limit("60 per minute")
+@limiter.limit("600 per minute")
 def market_competitors(symbol: str):
     """Return competitor comparison data for a ticker symbol."""
     if not _polygon.enabled:
@@ -118,7 +147,7 @@ def market_competitors(symbol: str):
 
 @market_bp.route("/api/market/<symbol>/institutions")
 @require_auth
-@limiter.limit("60 per minute")
+@limiter.limit("600 per minute")
 def market_institutions(symbol: str):
     """Return institutional holdings (13F) and major position changes (13D/13G)."""
     holders = _edgar.get_institutional_holders(symbol)
@@ -139,7 +168,7 @@ def market_institutions(symbol: str):
 
 @market_bp.route("/api/market/<symbol>/insiders")
 @require_auth
-@limiter.limit("60 per minute")
+@limiter.limit("600 per minute")
 def market_insiders(symbol: str):
     """Return insider transactions from Form 4 filings."""
     transactions = _edgar.get_insider_transactions(symbol)

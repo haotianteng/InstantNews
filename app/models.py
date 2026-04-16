@@ -121,6 +121,7 @@ class Subscription(Base):
     current_period_start = Column(String, nullable=True)  # ISO 8601
     current_period_end = Column(String, nullable=True)    # ISO 8601
     cancel_at_period_end = Column(Boolean, default=False)
+    pending_tier = Column(String, nullable=True)  # scheduled downgrade tier
     created_at = Column(String, nullable=False)
     updated_at = Column(String, nullable=False)
 
@@ -134,6 +135,7 @@ class Subscription(Base):
             "id": self.id,
             "status": self.status,
             "tier": self.tier,
+            "pending_tier": self.pending_tier,
             "current_period_start": self.current_period_start,
             "current_period_end": self.current_period_end,
             "cancel_at_period_end": self.cancel_at_period_end,
@@ -146,6 +148,13 @@ class Subscription(Base):
                 label += f" (ends {self.current_period_end[:10]})"
             result["status_label"] = label
             result["trial_end"] = self.current_period_end
+        elif self.pending_tier and self.status == "active":
+            label = f"Downgrading to {self.pending_tier.title()}"
+            if self.current_period_end:
+                label += f" (on {self.current_period_end[:10]})"
+            result["status_label"] = label
+            result["pending_downgrade"] = self.pending_tier
+            result["downgrade_date"] = self.current_period_end
         elif self.cancel_at_period_end and self.status == "active":
             label = "Canceling"
             if self.current_period_end:
