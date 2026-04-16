@@ -30,7 +30,6 @@ const COLUMN_DEFS = [
   { id: 'ticker', label: 'Ticker', defaultVisible: false, required: false, requiredFeature: 'ai_ticker_recommendations' },
   { id: 'confidence', label: 'Confidence', defaultVisible: false, required: false, requiredFeature: 'ai_ticker_recommendations' },
   { id: 'risk', label: 'Risk Level', defaultVisible: false, required: false, requiredFeature: 'ai_ticker_recommendations' },
-  { id: 'tradeable', label: 'Tradeable', defaultVisible: false, required: false, requiredFeature: 'ai_ticker_recommendations' },
 ];
 
 const LS_COLUMN_KEY = 'instnews_column_visibility';
@@ -48,22 +47,22 @@ const COLUMN_PRESETS = {
     name: 'News Focus',
     icon: '\u{1F4F0}',
     description: 'Headlines, sources, and summaries at a glance.',
-    visibility: { time: true, sentiment: false, source: true, headline: true, summary: true, ticker: false, confidence: false, risk: false, tradeable: false },
-    order: ['time', 'source', 'headline', 'summary', 'sentiment', 'ticker', 'confidence', 'risk', 'tradeable'],
+    visibility: { time: true, sentiment: false, source: true, headline: true, summary: true, ticker: false, confidence: false, risk: false },
+    order: ['time', 'source', 'headline', 'summary', 'sentiment', 'ticker', 'confidence', 'risk'],
   },
   trading: {
     name: 'Trading View',
     icon: '\u{1F4C8}',
     description: 'Sentiment, tickers, and risk signals for active traders.',
-    visibility: { time: true, sentiment: true, source: false, headline: true, summary: false, ticker: true, confidence: true, risk: true, tradeable: false },
-    order: ['time', 'sentiment', 'ticker', 'headline', 'confidence', 'risk', 'tradeable', 'source', 'summary'],
+    visibility: { time: true, sentiment: true, source: false, headline: true, summary: false, ticker: true, confidence: true, risk: true },
+    order: ['time', 'sentiment', 'ticker', 'headline', 'confidence', 'risk', 'source', 'summary'],
   },
   full: {
     name: 'Full Terminal',
     icon: '\u{1F5A5}\uFE0F',
     description: 'Every column enabled \u2014 maximum information density.',
-    visibility: { time: true, sentiment: true, source: true, headline: true, summary: true, ticker: true, confidence: true, risk: true, tradeable: true },
-    order: ['time', 'sentiment', 'source', 'headline', 'summary', 'ticker', 'confidence', 'risk', 'tradeable'],
+    visibility: { time: true, sentiment: true, source: true, headline: true, summary: true, ticker: true, confidence: true, risk: true },
+    order: ['time', 'sentiment', 'source', 'headline', 'summary', 'ticker', 'confidence', 'risk'],
   },
 };
 
@@ -819,8 +818,10 @@ function renderCell(colId, item, isFresh, dupBadge) {
       return `<td class="cell-sentiment"><span class="sentiment-badge ${item.sentiment_label}"><span class="sentiment-dot"></span>${item.sentiment_label}</span></td>`;
     case 'source':
       return `<td class="cell-source"><span class="source-tag">${escapeHtml(item.source || "")}</span></td>`;
-    case 'headline':
-      return `<td class="cell-headline"><a href="${escapeHtml(item.link || "#")}" target="_blank" rel="noopener noreferrer">${escapeHtml(item.title || "Untitled")}</a>${isFresh ? '<span class="badge-new">NEW</span>' : ''}${dupBadge}</td>`;
+    case 'headline': {
+      const bolt = item.tradeable ? '<span class="t-bolt"><img src="./assets/lightneingClearBG.png" alt="Tradeable"></span>' : '';
+      return `<td class="cell-headline"><a href="${escapeHtml(item.link || "#")}" target="_blank" rel="noopener noreferrer">${escapeHtml(item.title || "Untitled")}</a>${isFresh ? '<span class="badge-new">NEW</span>' : ''}${bolt}${dupBadge}</td>`;
+    }
     case 'summary':
       return `<td class="cell-summary">${escapeHtml(truncate(item.summary, 120))}</td>`;
     case 'ticker': {
@@ -862,9 +863,6 @@ function renderCell(colId, item, isFresh, dupBadge) {
       const rc = rl === 'low' ? 'green' : rl === 'high' ? 'red' : 'yellow';
       return `<td class="cell-risk"><span class="risk-badge ${rc}">${escapeHtml(item.risk_level.toUpperCase())}</span></td>`;
     }
-    case 'tradeable':
-      if (item.tradeable == null) return '<td class="cell-tradeable"><span class="cell-dash">\u2014</span></td>';
-      return `<td class="cell-tradeable"><span class="tradeable-badge ${item.tradeable ? 'yes' : 'no'}">${item.tradeable ? 'YES' : 'NO'}</span></td>`;
     default:
       return '<td></td>';
   }
@@ -2013,14 +2011,9 @@ async function loadCompanyInstitutions(symbol) {
     return;
   }
 
-  body.innerHTML = `<div class="cp-loading">
-    <div class="cp-loading-row"><div class="skeleton" style="width:70%;height:20px"></div></div>
-    <div class="cp-loading-row"><div class="skeleton" style="width:50%;height:16px"></div></div>
-    <div class="cp-loading-row" style="margin-top:12px"><div class="skeleton" style="width:100%;height:40px"></div></div>
-    <div class="cp-loading-row"><div class="skeleton" style="width:100%;height:40px"></div></div>
-    <div class="cp-loading-row"><div class="skeleton" style="width:100%;height:40px"></div></div>
-    <div class="cp-loading-row"><div class="skeleton" style="width:100%;height:40px"></div></div>
-    <div class="cp-loading-row"><div class="skeleton" style="width:100%;height:40px"></div></div>
+  body.innerHTML = `<div class="cp-spinner-wrap">
+    <div class="cp-spinner"></div>
+    <span class="cp-spinner-text">Loading institutional data\u2026</span>
   </div>`;
 
   try {
@@ -2204,14 +2197,9 @@ async function loadCompanyInsiders(symbol) {
     return;
   }
 
-  body.innerHTML = `<div class="cp-loading">
-    <div class="cp-loading-row"><div class="skeleton" style="width:70%;height:20px"></div></div>
-    <div class="cp-loading-row"><div class="skeleton" style="width:50%;height:16px"></div></div>
-    <div class="cp-loading-row" style="margin-top:12px"><div class="skeleton" style="width:100%;height:40px"></div></div>
-    <div class="cp-loading-row"><div class="skeleton" style="width:100%;height:40px"></div></div>
-    <div class="cp-loading-row"><div class="skeleton" style="width:100%;height:40px"></div></div>
-    <div class="cp-loading-row"><div class="skeleton" style="width:100%;height:40px"></div></div>
-    <div class="cp-loading-row"><div class="skeleton" style="width:100%;height:40px"></div></div>
+  body.innerHTML = `<div class="cp-spinner-wrap">
+    <div class="cp-spinner"></div>
+    <span class="cp-spinner-text">Loading insider transactions\u2026</span>
   </div>`;
 
   try {

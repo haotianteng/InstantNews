@@ -11,7 +11,7 @@ from sqlalchemy import engine_from_config, pool
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from app.database import Base
-from app.models import News, Meta  # noqa: F401 — ensure models are registered
+from app.models import News, Meta, CompanyDataCache  # noqa: F401 — ensure models are registered
 
 config = context.config
 

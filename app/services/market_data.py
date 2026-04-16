@@ -42,9 +42,10 @@ class _CacheEntry:
 class PolygonClient:
     """Client for Polygon.io market data API with in-memory caching."""
 
-    def __init__(self, api_key: Optional[str] = None) -> None:
+    def __init__(self, api_key: Optional[str] = None, db_cache=None) -> None:
         self._api_key = api_key or POLYGON_API_KEY
         self._enabled = bool(self._api_key)
+        self._db_cache = db_cache
         self._snapshot_cache: dict[str, _CacheEntry] = {}
         self._details_cache: dict[str, _CacheEntry] = {}
         self._financials_cache: dict[str, _CacheEntry] = {}
@@ -158,6 +159,16 @@ class PolygonClient:
         if cached and cached.is_valid():
             return cached.value
 
+        # L2: database cache
+        if self._db_cache:
+            db_hit = self._db_cache.get(symbol, "details")
+            if db_hit is not None:
+                # Re-append API key to logo_url
+                if db_hit.get("logo_url") and self._api_key:
+                    db_hit["logo_url"] = f"{db_hit['logo_url']}?apiKey={self._api_key}"
+                self._details_cache[symbol] = _CacheEntry(db_hit, DETAILS_TTL)
+                return db_hit
+
         try:
             url = f"{POLYGON_BASE_URL}/v3/reference/tickers/{symbol}"
             resp = self._session.get(url, params={"apiKey": self._api_key}, timeout=10)
@@ -183,6 +194,14 @@ class PolygonClient:
                 "description": results.get("description", ""),
                 "homepage_url": results.get("homepage_url", ""),
             }
+
+            # L2: write-through (strip API key from logo_url before storing)
+            if self._db_cache:
+                cache_data = dict(result)
+                logo = cache_data.get("logo_url", "")
+                if "?apiKey=" in logo:
+                    cache_data["logo_url"] = logo.split("?apiKey=")[0]
+                self._db_cache.put(symbol, "details", cache_data)
 
             self._details_cache[symbol] = _CacheEntry(result, DETAILS_TTL)
             return result
@@ -212,6 +231,13 @@ class PolygonClient:
         cached = self._financials_cache.get(symbol)
         if cached and cached.is_valid():
             return cached.value
+
+        # L2: database cache
+        if self._db_cache:
+            db_hit = self._db_cache.get(symbol, "financials")
+            if db_hit is not None:
+                self._financials_cache[symbol] = _CacheEntry(db_hit, FINANCIALS_TTL)
+                return db_hit
 
         try:
             url = f"{POLYGON_BASE_URL}/vX/reference/financials"
@@ -272,6 +298,8 @@ class PolygonClient:
                 "pe_ratio": pe_ratio,
             }
 
+            if self._db_cache:
+                self._db_cache.put(symbol, "financials", result)
             self._financials_cache[symbol] = _CacheEntry(result, FINANCIALS_TTL)
             return result
 
@@ -300,6 +328,13 @@ class PolygonClient:
         cached = self._earnings_cache.get(symbol)
         if cached and cached.is_valid():
             return cached.value
+
+        # L2: database cache
+        if self._db_cache:
+            db_hit = self._db_cache.get(symbol, "earnings")
+            if db_hit is not None:
+                self._earnings_cache[symbol] = _CacheEntry(db_hit, FINANCIALS_TTL)
+                return db_hit
 
         try:
             url = f"{POLYGON_BASE_URL}/vX/reference/financials"
@@ -332,6 +367,8 @@ class PolygonClient:
                 "earnings": earnings,
             }
 
+            if self._db_cache:
+                self._db_cache.put(symbol, "earnings", result)
             self._earnings_cache[symbol] = _CacheEntry(result, FINANCIALS_TTL)
             return result
 
@@ -359,6 +396,13 @@ class PolygonClient:
         cached = self._competitors_cache.get(symbol)
         if cached and cached.is_valid():
             return cached.value
+
+        # L2: database cache
+        if self._db_cache:
+            db_hit = self._db_cache.get(symbol, "competitors")
+            if db_hit is not None:
+                self._competitors_cache[symbol] = _CacheEntry(db_hit, COMPETITORS_TTL)
+                return db_hit
 
         try:
             url = f"{POLYGON_BASE_URL}/v1/related-companies/{symbol}"
@@ -396,6 +440,8 @@ class PolygonClient:
             )
             result = candidates[:5]
 
+            if self._db_cache:
+                self._db_cache.put(symbol, "competitors", result)
             self._competitors_cache[symbol] = _CacheEntry(result, COMPETITORS_TTL)
             return result
 

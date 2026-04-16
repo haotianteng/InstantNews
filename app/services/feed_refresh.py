@@ -212,6 +212,15 @@ def _run_bedrock_analysis(session_factory, article_ids):
             "failure_count": failure_count,
             "elapsed_seconds": elapsed,
         })
+
+        # Proactive warm-up: pre-fetch company data for tagged tickers
+        symbols_to_warm = {
+            a["target_asset"] for a in results.values()
+            if a and a.get("target_asset")
+        }
+        if symbols_to_warm:
+            _warm_company_cache(symbols_to_warm)
+
     except Exception as e:
         session.rollback()
         elapsed = round(time.time() - start_time, 2)
@@ -223,6 +232,32 @@ def _run_bedrock_analysis(session_factory, article_ids):
         })
     finally:
         session.close()
+
+
+def _warm_company_cache(symbols):
+    """Background warm-up of company data cache for ticker symbols."""
+    def _do_warm():
+        try:
+            from app.services.cache_manager import CompanyCache
+            from app.services.market_data import PolygonClient
+            cache = CompanyCache()
+            client = PolygonClient(db_cache=cache)
+            if not client.enabled:
+                return
+            stale = cache.warm(symbols, ["details", "financials"])
+            for symbol, data_type in stale:
+                try:
+                    if data_type == "details":
+                        client.get_ticker_details(symbol)
+                    elif data_type == "financials":
+                        client.get_financials(symbol)
+                except Exception:
+                    pass  # best-effort
+        except Exception as e:
+            logger.warning("Cache warm-up error: %s", e)
+
+    t = Thread(target=_do_warm, daemon=True)
+    t.start()
 
 
 def maybe_refresh(session_factory, config):

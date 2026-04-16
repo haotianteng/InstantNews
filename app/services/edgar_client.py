@@ -59,12 +59,13 @@ class _CacheEntry:
 class EdgarClient:
     """Client for SEC EDGAR filings with in-memory caching and rate limiting."""
 
-    def __init__(self) -> None:
+    def __init__(self, db_cache=None) -> None:
         self._session = requests.Session()
         self._session.headers.update({
             "User-Agent": EDGAR_USER_AGENT,
             "Accept-Encoding": "gzip, deflate",
         })
+        self._db_cache = db_cache
         self._last_request_time = 0.0
         self._cik_cache: dict[str, _CacheEntry] = {}
         self._company_names: dict[str, str] = {}  # symbol → company title
@@ -128,6 +129,13 @@ class EdgarClient:
         cached = self._institutional_cache.get(symbol)
         if cached and cached.is_valid():
             return cached.value
+
+        # L2: database cache
+        if self._db_cache:
+            db_hit = self._db_cache.get(symbol, "institutional")
+            if db_hit is not None:
+                self._institutional_cache[symbol] = _CacheEntry(db_hit, INSTITUTIONAL_TTL)
+                return db_hit
 
         try:
             # Resolve company name for searching 13F info tables
@@ -196,6 +204,8 @@ class EdgarClient:
             # Sort by value descending (entries with data first, then nulls)
             holders.sort(key=lambda h: h["value"] or 0, reverse=True)
 
+            if self._db_cache:
+                self._db_cache.put(symbol, "institutional", holders)
             self._institutional_cache[symbol] = _CacheEntry(holders, INSTITUTIONAL_TTL)
             return holders
 
@@ -299,6 +309,13 @@ class EdgarClient:
         if cached and cached.is_valid():
             return cached.value
 
+        # L2: database cache
+        if self._db_cache:
+            db_hit = self._db_cache.get(symbol, "positions")
+            if db_hit is not None:
+                self._position_cache[symbol] = _CacheEntry(db_hit, POSITION_CHANGE_TTL)
+                return db_hit
+
         try:
             # Resolve CIK and company name for search filtering
             target_cik = self._resolve_cik(symbol)
@@ -383,6 +400,8 @@ class EdgarClient:
                     if len(results) >= limit:
                         break
 
+            if self._db_cache:
+                self._db_cache.put(symbol, "positions", results)
             self._position_cache[symbol] = _CacheEntry(results, POSITION_CHANGE_TTL)
             return results
 
@@ -463,6 +482,13 @@ class EdgarClient:
         if cached and cached.is_valid():
             return cached.value
 
+        # L2: database cache
+        if self._db_cache:
+            db_hit = self._db_cache.get(symbol, "insiders")
+            if db_hit is not None:
+                self._insider_cache[symbol] = _CacheEntry(db_hit, INSIDER_TTL)
+                return db_hit
+
         try:
             cik = self._resolve_cik(symbol)
             if not cik:
@@ -504,6 +530,8 @@ class EdgarClient:
                 if len(results) >= limit:
                     break
 
+            if self._db_cache:
+                self._db_cache.put(symbol, "insiders", results)
             self._insider_cache[symbol] = _CacheEntry(results, INSIDER_TTL)
             return results
 

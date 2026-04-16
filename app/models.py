@@ -239,3 +239,20 @@ class Meta(Base):
 
     key = Column(String, primary_key=True)
     value = Column(Text)
+
+
+class CompanyDataCache(Base):
+    __tablename__ = "company_data_cache"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    symbol = Column(String(20), nullable=False)
+    data_type = Column(String(30), nullable=False)
+    payload = Column(Text, nullable=False)
+    fetched_at = Column(String, nullable=False)
+    ttl_seconds = Column(Integer, nullable=False)
+
+    __table_args__ = (
+        UniqueConstraint("symbol", "data_type", name="uq_cache_symbol_dtype"),
+        Index("idx_cache_symbol", "symbol"),
+        Index("idx_cache_fetched", "fetched_at"),
+    )

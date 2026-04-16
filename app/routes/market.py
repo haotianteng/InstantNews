@@ -7,6 +7,7 @@ from flask import Blueprint, jsonify, request
 
 from app.auth.middleware import require_auth
 from app.middleware.rate_limit import limiter
+from app.services.cache_manager import CompanyCache
 from app.services.edgar_client import EdgarClient
 from app.services.market_data import PolygonClient
 
@@ -14,9 +15,10 @@ logger = logging.getLogger("signal.market")
 
 market_bp = Blueprint("market", __name__)
 
-# Singleton clients
-_polygon = PolygonClient()
-_edgar = EdgarClient()
+# Shared L2 cache + singleton clients
+_cache = CompanyCache()
+_polygon = PolygonClient(db_cache=_cache)
+_edgar = EdgarClient(db_cache=_cache)
 
 
 @market_bp.route("/api/market/<symbol>")
