@@ -1031,3 +1031,48 @@ Add a modal HTML block to `frontend/terminal.html` (after the detail-modal-overl
   - 8 pre-existing test failures in test_tiers.py/test_rate_limit.py are NOT related to this story
   - Vite build required: `cd frontend && npx vite build`
 ---
+
+## 2026-04-15 10:40 EDT - US-020 - TESTER — TEST_PASSED
+
+- **Assertion 1**: `python -c "from app.services.exchange_registry import ExchangeRegistry; r = ExchangeRegistry(); print(r.get_status('NYSE'))"` — exit 0, returns `{'exchange': 'NYSE', 'name': 'New York Stock Exchange', 'market_status': 'open', 'next_open': '2026-04-16T09:30:00-04:00', 'next_close': '2026-04-15T16:00:00-04:00'}`
+- **Assertion 2**: `pytest tests/ -v -k 'market_hours or exchange'` — 16/16 passed in 0.06s
+- **Assertion 3**: `mypy app/services/exchange_registry.py app/services/market_data.py` — "Success: no issues found in 2 source files"
+- **Assertion 4**: US ticker badges — API returns `market_status: "open"`, `exchange: "NYSE"` for AAPL. Green dot renders correctly (rgb(63,185,80), 6px circle).
+- **Assertion 5**: International ticker HSBA.L — suffix detection maps to LSE. Green dot visible in UI.
+- **Assertion 6**: Futures ES with `?asset_type=FUTURE` — API returns `market_status: "24h"`, `exchange: "FUTURES"`. Blue dot (rgb(88,166,255)) renders correctly with "24H" label.
+- **Additional AC verification**: Extensibility confirmed (added SSE via config without code changes). All 5 exchanges (NYSE/NASDAQ/LSE/TSE/HKEX) present with correct hours including lunch breaks.
+- **Learnings:**
+  - Server runs with `debug=False` — does NOT auto-reload on code changes. Must restart manually after implementation commits.
+  - Local DB has no AI-analyzed articles (all target_asset=null), so the natural fetchMarketPrices() → renderNews() flow doesn't trigger market dots. Verified rendering via authenticated API calls + CSS injection into DOM.
+  - 8 pre-existing test failures in test_tiers.py/test_rate_limit.py are NOT related to this story.
+- **Artifacts**: `ralph/test_results/US-020/attempt-1/` — screenshots, API responses, test logs
+---
+
+## 2026-04-15 - US-021 - IMPLEMENTOR — Implemented Column Onboarding Overlay
+
+- Added first-visit column layout chooser for Max-tier users
+- **New JS functions** in `terminal-app.js`:
+  - `COLUMN_PRESETS` — 3 preset definitions (News Focus, Trading View, Full Terminal)
+  - `shouldShowOnboarding()` — guards: Max-tier only, no existing localStorage config, not already dismissed
+  - `applyColumnPreset(key)` — sets columnVisibility + columnOrder from preset, saves to localStorage, re-renders
+  - `showOnboarding()` — builds overlay DOM with 3 preset cards + "Customize later" skip link
+  - `dismissOnboarding()` — sets `instnews_onboarding_done` in localStorage, removes overlay
+- **Hook point**: `fetchTier()` calls `showOnboarding()` after confirming non-free tier (in the `else` branch of the upgrade gate)
+- **CSS**: New `.onboarding-*` classes in `terminal.css` — overlay, card, presets grid, column tag pills, responsive at 600px
+- **Preset column sets match AC exactly**:
+  - News Focus: Time, Source, Headline, Summary
+  - Trading View: Time, Sentiment, Ticker, Headline, Confidence, Risk Level
+  - Full Terminal: all 9 columns
+- **Self-validation**: `cd frontend && npx vite build` exits 0
+- **Files changed:** `frontend/src/terminal-app.js`, `frontend/src/styles/terminal.css`
+- **Environment notes for Tester:**
+  - Start backend: `python server.py`, frontend: `cd frontend && npm run dev`
+  - Test at `http://localhost:5173/terminal`
+  - To trigger onboarding: clear all localStorage (`localStorage.clear()`) or specifically remove `instnews_column_visibility`, `instnews_column_order`, `instnews_column_widths`, and `instnews_onboarding_done`
+  - Login with Max-tier test account (see playwrightTestConfig in prd.json)
+  - After login + tier fetch, onboarding overlay should appear
+  - For Pro-tier test: need a Pro-tier account or mock `/api/auth/tier` to return `{"tier": "pro"}`
+  - The overlay id is `#onboarding-overlay` — can check DOM presence
+  - Preset buttons have `data-preset="news|trading|full"` attributes
+  - After clicking a preset, verify columns via column settings panel (`#btn-col-settings`)
+---
