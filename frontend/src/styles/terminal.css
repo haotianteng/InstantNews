@@ -2745,6 +2745,129 @@
 }
 
 /* =========================================================================
+   Column Onboarding Overlay
+   ========================================================================= */
+
+.onboarding-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(1, 4, 9, 0.92);
+  animation: onboarding-fade-in 0.25s ease-out;
+}
+
+@keyframes onboarding-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.onboarding-card {
+  max-width: 600px;
+  width: 90%;
+  padding: var(--sp-8);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--bg-surface);
+  text-align: center;
+}
+
+.onboarding-card h2 {
+  margin: 0 0 var(--sp-2);
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.onboarding-card p {
+  margin: 0 0 var(--sp-6);
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--text-secondary);
+}
+
+.onboarding-presets {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--sp-3);
+  margin-bottom: var(--sp-6);
+}
+
+.onboarding-preset {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+  padding: var(--sp-4);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg-primary);
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+  text-align: left;
+}
+
+.onboarding-preset:hover {
+  border-color: var(--blue);
+  background: var(--blue-bg);
+}
+
+.onboarding-preset-icon {
+  font-size: 22px;
+  line-height: 1;
+}
+
+.onboarding-preset-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.onboarding-preset-desc {
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--text-secondary);
+}
+
+.onboarding-preset-cols {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: var(--sp-1);
+}
+
+.onboarding-preset-cols span {
+  display: inline-block;
+  padding: 1px 6px;
+  font-size: 10px;
+  border-radius: 3px;
+  background: var(--bg-surface-3);
+  color: var(--text-muted);
+}
+
+.onboarding-skip {
+  display: inline-block;
+  font-size: 13px;
+  color: var(--text-muted);
+  cursor: pointer;
+  text-decoration: underline;
+  background: none;
+  border: none;
+  padding: 0;
+}
+
+.onboarding-skip:hover {
+  color: var(--text-secondary);
+}
+
+@media (max-width: 600px) {
+  .onboarding-presets {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* =========================================================================
    Reduced motion
    ========================================================================= */
 

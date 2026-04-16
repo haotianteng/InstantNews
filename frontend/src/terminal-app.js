@@ -36,7 +36,36 @@ const COLUMN_DEFS = [
 const LS_COLUMN_KEY = 'instnews_column_visibility';
 const LS_COLUMN_ORDER_KEY = 'instnews_column_order';
 const LS_COLUMN_WIDTHS_KEY = 'instnews_column_widths';
+const LS_ONBOARDING_KEY = 'instnews_onboarding_done';
 const MIN_COL_WIDTH = 60;
+
+// ---------------------------------------------------------------------------
+// Column Layout Presets (for onboarding)
+// ---------------------------------------------------------------------------
+
+const COLUMN_PRESETS = {
+  news: {
+    name: 'News Focus',
+    icon: '\u{1F4F0}',
+    description: 'Headlines, sources, and summaries at a glance.',
+    visibility: { time: true, sentiment: false, source: true, headline: true, summary: true, ticker: false, confidence: false, risk: false, tradeable: false },
+    order: ['time', 'source', 'headline', 'summary', 'sentiment', 'ticker', 'confidence', 'risk', 'tradeable'],
+  },
+  trading: {
+    name: 'Trading View',
+    icon: '\u{1F4C8}',
+    description: 'Sentiment, tickers, and risk signals for active traders.',
+    visibility: { time: true, sentiment: true, source: false, headline: true, summary: false, ticker: true, confidence: true, risk: true, tradeable: false },
+    order: ['time', 'sentiment', 'ticker', 'headline', 'confidence', 'risk', 'tradeable', 'source', 'summary'],
+  },
+  full: {
+    name: 'Full Terminal',
+    icon: '\u{1F5A5}\uFE0F',
+    description: 'Every column enabled \u2014 maximum information density.',
+    visibility: { time: true, sentiment: true, source: true, headline: true, summary: true, ticker: true, confidence: true, risk: true, tradeable: true },
+    order: ['time', 'sentiment', 'source', 'headline', 'summary', 'ticker', 'confidence', 'risk', 'tradeable'],
+  },
+};
 
 // ---------------------------------------------------------------------------
 // State
@@ -490,6 +519,95 @@ function getVisibleColumns() {
     if (isColumnLocked(col)) return false;
     return state.columnVisibility[col.id] !== false;
   });
+}
+
+// ---------------------------------------------------------------------------
+// Column Onboarding
+// ---------------------------------------------------------------------------
+
+function hasExistingColumnConfig() {
+  return localStorage.getItem(LS_COLUMN_KEY) !== null
+    || localStorage.getItem(LS_COLUMN_ORDER_KEY) !== null
+    || localStorage.getItem(LS_COLUMN_WIDTHS_KEY) !== null;
+}
+
+function shouldShowOnboarding() {
+  if (state.userTier !== 'max') return false;
+  if (localStorage.getItem(LS_ONBOARDING_KEY)) return false;
+  if (hasExistingColumnConfig()) return false;
+  return true;
+}
+
+function applyColumnPreset(presetKey) {
+  const preset = COLUMN_PRESETS[presetKey];
+  if (!preset) return;
+  state.columnVisibility = { ...preset.visibility };
+  state.columnOrder = [...preset.order];
+  state.columnWidths = {};
+  saveColumnVisibility();
+  saveColumnOrder();
+  saveColumnWidths();
+  renderTableHeader();
+  renderColumnSettings();
+  renderNews();
+}
+
+function dismissOnboarding() {
+  try {
+    localStorage.setItem(LS_ONBOARDING_KEY, '1');
+  } catch {
+    // Silent
+  }
+  const overlay = $('#onboarding-overlay');
+  if (overlay) overlay.remove();
+}
+
+function showOnboarding() {
+  if (!shouldShowOnboarding()) return;
+
+  const overlay = document.createElement('div');
+  overlay.id = 'onboarding-overlay';
+  overlay.className = 'onboarding-overlay';
+
+  const presetCards = Object.entries(COLUMN_PRESETS).map(([key, preset]) => {
+    const colTags = COLUMN_DEFS
+      .filter(c => preset.visibility[c.id])
+      .map(c => `<span>${c.label}</span>`)
+      .join('');
+    return `<div class="onboarding-preset" data-preset="${key}">
+      <div class="onboarding-preset-icon">${preset.icon}</div>
+      <div class="onboarding-preset-name">${preset.name}</div>
+      <div class="onboarding-preset-desc">${preset.description}</div>
+      <div class="onboarding-preset-cols">${colTags}</div>
+    </div>`;
+  }).join('');
+
+  overlay.innerHTML = `<div class="onboarding-card">
+    <h2>Choose Your Layout</h2>
+    <p>Pick a starting layout for your terminal. You can always customize columns later.</p>
+    <div class="onboarding-presets">${presetCards}</div>
+    <button class="onboarding-skip" id="onboarding-skip">Customize later</button>
+  </div>`;
+
+  document.body.appendChild(overlay);
+
+  // Bind preset clicks
+  overlay.querySelectorAll('.onboarding-preset').forEach(card => {
+    card.addEventListener('click', () => {
+      const key = card.getAttribute('data-preset');
+      applyColumnPreset(key);
+      dismissOnboarding();
+    });
+  });
+
+  // "Customize later" applies Full Terminal and dismisses
+  const skipBtn = overlay.querySelector('#onboarding-skip');
+  if (skipBtn) {
+    skipBtn.addEventListener('click', () => {
+      applyColumnPreset('full');
+      dismissOnboarding();
+    });
+  }
 }
 
 function renderTableHeader() {
@@ -2349,6 +2467,8 @@ async function fetchTier() {
       showUpgradeGate();
     } else {
       hideUpgradeGate();
+      // Show column onboarding for first-visit Max users
+      showOnboarding();
     }
   } catch {
     // silent
