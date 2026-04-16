@@ -57,8 +57,8 @@ class TestTierConfig:
         assert has_feature("max", "ai_ticker_recommendations")
         assert has_feature("max", "price_analysis")
 
-    def test_max_is_hidden(self):
-        assert TIERS["max"]["visible"] is False
+    def test_max_is_visible(self):
+        assert TIERS["max"]["visible"] is True
 
     def test_pro_is_visible(self):
         assert TIERS["pro"]["visible"] is True
@@ -72,13 +72,12 @@ class TestTierConfig:
         tier = get_tier("nonexistent")
         assert tier == TIERS["free"]
 
-    def test_get_all_tiers_summary_excludes_hidden(self):
+    def test_get_all_tiers_summary_includes_visible(self):
         summary = get_all_tiers_summary()
-        assert "free" in summary
-        assert "pro" in summary
-        assert "max" not in summary
-        assert "plus" not in summary
-        assert summary["pro"]["price_monthly_cents"] == 1499
+        tier_keys = [t["key"] for t in summary]
+        assert "free" in tier_keys
+        assert "pro" in tier_keys
+        assert "max" in tier_keys
 
     def test_pro_has_trial(self):
         assert TIERS["pro"]["trial_period_days"] == 30
@@ -183,15 +182,14 @@ class TestTierGatingDecorator:
 class TestTerminalAccessGating:
     """Terminal route must redirect Free/unauthenticated users."""
 
-    def test_anonymous_user_redirected_from_terminal(self, client):
-        """Unauthenticated visitor should be redirected to landing page."""
+    def test_anonymous_user_sees_terminal_page(self, client):
+        """Unauthenticated visitor gets the terminal page (frontend handles gating)."""
         resp = client.get("/terminal")
-        assert resp.status_code == 302
-        assert "/?upgrade=terminal" in resp.headers["Location"]
+        assert resp.status_code == 200
 
     @patch(VERIFY_PATCH, return_value={**MOCK_TOKEN, "uid": "free-terminal-user"})
-    def test_free_user_redirected_from_terminal(self, mock_verify, client, session_factory):
-        """Free-tier authenticated user should be redirected."""
+    def test_free_user_sees_terminal_page(self, mock_verify, client, session_factory):
+        """Free-tier user gets the terminal page (frontend shows upgrade gate)."""
         from app.models import User
         from app.services.feed_parser import utc_iso
         from datetime import datetime, timezone
@@ -207,8 +205,7 @@ class TestTerminalAccessGating:
         resp = client.get("/terminal", headers={
             "Authorization": "Bearer fake"
         })
-        assert resp.status_code == 302
-        assert "/?upgrade=terminal" in resp.headers["Location"]
+        assert resp.status_code == 200
 
     @patch(VERIFY_PATCH, return_value={**MOCK_TOKEN, "uid": "pro-terminal-user"})
     def test_pro_user_can_access_terminal(self, mock_verify, client, session_factory):
@@ -248,13 +245,14 @@ class TestTerminalAccessGating:
 
 
 class TestPricingEndpoint:
-    def test_pricing_returns_visible_tiers_only(self, client):
+    def test_pricing_returns_visible_tiers(self, client):
         resp = client.get("/api/pricing")
         assert resp.status_code == 200
         data = resp.get_json()
-        assert "free" in data["tiers"]
-        assert "pro" in data["tiers"]
-        assert "max" not in data["tiers"]
-        assert "plus" not in data["tiers"]
-        assert data["tiers"]["pro"]["price_monthly_cents"] == 1499
-        assert data["tiers"]["pro"]["trial_period_days"] == 30
+        tier_keys = [t["key"] for t in data["tiers"]]
+        assert "free" in tier_keys
+        assert "pro" in tier_keys
+        assert "max" in tier_keys
+        pro = next(t for t in data["tiers"] if t["key"] == "pro")
+        assert pro["price_monthly_cents"] == 2999
+        assert pro["trial_period_days"] == 30
