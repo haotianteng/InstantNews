@@ -783,13 +783,13 @@
         "Reload \u2014 onboarding does NOT appear again",
         "Clear localStorage, visit as Pro user \u2014 onboarding does NOT appear"
       ],
-      "status": "READY_FOR_TEST",
-      "passes": false,
+      "status": "TEST_PASSED",
+      "passes": true,
       "implementation_notes": "Added column onboarding overlay system. On first visit, Max-tier users with no existing localStorage column config see a full-screen overlay with 3 preset layout cards: News Focus (Time, Source, Headline, Summary), Trading View (Time, Sentiment, Ticker, Headline, Confidence, Risk Level), Full Terminal (all columns). Clicking a preset applies column visibility + order via existing save infrastructure and dismisses the overlay. 'Customize later' link applies Full Terminal preset. localStorage key 'instnews_onboarding_done' prevents re-showing. Non-Max users skip entirely (shouldShowOnboarding checks state.userTier). Hook point is in fetchTier() after tier is confirmed and upgrade gate is resolved. CSS uses existing design tokens. Vite build passes.",
       "files_changed": ["frontend/src/terminal-app.js", "frontend/src/styles/terminal.css"],
       "failure_reason": null,
-      "test_evidence": null,
-      "test_report": null,
+      "test_evidence": "All 5 test assertions pass. Assertion 1: Vite build exits 0 (29 modules, 384ms). Assertion 2: localStorage.clear() + Firebase sign-in as Max user → #onboarding-overlay exists with display:flex, 3 preset cards (news/trading/full) with correct column tags, 'Customize later' link. Assertion 3: Click Trading View card → overlay removed from DOM, localStorage instnews_column_visibility={time:true,sentiment:true,source:false,headline:true,summary:false,ticker:true,confidence:true,risk:true,tradeable:false}, instnews_column_order=[time,sentiment,ticker,headline,confidence,risk,...], instnews_onboarding_done='1'. Table headers: Time,Sentiment,Ticker,Headline,Confidence,Risk Level. Assertion 4: page.goto reload → tierBadge='MAX', onboarding overlay does NOT exist, columns persist as Trading View preset. Assertion 5: page.route mock returning {tier:'pro'} + localStorage.clear() + Firebase sign-in → tierBadge='PRO', onboarding overlay does NOT exist, onboardingDone=null. Console: 1 error (pre-existing Firebase getProjectConfig 400, not related). See ralph/test_results/US-021/attempt-1/ for screenshots and logs.",
+      "test_report": "PASS: All 8 acceptance criteria verified by browser execution. AC1: On first visit with no localStorage column config, onboarding overlay appears (display:flex, full-screen). AC2: 3 preset layouts rendered — News Focus (Time,Source,Headline,Summary), Trading View (Time,Sentiment,Ticker,Headline,Confidence,Risk Level), Full Terminal (all 9 columns). AC3: Clicking Trading View preset applies correct column visibility+order, overlay dismissed (removed from DOM). AC4: 'Customize later' link present with correct text. AC5: instnews_onboarding_done='1' set on dismiss, prevents re-showing on reload. AC6: Pro-tier user (mocked via page.route) sees no onboarding overlay. AC7: Vite build passes (29 modules, 0 errors). AC8: Full browser verification via Playwright MCP with 4 screenshots as evidence.",
       "fail_count": 0
     },
     {
@@ -810,10 +810,10 @@
         "cd infra && cdk diff 2>&1 shows POLYGON_API_KEY in task definition changes",
         "grep -r 'POLYGON_API_KEY' infra/stack.py shows the secret reference"
       ],
-      "status": "REQUIRE_IMPLEMENT",
+      "status": "READY_FOR_TEST",
       "passes": false,
-      "implementation_notes": null,
-      "files_changed": [],
+      "implementation_notes": "Added POLYGON_API_KEY to shared_secrets in infra/stack.py (line 178), referencing the 'POLYGON_API_KEY' field from the instantnews/app Secrets Manager secret. Since shared_secrets is used by the worker task directly and extended by web_secrets (used by web and admin tasks), this single addition injects the key into all three ECS task definitions. Also added the actual POLYGON_API_KEY value to the instantnews/app secret in AWS Secrets Manager via boto3. CDK synth passes, cdk diff confirms POLYGON_API_KEY appears in WebTask, AdminTask, and WorkerTask container definitions.",
+      "files_changed": ["infra/stack.py"],
       "failure_reason": null,
       "test_evidence": null,
       "test_report": null,

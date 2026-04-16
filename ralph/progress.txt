@@ -1076,3 +1076,35 @@ Add a modal HTML block to `frontend/terminal.html` (after the detail-modal-overl
   - Preset buttons have `data-preset="news|trading|full"` attributes
   - After clicking a preset, verify columns via column settings panel (`#btn-col-settings`)
 ---
+
+## 2026-04-15 - US-021 - TESTER — TEST_PASSED
+
+- **All 5 test assertions passed**, all 8 acceptance criteria met
+- Assertion 1: `cd frontend && npx vite build` exits 0 (29 modules, 384ms)
+- Assertion 2: `localStorage.clear()` + Firebase sign-in as Max user → `#onboarding-overlay` exists with `display:flex`, 3 preset cards (news/trading/full) with correct column tags, "Customize later" link present
+- Assertion 3: Click "Trading View" card → overlay removed from DOM, `instnews_column_visibility` set with time/sentiment/ticker/headline/confidence/risk=true, `instnews_column_order` = [time,sentiment,ticker,headline,confidence,risk,...], `instnews_onboarding_done='1'`. Table headers: Time, Sentiment, Ticker, Headline, Confidence, Risk Level
+- Assertion 4: Reload page → tier badge still "MAX", onboarding overlay does NOT reappear, Trading View columns persist
+- Assertion 5: `page.route` mock returning `{tier:'pro'}` + `localStorage.clear()` + Firebase sign-in → tier badge "PRO", onboarding overlay does NOT exist, `instnews_onboarding_done=null` (never triggered)
+- Console errors: 1 (pre-existing Firebase getProjectConfig 400 — not related to US-021)
+- **Artifacts:** `ralph/test_results/US-021/attempt-1/` (vite_build.log, console-errors.log, screenshot-01-onboarding-overlay.png, screenshot-02-trading-view-applied.png, screenshot-03-reload-no-onboarding.png, screenshot-04-pro-no-onboarding.png)
+---
+
+## 2026-04-15 — US-022 — IMPLEMENTOR — Polygon.io API Key in Production Secrets
+
+- Added `POLYGON_API_KEY` to `shared_secrets` dict in `infra/stack.py` (line 178)
+- Key references `instantnews/app` Secrets Manager secret, field `POLYGON_API_KEY`
+- Added to `shared_secrets` (not `web_secrets`) because both web and worker need it — `web_secrets` extends `shared_secrets` so all 3 task defs get it
+- Added actual POLYGON_API_KEY value to AWS Secrets Manager `instantnews/app` secret via boto3
+- **Self-validation:**
+  - `cdk synth` exits 0
+  - `cdk diff` shows POLYGON_API_KEY added to WebTask, AdminTask, and WorkerTask container definitions
+  - `grep -r 'POLYGON_API_KEY' infra/stack.py` shows the secret reference at line 178
+- **Files changed:** `infra/stack.py`
+- **Environment notes for Tester:**
+  - Run `cd infra && cdk synth` — should exit 0
+  - Run `cd infra && cdk diff` — should show POLYGON_API_KEY in all three task definition changes (WebTask, AdminTask, WorkerTask)
+  - `grep -r 'POLYGON_API_KEY' infra/stack.py` should show the secret reference
+  - Note: cdk diff also shows `MINIMAX_MODEL_ID` being added — this is a pre-existing env var already in `shared_env` that was never deployed, not from this change
+  - The actual secret value has been added to AWS Secrets Manager `instantnews/app`
+  - After `cdk deploy`, task definitions will include the POLYGON_API_KEY env var injected from Secrets Manager
+---
