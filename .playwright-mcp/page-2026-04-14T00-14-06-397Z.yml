@@ -1,0 +1,689 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - banner [ref=e3]:
+      - generic [ref=e4]:
+        - generic [ref=e5]:
+          - img [ref=e7]
+          - generic [ref=e10]: InstNews SIGNAL
+        - generic [ref=e12]: Mon, Apr 13, 2026 20:14:05
+        - generic [ref=e16]: LIVE
+      - generic [ref=e17]:
+        - generic [ref=e18]:
+          - generic [ref=e19]: Items
+          - generic [ref=e20]: "50"
+        - generic [ref=e21]:
+          - generic [ref=e22]: Feeds
+          - generic [ref=e23]: "15"
+        - generic [ref=e24]:
+          - generic [ref=e25]: Avg Sent
+          - generic [ref=e26]: "--"
+        - button "Sound" [ref=e27] [cursor=pointer]:
+          - img [ref=e28]
+          - generic [ref=e32]: Sound
+        - button "Refresh" [ref=e33] [cursor=pointer]:
+          - img [ref=e5934]
+          - text: Refresh
+        - button "API Docs" [ref=e38] [cursor=pointer]:
+          - img [ref=e39]
+          - generic [ref=e42]: API Docs
+        - button "Max Tester MAX" [ref=e49] [cursor=pointer]:
+          - generic [ref=e50]: Max Tester
+          - generic [ref=e51]: MAX
+    - complementary [ref=e52]:
+      - generic [ref=e53]:
+        - generic [ref=e54]: Search
+        - generic [ref=e55]:
+          - img
+          - textbox "Filter headlines..." [ref=e56]
+          - generic: F
+      - generic [ref=e57]:
+        - generic [ref=e58]: Date Range
+        - generic [ref=e59]:
+          - generic [ref=e60]:
+            - generic [ref=e61]: From
+            - textbox "From" [ref=e62]: 2026-04-11
+          - generic [ref=e63]:
+            - generic [ref=e64]: To
+            - textbox "To" [ref=e65]: 2026-04-11
+          - button "Clear dates" [ref=e66] [cursor=pointer]:
+            - img [ref=e67]
+            - text: Clear dates
+      - generic [ref=e71] [cursor=pointer]:
+        - checkbox "Hide duplicates" [ref=e72]
+        - generic [ref=e73]: Hide duplicates
+      - generic [ref=e74]:
+        - generic [ref=e75]: Sentiment
+        - generic [ref=e76]:
+          - button "All 50 1" [ref=e77] [cursor=pointer]:
+            - text: All
+            - generic [ref=e79]: "50"
+            - generic [ref=e80]: "1"
+          - button "Bullish 0 2" [ref=e81] [cursor=pointer]:
+            - text: Bullish
+            - generic [ref=e83]: "0"
+            - generic [ref=e84]: "2"
+          - button "Bearish 0 3" [ref=e85] [cursor=pointer]:
+            - text: Bearish
+            - generic [ref=e87]: "0"
+            - generic [ref=e88]: "3"
+          - button "Neutral 0 4" [ref=e89] [cursor=pointer]:
+            - text: Neutral
+            - generic [ref=e91]: "0"
+            - generic [ref=e92]: "4"
+      - generic [ref=e93]:
+        - generic [ref=e94]: Sources
+        - generic [ref=e95]:
+          - generic [ref=e5937] [cursor=pointer]:
+            - checkbox "CNBC 919" [checked] [ref=e5938]
+            - generic [ref=e5939]: CNBC
+            - generic [ref=e5940]: "919"
+          - generic [ref=e5941] [cursor=pointer]:
+            - checkbox "CNBC World 302" [checked] [ref=e5942]
+            - generic [ref=e5943]: CNBC World
+            - generic [ref=e5944]: "302"
+          - generic [ref=e5945] [cursor=pointer]:
+            - checkbox "Reuters Business 0" [checked] [ref=e5946]
+            - generic [ref=e5947]: Reuters Business
+            - generic [ref=e5948]: "0"
+          - generic [ref=e5949] [cursor=pointer]:
+            - checkbox "MarketWatch 610" [checked] [ref=e5950]
+            - generic [ref=e5951]: MarketWatch
+            - generic [ref=e5952]: "610"
+          - generic [ref=e5953] [cursor=pointer]:
+            - checkbox "MarketWatch Markets 32" [checked] [ref=e5954]
+            - generic [ref=e5955]: MarketWatch Markets
+            - generic [ref=e5956]: "32"
+          - generic [ref=e5957] [cursor=pointer]:
+            - checkbox "Investing com 8798" [checked] [ref=e5958]
+            - generic [ref=e5959]: Investing com
+            - generic [ref=e5960]: "8798"
+          - generic [ref=e5961] [cursor=pointer]:
+            - checkbox "Yahoo Finance 11018" [checked] [ref=e5962]
+            - generic [ref=e5963]: Yahoo Finance
+            - generic [ref=e5964]: "11018"
+          - generic [ref=e5965] [cursor=pointer]:
+            - checkbox "Nasdaq 4426" [checked] [ref=e5966]
+            - generic [ref=e5967]: Nasdaq
+            - generic [ref=e5968]: "4426"
+          - generic [ref=e5969] [cursor=pointer]:
+            - checkbox "SeekingAlpha 5255" [checked] [ref=e5970]
+            - generic [ref=e5971]: SeekingAlpha
+            - generic [ref=e5972]: "5255"
+          - generic [ref=e5973] [cursor=pointer]:
+            - checkbox "Benzinga 0" [checked] [ref=e5974]
+            - generic [ref=e5975]: Benzinga
+            - generic [ref=e5976]: "0"
+          - generic [ref=e5977] [cursor=pointer]:
+            - checkbox "AP News 0" [checked] [ref=e5978]
+            - generic [ref=e5979]: AP News
+            - generic [ref=e5980]: "0"
+          - generic [ref=e5981] [cursor=pointer]:
+            - checkbox "Bloomberg Business 0" [checked] [ref=e5982]
+            - generic [ref=e5983]: Bloomberg Business
+            - generic [ref=e5984]: "0"
+          - generic [ref=e5985] [cursor=pointer]:
+            - checkbox "Bloomberg Markets 0" [checked] [ref=e5986]
+            - generic [ref=e5987]: Bloomberg Markets
+            - generic [ref=e5988]: "0"
+          - generic [ref=e5989] [cursor=pointer]:
+            - checkbox "BBC Business 246" [checked] [ref=e5990]
+            - generic [ref=e5991]: BBC Business
+            - generic [ref=e5992]: "246"
+          - generic [ref=e5993] [cursor=pointer]:
+            - checkbox "Google News Business 2628" [checked] [ref=e5994]
+            - generic [ref=e5995]: Google News Business
+            - generic [ref=e5996]: "2628"
+      - generic [ref=e156]:
+        - generic [ref=e157]: Refresh Interval
+        - combobox [ref=e158] [cursor=pointer]:
+          - option "3 seconds"
+          - option "5 seconds" [selected]
+          - option "10 seconds"
+          - option "15 seconds"
+          - option "30 seconds"
+          - option "60 seconds"
+      - generic [ref=e159]: R Refresh F Search 1-4 Sentiment
+    - main [ref=e160]:
+      - table [ref=e161]:
+        - rowgroup [ref=e162]:
+          - row "Time Source Headline Ticker" [ref=e3295]:
+            - columnheader "Time" [ref=e3296]: Time
+            - columnheader "Source" [ref=e3298]: Source
+            - columnheader "Headline" [ref=e3300]: Headline
+            - columnheader "Ticker" [ref=e3302]: Ticker
+        - rowgroup [ref=e170]:
+          - 'row "19:57:09 Investing_com Form 13D/A Arbutus Biopharma Corp For: 13 April —" [ref=e6375] [cursor=pointer]':
+            - cell "19:57:09" [ref=e6376]
+            - cell "Investing_com" [ref=e6377]:
+              - generic [ref=e6378]: Investing_com
+            - 'cell "Form 13D/A Arbutus Biopharma Corp For: 13 April" [ref=e6379]':
+              - 'link "Form 13D/A Arbutus Biopharma Corp For: 13 April" [ref=e6380]':
+                - /url: https://www.investing.com/news/filings/form-13da-arbutus-biopharma-corp-for-13-april-93CH-4611588
+            - cell "—" [ref=e6381]
+          - row "19:55:29 Investing_com Oil slides over 2% with focus on US-Iran blockade, more ceasefire talks —" [ref=e6382] [cursor=pointer]:
+            - cell "19:55:29" [ref=e6383]
+            - cell "Investing_com" [ref=e6384]:
+              - generic [ref=e6385]: Investing_com
+            - cell "Oil slides over 2% with focus on US-Iran blockade, more ceasefire talks" [ref=e6386]:
+              - link "Oil slides over 2% with focus on US-Iran blockade, more ceasefire talks" [ref=e6387]:
+                - /url: https://www.investing.com/news/commodities-news/oil-slides-over-2-with-focus-on-usiran-blockade-more-ceasefire-talks-4611587
+            - cell "—" [ref=e6388]
+          - 'row "19:22:55 CNBC S&P 500 futures are little changed after index erases Iran war losses: Live updates —" [ref=e6389] [cursor=pointer]':
+            - cell "19:22:55" [ref=e6390]
+            - cell "CNBC" [ref=e6391]:
+              - generic [ref=e6392]: CNBC
+            - 'cell "S&P 500 futures are little changed after index erases Iran war losses: Live updates" [ref=e6393]':
+              - 'link "S&P 500 futures are little changed after index erases Iran war losses: Live updates" [ref=e6394]':
+                - /url: https://www.cnbc.com/2026/04/13/stock-markets-today-live-updates.html
+            - cell "—" [ref=e6395]
+          - 'row "19:20:00 Nasdaq Fair Isaac Corporation: A Closer Look at Its Market Position and Future Prospects —" [ref=e6396] [cursor=pointer]':
+            - cell "19:20:00" [ref=e6397]
+            - cell "Nasdaq" [ref=e6398]:
+              - generic [ref=e6399]: Nasdaq
+            - 'cell "Fair Isaac Corporation: A Closer Look at Its Market Position and Future Prospects" [ref=e6400]':
+              - 'link "Fair Isaac Corporation: A Closer Look at Its Market Position and Future Prospects" [ref=e6401]':
+                - /url: https://www.nasdaq.com/articles/fair-isaac-corporation-closer-look-its-market-position-and-future-prospects
+            - cell "—" [ref=e6402]
+          - row "19:18:24 Nasdaq Japan Stock Market May Erase Monday's Losses —" [ref=e6403] [cursor=pointer]:
+            - cell "19:18:24" [ref=e6404]
+            - cell "Nasdaq" [ref=e6405]:
+              - generic [ref=e6406]: Nasdaq
+            - cell "Japan Stock Market May Erase Monday's Losses" [ref=e6407]:
+              - link "Japan Stock Market May Erase Monday's Losses" [ref=e6408]:
+                - /url: https://www.nasdaq.com/articles/japan-stock-market-may-erase-mondays-losses
+            - cell "—" [ref=e6409]
+          - row "19:17:57 CNBC Rep. Eric Swalwell resigns from U.S. House after sexual misconduct allegations —" [ref=e6410] [cursor=pointer]:
+            - cell "19:17:57" [ref=e6411]
+            - cell "CNBC" [ref=e6412]:
+              - generic [ref=e6413]: CNBC
+            - cell "Rep. Eric Swalwell resigns from U.S. House after sexual misconduct allegations" [ref=e6414]:
+              - link "Rep. Eric Swalwell resigns from U.S. House after sexual misconduct allegations" [ref=e6415]:
+                - /url: https://www.cnbc.com/2026/04/13/eric-swalwell-resigns-congress.html
+            - cell "—" [ref=e6416]
+          - row "19:10:13 Investing_com Micron Technology EVP Cordano sells $1.43 million in stock MU $100.00 +0.50%" [ref=e6417] [cursor=pointer]:
+            - cell "19:10:13" [ref=e6418]
+            - cell "Investing_com" [ref=e6419]:
+              - generic [ref=e6420]: Investing_com
+            - cell "Micron Technology EVP Cordano sells $1.43 million in stock" [ref=e6421]:
+              - link "Micron Technology EVP Cordano sells $1.43 million in stock" [ref=e6422]:
+                - /url: https://www.investing.com/news/insider-trading-news/micron-technology-evp-cordano-sells-143-million-in-stock-93CH-4611574
+            - cell "MU $100.00 +0.50%" [ref=e6423]:
+              - generic [ref=e6424]:
+                - text: MU
+                - generic [ref=e6425]: $100.00 +0.50%
+          - row "19:10:12 Investing_com Zoom CFO Chang sells $690k in stock ZM $100.00 +0.50%" [ref=e6426] [cursor=pointer]:
+            - cell "19:10:12" [ref=e6427]
+            - cell "Investing_com" [ref=e6428]:
+              - generic [ref=e6429]: Investing_com
+            - cell "Zoom CFO Chang sells $690k in stock" [ref=e6430]:
+              - link "Zoom CFO Chang sells $690k in stock" [ref=e6431]:
+                - /url: https://www.investing.com/news/insider-trading-news/zoom-cfo-chang-sells-690k-in-stock-93CH-4611573
+            - cell "ZM $100.00 +0.50%" [ref=e6432]:
+              - generic [ref=e6433]:
+                - text: ZM
+                - generic [ref=e6434]: $100.00 +0.50%
+          - row "19:07:11 Investing_com Photronics director Lee Kang Jyh sells $220,000 in shares —" [ref=e6435] [cursor=pointer]:
+            - cell "19:07:11" [ref=e6436]
+            - cell "Investing_com" [ref=e6437]:
+              - generic [ref=e6438]: Investing_com
+            - cell "Photronics director Lee Kang Jyh sells $220,000 in shares" [ref=e6439]:
+              - link "Photronics director Lee Kang Jyh sells $220,000 in shares" [ref=e6440]:
+                - /url: https://www.investing.com/news/insider-trading-news/photronics-director-lee-kang-jyh-sells-220000-in-shares-93CH-4611572
+            - cell "—" [ref=e6441]
+          - row "19:06:21 CNBC Jim Cramer says this is the real reason why stocks are shrugging off Iran war fears —" [ref=e6442] [cursor=pointer]:
+            - cell "19:06:21" [ref=e6443]
+            - cell "CNBC" [ref=e6444]:
+              - generic [ref=e6445]: CNBC
+            - cell "Jim Cramer says this is the real reason why stocks are shrugging off Iran war fears" [ref=e6446]:
+              - link "Jim Cramer says this is the real reason why stocks are shrugging off Iran war fears" [ref=e6447]:
+                - /url: https://www.cnbc.com/2026/04/13/jim-cramer-stocks-rallying-despite-iran-war-why.html
+            - cell "—" [ref=e6448]
+          - row "19:05:38 Nasdaq Why Microsoft Stock Topped the Market Today MSFT $425.80 -0.57%" [ref=e6449] [cursor=pointer]:
+            - cell "19:05:38" [ref=e6450]
+            - cell "Nasdaq" [ref=e6451]:
+              - generic [ref=e6452]: Nasdaq
+            - cell "Why Microsoft Stock Topped the Market Today" [ref=e6453]:
+              - link "Why Microsoft Stock Topped the Market Today" [ref=e6454]:
+                - /url: https://www.nasdaq.com/articles/why-microsoft-stock-topped-market-today-0
+            - cell "MSFT $425.80 -0.57%" [ref=e6455]:
+              - generic [ref=e6456]:
+                - text: MSFT
+                - generic [ref=e6457]: $425.80 -0.57%
+          - row "19:05:05 Nasdaq Why Palantir Stock Gained Today PLTR $100.00 +0.50%" [ref=e6458] [cursor=pointer]:
+            - cell "19:05:05" [ref=e6459]
+            - cell "Nasdaq" [ref=e6460]:
+              - generic [ref=e6461]: Nasdaq
+            - cell "Why Palantir Stock Gained Today" [ref=e6462]:
+              - link "Why Palantir Stock Gained Today" [ref=e6463]:
+                - /url: https://www.nasdaq.com/articles/why-palantir-stock-gained-today
+            - cell "PLTR $100.00 +0.50%" [ref=e6464]:
+              - generic [ref=e6465]:
+                - text: PLTR
+                - generic [ref=e6466]: $100.00 +0.50%
+          - row "19:03:23 Nasdaq Tech Shares May Boost South Korea Stock Market —" [ref=e6467] [cursor=pointer]:
+            - cell "19:03:23" [ref=e6468]
+            - cell "Nasdaq" [ref=e6469]:
+              - generic [ref=e6470]: Nasdaq
+            - cell "Tech Shares May Boost South Korea Stock Market" [ref=e6471]:
+              - link "Tech Shares May Boost South Korea Stock Market" [ref=e6472]:
+                - /url: https://www.nasdaq.com/articles/tech-shares-may-boost-south-korea-stock-market
+            - cell "—" [ref=e6473]
+          - row "19:00:35 Investing_com United Airlines CEO pitched possible combination with rival American, Bloomberg News reports —" [ref=e6474] [cursor=pointer]:
+            - cell "19:00:35" [ref=e6475]
+            - cell "Investing_com" [ref=e6476]:
+              - generic [ref=e6477]: Investing_com
+            - cell "United Airlines CEO pitched possible combination with rival American, Bloomberg News reports" [ref=e6478]:
+              - link "United Airlines CEO pitched possible combination with rival American, Bloomberg News reports" [ref=e6479]:
+                - /url: https://www.investing.com/news/stock-market-news/united-airlines-ceo-pitched-possible-combination-with-rival-american-bloomberg-news-reports-4611571
+            - cell "—" [ref=e6480]
+          - row "18:55:22 Investing_com Richard Wilmer, president and CEO of ChargePoint, buys $249,999 in CHPT CHPT $100.00 +0.50%" [ref=e6481] [cursor=pointer]:
+            - cell "18:55:22" [ref=e6482]
+            - cell "Investing_com" [ref=e6483]:
+              - generic [ref=e6484]: Investing_com
+            - cell "Richard Wilmer, president and CEO of ChargePoint, buys $249,999 in CHPT" [ref=e6485]:
+              - link "Richard Wilmer, president and CEO of ChargePoint, buys $249,999 in CHPT" [ref=e6486]:
+                - /url: https://www.investing.com/news/insider-trading-news/richard-wilmer-president-and-ceo-of-chargepoint-buys-249999-in-chpt-93CH-4611570
+            - cell "CHPT $100.00 +0.50%" [ref=e6487]:
+              - generic [ref=e6488]:
+                - text: CHPT
+                - generic [ref=e6489]: $100.00 +0.50%
+          - row "18:49:14 Investing_com Jefferies cuts LVMH stock price target on fashion pressures LVMH $100.00 +0.50%" [ref=e6490] [cursor=pointer]:
+            - cell "18:49:14" [ref=e6491]
+            - cell "Investing_com" [ref=e6492]:
+              - generic [ref=e6493]: Investing_com
+            - cell "Jefferies cuts LVMH stock price target on fashion pressures" [ref=e6494]:
+              - link "Jefferies cuts LVMH stock price target on fashion pressures" [ref=e6495]:
+                - /url: https://www.investing.com/news/analyst-ratings/jefferies-cuts-lvmh-stock-price-target-on-fashion-pressures-93CH-4611569
+            - cell "LVMH $100.00 +0.50%" [ref=e6496]:
+              - generic [ref=e6497]:
+                - text: LVMH
+                - generic [ref=e6498]: $100.00 +0.50%
+          - 'row "18:48:26 Nasdaq Uber vs. Airbnb: Comparing Revenue Trajectories and Seasonality UBER $100.00 +0.50%" [ref=e6499] [cursor=pointer]':
+            - cell "18:48:26" [ref=e6500]
+            - cell "Nasdaq" [ref=e6501]:
+              - generic [ref=e6502]: Nasdaq
+            - 'cell "Uber vs. Airbnb: Comparing Revenue Trajectories and Seasonality" [ref=e6503]':
+              - 'link "Uber vs. Airbnb: Comparing Revenue Trajectories and Seasonality" [ref=e6504]':
+                - /url: https://www.nasdaq.com/articles/uber-vs-airbnb-comparing-revenue-trajectories-and-seasonality
+            - cell "UBER $100.00 +0.50%" [ref=e6505]:
+              - generic [ref=e6506]:
+                - text: UBER
+                - generic [ref=e6507]: $100.00 +0.50%
+          - row "18:43:06 Investing_com Alignment healthcare CEO Kao sells $6.16 million in stock —" [ref=e6508] [cursor=pointer]:
+            - cell "18:43:06" [ref=e6509]
+            - cell "Investing_com" [ref=e6510]:
+              - generic [ref=e6511]: Investing_com
+            - cell "Alignment healthcare CEO Kao sells $6.16 million in stock" [ref=e6512]:
+              - link "Alignment healthcare CEO Kao sells $6.16 million in stock" [ref=e6513]:
+                - /url: https://www.investing.com/news/insider-trading-news/alignment-healthcare-ceo-kao-sells-616-million-in-stock-93CH-4611568
+            - cell "—" [ref=e6514]
+          - row "18:42:19 Nasdaq Market Street Expands Its DFGX Holdings in $3.5 Million Buy —" [ref=e6515] [cursor=pointer]:
+            - cell "18:42:19" [ref=e6516]
+            - cell "Nasdaq" [ref=e6517]:
+              - generic [ref=e6518]: Nasdaq
+            - cell "Market Street Expands Its DFGX Holdings in $3.5 Million Buy" [ref=e6519]:
+              - link "Market Street Expands Its DFGX Holdings in $3.5 Million Buy" [ref=e6520]:
+                - /url: https://www.nasdaq.com/articles/market-street-expands-its-dfgx-holdings-35-million-buy
+            - cell "—" [ref=e6521]
+          - row "18:40:22 Investing_com Qualcomm EVP Palkhiwala sells $325k in shares QCOM $100.00 +0.50%" [ref=e6522] [cursor=pointer]:
+            - cell "18:40:22" [ref=e6523]
+            - cell "Investing_com" [ref=e6524]:
+              - generic [ref=e6525]: Investing_com
+            - cell "Qualcomm EVP Palkhiwala sells $325k in shares" [ref=e6526]:
+              - link "Qualcomm EVP Palkhiwala sells $325k in shares" [ref=e6527]:
+                - /url: https://www.investing.com/news/insider-trading-news/qualcomm-evp-palkhiwala-sells-325k-in-shares-93CH-4611567
+            - cell "QCOM $100.00 +0.50%" [ref=e6528]:
+              - generic [ref=e6529]:
+                - text: QCOM
+                - generic [ref=e6530]: $100.00 +0.50%
+          - 'row "18:39:28 Investing_com Form DEF 14A FUEL TECH For: 13 April —" [ref=e6531] [cursor=pointer]':
+            - cell "18:39:28" [ref=e6532]
+            - cell "Investing_com" [ref=e6533]:
+              - generic [ref=e6534]: Investing_com
+            - 'cell "Form DEF 14A FUEL TECH For: 13 April" [ref=e6535]':
+              - 'link "Form DEF 14A FUEL TECH For: 13 April" [ref=e6536]':
+                - /url: https://www.investing.com/news/filings/form-def-14a-fuel-tech-for-13-april-93CH-4611566
+            - cell "—" [ref=e6537]
+          - 'row "18:39:20 Investing_com Form DEF 14A KYVERNA THERAPEUTICS For: 13 April —" [ref=e6538] [cursor=pointer]':
+            - cell "18:39:20" [ref=e6539]
+            - cell "Investing_com" [ref=e6540]:
+              - generic [ref=e6541]: Investing_com
+            - 'cell "Form DEF 14A KYVERNA THERAPEUTICS For: 13 April" [ref=e6542]':
+              - 'link "Form DEF 14A KYVERNA THERAPEUTICS For: 13 April" [ref=e6543]':
+                - /url: https://www.investing.com/news/filings/form-def-14a-kyverna-therapeutics-for-13-april-93CH-4611565
+            - cell "—" [ref=e6544]
+          - row "18:38:17 CNBC Oracle pops nearly 13%, leading bounce back rally in software stocks ORCL $100.00 +0.50%" [ref=e6545] [cursor=pointer]:
+            - cell "18:38:17" [ref=e6546]
+            - cell "CNBC" [ref=e6547]:
+              - generic [ref=e6548]: CNBC
+            - cell "Oracle pops nearly 13%, leading bounce back rally in software stocks" [ref=e6549]:
+              - link "Oracle pops nearly 13%, leading bounce back rally in software stocks" [ref=e6550]:
+                - /url: https://www.cnbc.com/2026/04/13/oracle-orcl-stock-rally-software-ai-risk.html
+            - cell "ORCL $100.00 +0.50%" [ref=e6551]:
+              - generic [ref=e6552]:
+                - text: ORCL
+                - generic [ref=e6553]: $100.00 +0.50%
+          - row "18:37:33 Nasdaq Why Conagra Stock Flopped Today CAG $100.00 +0.50%" [ref=e6554] [cursor=pointer]:
+            - cell "18:37:33" [ref=e6555]
+            - cell "Nasdaq" [ref=e6556]:
+              - generic [ref=e6557]: Nasdaq
+            - cell "Why Conagra Stock Flopped Today" [ref=e6558]:
+              - link "Why Conagra Stock Flopped Today" [ref=e6559]:
+                - /url: https://www.nasdaq.com/articles/why-conagra-stock-flopped-today
+            - cell "CAG $100.00 +0.50%" [ref=e6560]:
+              - generic [ref=e6561]:
+                - text: CAG
+                - generic [ref=e6562]: $100.00 +0.50%
+          - 'row "18:36:38 Investing_com Form 144 JANUX THERAPEUTICS For: 13 April —" [ref=e6563] [cursor=pointer]':
+            - cell "18:36:38" [ref=e6564]
+            - cell "Investing_com" [ref=e6565]:
+              - generic [ref=e6566]: Investing_com
+            - 'cell "Form 144 JANUX THERAPEUTICS For: 13 April" [ref=e6567]':
+              - 'link "Form 144 JANUX THERAPEUTICS For: 13 April" [ref=e6568]':
+                - /url: https://www.investing.com/news/filings/form-144-janux-therapeutics-for-13-april-93CH-4611561
+            - cell "—" [ref=e6569]
+          - 'row "18:36:36 Investing_com Form DEF 14A Ares Dynamic Credit Allocation Inc For: 13 April —" [ref=e6570] [cursor=pointer]':
+            - cell "18:36:36" [ref=e6571]
+            - cell "Investing_com" [ref=e6572]:
+              - generic [ref=e6573]: Investing_com
+            - 'cell "Form DEF 14A Ares Dynamic Credit Allocation Inc For: 13 April" [ref=e6574]':
+              - 'link "Form DEF 14A Ares Dynamic Credit Allocation Inc For: 13 April" [ref=e6575]':
+                - /url: https://www.investing.com/news/filings/form-def-14a-ares-dynamic-credit-allocation-inc-for-13-april-93CH-4611560
+            - cell "—" [ref=e6576]
+          - 'row "18:36:34 Investing_com Form 144 GUIDEWIRE SOFTWARE For: 13 April —" [ref=e6577] [cursor=pointer]':
+            - cell "18:36:34" [ref=e6578]
+            - cell "Investing_com" [ref=e6579]:
+              - generic [ref=e6580]: Investing_com
+            - 'cell "Form 144 GUIDEWIRE SOFTWARE For: 13 April" [ref=e6581]':
+              - 'link "Form 144 GUIDEWIRE SOFTWARE For: 13 April" [ref=e6582]':
+                - /url: https://www.investing.com/news/filings/form-144-guidewire-software-for-13-april-93CH-4611559
+            - cell "—" [ref=e6583]
+          - 'row "18:36:33 Investing_com Form DEF 14A Strategic Student & Senior Housing Trust For: 13 April —" [ref=e6584] [cursor=pointer]':
+            - cell "18:36:33" [ref=e6585]
+            - cell "Investing_com" [ref=e6586]:
+              - generic [ref=e6587]: Investing_com
+            - 'cell "Form DEF 14A Strategic Student & Senior Housing Trust For: 13 April" [ref=e6588]':
+              - 'link "Form DEF 14A Strategic Student & Senior Housing Trust For: 13 April" [ref=e6589]':
+                - /url: https://www.investing.com/news/filings/form-def-14a-strategic-student--senior-housing-trust-for-13-april-93CH-4611558
+            - cell "—" [ref=e6590]
+          - 'row "18:36:23 Investing_com Form PRE 14A Once Upon a Farm Inc For: 13 April —" [ref=e6591] [cursor=pointer]':
+            - cell "18:36:23" [ref=e6592]
+            - cell "Investing_com" [ref=e6593]:
+              - generic [ref=e6594]: Investing_com
+            - 'cell "Form PRE 14A Once Upon a Farm Inc For: 13 April" [ref=e6595]':
+              - 'link "Form PRE 14A Once Upon a Farm Inc For: 13 April" [ref=e6596]':
+                - /url: https://www.investing.com/news/filings/form-pre-14a-once-upon-a-farm-inc-for-13-april-93CH-4611557
+            - cell "—" [ref=e6597]
+          - 'row "18:36:17 Investing_com Form 144 MONTE ROSA THERAPEUTICS For: 13 April —" [ref=e6598] [cursor=pointer]':
+            - cell "18:36:17" [ref=e6599]
+            - cell "Investing_com" [ref=e6600]:
+              - generic [ref=e6601]: Investing_com
+            - 'cell "Form 144 MONTE ROSA THERAPEUTICS For: 13 April" [ref=e6602]':
+              - 'link "Form 144 MONTE ROSA THERAPEUTICS For: 13 April" [ref=e6603]':
+                - /url: https://www.investing.com/news/filings/form-144-monte-rosa-therapeutics-for-13-april-93CH-4611556
+            - cell "—" [ref=e6604]
+          - row "18:34:44 Investing_com Aurelion Inc. appoints Yuki Xu as acting chief accounting officer —" [ref=e6605] [cursor=pointer]:
+            - cell "18:34:44" [ref=e6606]
+            - cell "Investing_com" [ref=e6607]:
+              - generic [ref=e6608]: Investing_com
+            - cell "Aurelion Inc. appoints Yuki Xu as acting chief accounting officer" [ref=e6609]:
+              - link "Aurelion Inc. appoints Yuki Xu as acting chief accounting officer" [ref=e6610]:
+                - /url: https://www.investing.com/news/sec-filings/aurelion-inc-appoints-yuki-xu-as-acting-chief-accounting-officer-93CH-4611555
+            - cell "—" [ref=e6611]
+          - row "18:32:50 CNBC Oracle expands Bloom Energy deal days after receiving $400 million stock warrant ORCL $100.00 +0.50%" [ref=e6612] [cursor=pointer]:
+            - cell "18:32:50" [ref=e6613]
+            - cell "CNBC" [ref=e6614]:
+              - generic [ref=e6615]: CNBC
+            - cell "Oracle expands Bloom Energy deal days after receiving $400 million stock warrant" [ref=e6616]:
+              - link "Oracle expands Bloom Energy deal days after receiving $400 million stock warrant" [ref=e6617]:
+                - /url: https://www.cnbc.com/2026/04/13/oracle-expands-bloom-energy-deal-days-after-400-million-stock-warrant.html
+            - cell "ORCL $100.00 +0.50%" [ref=e6618]:
+              - generic [ref=e6619]:
+                - text: ORCL
+                - generic [ref=e6620]: $100.00 +0.50%
+          - row "18:31:08 Investing_com Vance says US made a lot of progress in talks with Iran —" [ref=e6621] [cursor=pointer]:
+            - cell "18:31:08" [ref=e6622]
+            - cell "Investing_com" [ref=e6623]:
+              - generic [ref=e6624]: Investing_com
+            - cell "Vance says US made a lot of progress in talks with Iran" [ref=e6625]:
+              - link "Vance says US made a lot of progress in talks with Iran" [ref=e6626]:
+                - /url: https://www.investing.com/news/world-news/vance-says-us-made-a-lot-of-progress-in-talks-with-iran-4611554
+            - cell "—" [ref=e6627]
+          - 'row "18:31:05 Investing_com Form DEF 14A TRANSACT TECHNOLOGIES INC For: 13 April —" [ref=e6628] [cursor=pointer]':
+            - cell "18:31:05" [ref=e6629]
+            - cell "Investing_com" [ref=e6630]:
+              - generic [ref=e6631]: Investing_com
+            - 'cell "Form DEF 14A TRANSACT TECHNOLOGIES INC For: 13 April" [ref=e6632]':
+              - 'link "Form DEF 14A TRANSACT TECHNOLOGIES INC For: 13 April" [ref=e6633]':
+                - /url: https://www.investing.com/news/filings/form-def-14a-transact-technologies-inc-for-13-april-93CH-4611553
+            - cell "—" [ref=e6634]
+          - 'row "18:30:52 Investing_com Form 144 MYOMO For: 13 April —" [ref=e6635] [cursor=pointer]':
+            - cell "18:30:52" [ref=e6636]
+            - cell "Investing_com" [ref=e6637]:
+              - generic [ref=e6638]: Investing_com
+            - 'cell "Form 144 MYOMO For: 13 April" [ref=e6639]':
+              - 'link "Form 144 MYOMO For: 13 April" [ref=e6640]':
+                - /url: https://www.investing.com/news/filings/form-144-myomo-for-13-april-93CH-4611552
+            - cell "—" [ref=e6641]
+          - row "18:25:00 Nasdaq Michael Burry of &quot;The Big Short&quot; Fame is Betting Against This Stock That's Soared 1,400% During the AI Boom So Far -- and Thinks It Could Drop 60%. Should You Follow His Lead? —" [ref=e6642] [cursor=pointer]:
+            - cell "18:25:00" [ref=e6643]
+            - cell "Nasdaq" [ref=e6644]:
+              - generic [ref=e6645]: Nasdaq
+            - cell "Michael Burry of &quot;The Big Short&quot; Fame is Betting Against This Stock That's Soared 1,400% During the AI Boom So Far -- and Thinks It Could Drop 60%. Should You Follow His Lead?" [ref=e6646]:
+              - link "Michael Burry of &quot;The Big Short&quot; Fame is Betting Against This Stock That's Soared 1,400% During the AI Boom So Far -- and Thinks It Could Drop 60%. Should You Follow His Lead?" [ref=e6647]:
+                - /url: https://www.nasdaq.com/articles/michael-burry-big-short-fame-betting-against-stock-thats-soared-1400-during-ai-boom-so-far
+            - cell "—" [ref=e6648]
+          - row "18:24:54 Investing_com Mizuho lowers HF Sinclair stock price target on earnings outlook —" [ref=e6649] [cursor=pointer]:
+            - cell "18:24:54" [ref=e6650]
+            - cell "Investing_com" [ref=e6651]:
+              - generic [ref=e6652]: Investing_com
+            - cell "Mizuho lowers HF Sinclair stock price target on earnings outlook" [ref=e6653]:
+              - link "Mizuho lowers HF Sinclair stock price target on earnings outlook" [ref=e6654]:
+                - /url: https://www.investing.com/news/analyst-ratings/mizuho-lowers-hf-sinclair-stock-price-target-on-earnings-outlook-93CH-4611546
+            - cell "—" [ref=e6655]
+          - row "18:24:53 Investing_com Goldman Sachs reinstates Aptiv stock rating at Buy with $74 target APTV $100.00 +0.50%" [ref=e6656] [cursor=pointer]:
+            - cell "18:24:53" [ref=e6657]
+            - cell "Investing_com" [ref=e6658]:
+              - generic [ref=e6659]: Investing_com
+            - cell "Goldman Sachs reinstates Aptiv stock rating at Buy with $74 target" [ref=e6660]:
+              - link "Goldman Sachs reinstates Aptiv stock rating at Buy with $74 target" [ref=e6661]:
+                - /url: https://www.investing.com/news/analyst-ratings/goldman-sachs-reinstates-aptiv-stock-rating-at-buy-with-74-target-93CH-4611545
+            - cell "APTV $100.00 +0.50%" [ref=e6662]:
+              - generic [ref=e6663]:
+                - text: APTV
+                - generic [ref=e6664]: $100.00 +0.50%
+          - 'row "18:24:31 Investing_com Form DEF 14A Core Natural Resources Inc For: 13 April —" [ref=e6665] [cursor=pointer]':
+            - cell "18:24:31" [ref=e6666]
+            - cell "Investing_com" [ref=e6667]:
+              - generic [ref=e6668]: Investing_com
+            - 'cell "Form DEF 14A Core Natural Resources Inc For: 13 April" [ref=e6669]':
+              - 'link "Form DEF 14A Core Natural Resources Inc For: 13 April" [ref=e6670]':
+                - /url: https://www.investing.com/news/filings/form-def-14a-core-natural-resources-inc-for-13-april-93CH-4611544
+            - cell "—" [ref=e6671]
+          - 'row "18:24:28 Investing_com Form DEF 14A Camden Property Trust For: 13 April —" [ref=e6672] [cursor=pointer]':
+            - cell "18:24:28" [ref=e6673]
+            - cell "Investing_com" [ref=e6674]:
+              - generic [ref=e6675]: Investing_com
+            - 'cell "Form DEF 14A Camden Property Trust For: 13 April" [ref=e6676]':
+              - 'link "Form DEF 14A Camden Property Trust For: 13 April" [ref=e6677]':
+                - /url: https://www.investing.com/news/filings/form-def-14a-camden-property-trust-for-13-april-93CH-4611543
+            - cell "—" [ref=e6678]
+          - 'row "18:24:17 Investing_com Form 144 GameStop Corp. For: 13 April GME $100.00 +0.50%" [ref=e6679] [cursor=pointer]':
+            - cell "18:24:17" [ref=e6680]
+            - cell "Investing_com" [ref=e6681]:
+              - generic [ref=e6682]: Investing_com
+            - 'cell "Form 144 GameStop Corp. For: 13 April" [ref=e6683]':
+              - 'link "Form 144 GameStop Corp. For: 13 April" [ref=e6684]':
+                - /url: https://www.investing.com/news/filings/form-144-gamestop-corp-for-13-april-93CH-4611542
+            - cell "GME $100.00 +0.50%" [ref=e6685]:
+              - generic [ref=e6686]:
+                - text: GME
+                - generic [ref=e6687]: $100.00 +0.50%
+          - 'row "18:24:10 Nasdaq Stock Market Today, April 13: Grab Extends AI Product Launch Gains —" [ref=e6688] [cursor=pointer]':
+            - cell "18:24:10" [ref=e6689]
+            - cell "Nasdaq" [ref=e6690]:
+              - generic [ref=e6691]: Nasdaq
+            - 'cell "Stock Market Today, April 13: Grab Extends AI Product Launch Gains" [ref=e6692]':
+              - 'link "Stock Market Today, April 13: Grab Extends AI Product Launch Gains" [ref=e6693]':
+                - /url: https://www.nasdaq.com/articles/stock-market-today-april-13-grab-extends-ai-product-launch-gains
+            - cell "—" [ref=e6694]
+          - row "18:22:07 Investing_com Boundless Bio to terminate San Diego lease, agrees to $10 million payment —" [ref=e6695] [cursor=pointer]:
+            - cell "18:22:07" [ref=e6696]
+            - cell "Investing_com" [ref=e6697]:
+              - generic [ref=e6698]: Investing_com
+            - cell "Boundless Bio to terminate San Diego lease, agrees to $10 million payment" [ref=e6699]:
+              - link "Boundless Bio to terminate San Diego lease, agrees to $10 million payment" [ref=e6700]:
+                - /url: https://www.investing.com/news/sec-filings/boundless-bio-to-terminate-san-diego-lease-agrees-to-10-million-payment-93CH-4611541
+            - cell "—" [ref=e6701]
+          - row "18:21:04 Investing_com FDA approves Filspari for FSGS, Travere’s second indication —" [ref=e6702] [cursor=pointer]:
+            - cell "18:21:04" [ref=e6703]
+            - cell "Investing_com" [ref=e6704]:
+              - generic [ref=e6705]: Investing_com
+            - cell "FDA approves Filspari for FSGS, Travere’s second indication" [ref=e6706]:
+              - link "FDA approves Filspari for FSGS, Travere’s second indication" [ref=e6707]:
+                - /url: https://www.investing.com/news/company-news/fda-approves-filspari-for-fsgs-traveres-second-indication-93CH-4611540
+            - cell "—" [ref=e6708]
+          - row "18:20:00 Nasdaq Wall Street Is Wrong About AI Killing Software Stocks. This Cybersecurity Growth Stock Proves It. —" [ref=e6709] [cursor=pointer]:
+            - cell "18:20:00" [ref=e6710]
+            - cell "Nasdaq" [ref=e6711]:
+              - generic [ref=e6712]: Nasdaq
+            - cell "Wall Street Is Wrong About AI Killing Software Stocks. This Cybersecurity Growth Stock Proves It." [ref=e6713]:
+              - link "Wall Street Is Wrong About AI Killing Software Stocks. This Cybersecurity Growth Stock Proves It." [ref=e6714]:
+                - /url: https://www.nasdaq.com/articles/wall-street-wrong-about-ai-killing-software-stocks-cybersecurity-growth-stock-proves-it
+            - cell "—" [ref=e6715]
+          - row "18:19:22 Investing_com NeonC technologies chief accounting officer Suh buys $1000 in stock —" [ref=e6716] [cursor=pointer]:
+            - cell "18:19:22" [ref=e6717]
+            - cell "Investing_com" [ref=e6718]:
+              - generic [ref=e6719]: Investing_com
+            - cell "NeonC technologies chief accounting officer Suh buys $1000 in stock" [ref=e6720]:
+              - link "NeonC technologies chief accounting officer Suh buys $1000 in stock" [ref=e6721]:
+                - /url: https://www.investing.com/news/insider-trading-news/neonc-technologies-chief-accounting-officer-suh-buys-1000-in-stock-93CH-4611538
+            - cell "—" [ref=e6722]
+          - row "18:18:48 Investing_com Democrat Swalwell to quit Congress following sexual misconduct allegations —" [ref=e6723] [cursor=pointer]:
+            - cell "18:18:48" [ref=e6724]
+            - cell "Investing_com" [ref=e6725]:
+              - generic [ref=e6726]: Investing_com
+            - cell "Democrat Swalwell to quit Congress following sexual misconduct allegations" [ref=e6727]:
+              - link "Democrat Swalwell to quit Congress following sexual misconduct allegations" [ref=e6728]:
+                - /url: https://www.investing.com/news/politics-news/democrats-urge-swalwell-to-resign-from-congress-as-ethics-probe-begins-4611101
+            - cell "—" [ref=e6729]
+          - row "18:18:32 Investing_com US crude futures fall over $1 as traders weigh supply risks —" [ref=e6730] [cursor=pointer]:
+            - cell "18:18:32" [ref=e6731]
+            - cell "Investing_com" [ref=e6732]:
+              - generic [ref=e6733]: Investing_com
+            - cell "US crude futures fall over $1 as traders weigh supply risks" [ref=e6734]:
+              - link "US crude futures fall over $1 as traders weigh supply risks" [ref=e6735]:
+                - /url: https://www.investing.com/news/commodities-news/us-crude-futures-fall-over-1-as-traders-weigh-supply-risks-4611537
+            - cell "—" [ref=e6736]
+          - 'row "18:16:25 Nasdaq Stock Market Today, April 13: Palantir Rebounds as Investors Reassess AI Growth After Sharp Sell-Off PLTR $100.00 +0.50%" [ref=e6737] [cursor=pointer]':
+            - cell "18:16:25" [ref=e6738]
+            - cell "Nasdaq" [ref=e6739]:
+              - generic [ref=e6740]: Nasdaq
+            - 'cell "Stock Market Today, April 13: Palantir Rebounds as Investors Reassess AI Growth After Sharp Sell-Off" [ref=e6741]':
+              - 'link "Stock Market Today, April 13: Palantir Rebounds as Investors Reassess AI Growth After Sharp Sell-Off" [ref=e6742]':
+                - /url: https://www.nasdaq.com/articles/stock-market-today-april-13-palantir-rebounds-investors-reassess-ai-growth-after-sharp
+            - cell "PLTR $100.00 +0.50%" [ref=e6743]:
+              - generic [ref=e6744]:
+                - text: PLTR
+                - generic [ref=e6745]: $100.00 +0.50%
+          - 'row "18:06:24 Investing_com Form 144 DISC MEDICINE INC For: 13 April —" [ref=e6746] [cursor=pointer]':
+            - cell "18:06:24" [ref=e6747]
+            - cell "Investing_com" [ref=e6748]:
+              - generic [ref=e6749]: Investing_com
+            - 'cell "Form 144 DISC MEDICINE INC For: 13 April" [ref=e6750]':
+              - 'link "Form 144 DISC MEDICINE INC For: 13 April" [ref=e6751]':
+                - /url: https://www.investing.com/news/filings/form-144-disc-medicine-inc-for-13-april-93CH-4611526
+            - cell "—" [ref=e6752]
+    - contentinfo [ref=e473]:
+      - generic [ref=e474]:
+        - generic [ref=e475]:
+          - text: "Last refresh:"
+          - generic [ref=e476]: 20:14:01
+        - generic [ref=e477]:
+          - text: "Rate:"
+          - generic [ref=e478]: "0.2"
+          - text: items/s
+      - generic [ref=e479]:
+        - generic [ref=e480]:
+          - link "Pricing" [ref=e481] [cursor=pointer]:
+            - /url: /pricing
+          - link "Privacy Policy" [ref=e482] [cursor=pointer]:
+            - /url: /privacy
+          - link "Terms of Service" [ref=e483] [cursor=pointer]:
+            - /url: /terms
+        - generic "Click to copy API endpoint" [ref=e484] [cursor=pointer]: /api/news
+  - generic:
+    - generic:
+      - generic:
+        - heading "// API Documentation" [level=2]
+        - button "Close":
+          - img
+      - generic:
+        - paragraph:
+          - text: "REST API for programmatic access. All responses are JSON. Base URL:"
+          - code: http://localhost:8000
+          - text: /api
+        - generic:
+          - generic:
+            - generic: GET
+            - generic: /news
+          - generic:
+            - paragraph: Returns latest news items with sentiment scoring.
+            - generic:
+              - term: limit
+              - definition: Number of items (default 50, max 500)
+              - term: source
+              - definition: Filter by source name (default "all")
+              - term: sentiment
+              - definition: "Filter: bullish, bearish, neutral (default \"all\")"
+              - term: q
+              - definition: Keyword search in title and summary
+              - term: from
+              - definition: Filter from date (ISO 8601, e.g. "2026-03-01")
+              - term: to
+              - definition: Filter to date (ISO 8601, e.g. "2026-03-02")
+            - generic:
+              - text: curl "
+              - text: /api/news?limit=10&sentiment=bullish"
+        - generic:
+          - generic:
+            - generic: GET
+            - generic: /sources
+          - generic:
+            - paragraph: Returns all active feed sources with item counts and status.
+            - generic:
+              - text: curl "
+              - text: /api/sources"
+        - generic:
+          - generic:
+            - generic: GET
+            - generic: /stats
+          - generic:
+            - paragraph: "Returns aggregated statistics: total items, by source, by sentiment, average score."
+            - generic:
+              - text: curl "
+              - text: /api/stats"
+        - generic:
+          - generic:
+            - generic: POST
+            - generic: /refresh
+          - generic:
+            - paragraph: Force refresh all feeds immediately. Returns count of new items found.
+            - generic:
+              - text: curl -X POST "
+              - text: /api/refresh"
+        - generic:
+          - generic:
+            - generic: GET
+            - generic: /docs
+          - generic:
+            - paragraph: Returns this API documentation as JSON.
+            - generic:
+              - text: curl "
+              - text: /api/docs"
+  - generic:
+    - generic:
+      - generic:
+        - heading "// Ticker Recommendation" [level=2]
+        - button "Close":
+          - img

@@ -1,0 +1,7 @@
+[     141ms] [VERBOSE] [DOM] Password forms should have (optionally hidden) username fields for accessibility: (More info: https://goo.gl/9p2vKq) %o @ http://localhost:5173/pricing:0
+[    7551ms] [WARNING] You may test your Stripe.js integration over HTTP. However, live Stripe.js integrations must use HTTPS. @ https://js.stripe.com/basil/stripe.js:0
+[   42954ms] TypeError: _checkout.destroy is not a function
+    at HTMLButtonElement.closeCheckoutSidebar (http://localhost:5173/src/checkout.js?t=1776343297971:250:15)
+    at eval (eval at evaluate (:302:30), <anonymous>:2:45)
+    at UtilityScript.evaluate (<anonymous>:304:16)
+    at UtilityScript.<anonymous> (<anonymous>:1:44)

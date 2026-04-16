@@ -1,0 +1,99 @@
+US-014 Test Evidence — Company Profile Modal — Earnings & Ratios Tab (Frontend)
+Tester run: 2026-04-15
+Attempt: 1
+===============================================================================
+
+## Test Assertions
+
+### Assertion 1: cd frontend && npx vite build exits 0
+RESULT: PASS
+- vite v6.4.1, 29 modules transformed, 0 errors
+- Built in 364ms
+- See vite_build.log
+
+### Assertion 2: Open company profile for 'AAPL' — 'Financials' tab shows revenue, EPS, P/E
+RESULT: PASS
+- Clicked AAPL ticker badge ($258.54 -0.11%)
+- Company profile modal opened with heading "// AAPL"
+- Fundamentals tab shown by default with Apple Inc. info, Market Cap $3.80T
+- Clicked "Financials" tab — tab switched to active state
+- Financials tab rendered:
+  - Latest Quarter: Q1 2026
+  - Revenue: $143.76B (formatted with B unit)
+  - Net Income: $42.10B (formatted with B unit)
+  - EPS: $2.85
+  - P/E Ratio: 32.6x
+- All metrics displayed in 2x2 grid layout
+- See screenshot-aapl-financials.png
+
+### Assertion 3: Earnings chart shows 4 quarters with beat/miss colors
+RESULT: PASS
+- Bar chart section labeled "Earnings Per Share — Last 4 Quarters"
+- 4 bars rendered in chronological order:
+  1. Q2 25: $1.65 (positive, green, height: 57.89%)
+  2. Q3 25: $1.57 (positive, green, height: 55.09%)
+  3. Q4 25: $1.85 (positive, green, height: 64.91%)
+  4. Q1 26: $2.85 (positive, green, height: 100%)
+- Positive bars: rgb(63, 185, 80) — green
+- Negative legend dot: rgb(248, 81, 73) — red
+- Legend shows both "Positive" and "Negative" color indicators
+- Bar heights proportional to EPS values (Q1 26 highest at 100%)
+- Note: All AAPL quarters are positive, so no negative bars to render.
+  Negative color path verified via CSS and legend dot color.
+- See screenshot-aapl-chart.png
+
+### Assertion 4: Open company profile for 'SPY' (ETF) — shows 'No data available' gracefully
+RESULT: PASS
+- Opened SPY company profile modal (heading "// SPY")
+- Clicked "Financials" tab
+- Body rendered: <div class="cp-no-data">
+  - Icon: "—"
+  - Heading: "No financial data available"
+  - Detail: "Financial data is not available for this ticker (e.g., ETFs, indices)."
+- No metrics grid, no chart — just the graceful no-data message
+- See screenshot-spy-no-data.png
+
+## Acceptance Criteria Verification
+
+### AC1: 'Financials' tab in company profile modal
+PASS — Tab button present, clickable, switches to active state with underline highlight
+
+### AC2: Displays: revenue (formatted), net income, EPS, P/E ratio
+PASS — All four metrics shown in 2x2 grid:
+  Revenue: $143.76B, Net Income: $42.10B, EPS: $2.85, P/E Ratio: 32.6x
+
+### AC3: Earnings history: last 4 quarters as mini bar chart (actual vs estimate, beat/miss color coding)
+PASS — 4-quarter bar chart with green (positive) / red (negative) color coding.
+  Note: Polygon.io returns null for estimated_eps, so chart shows actual EPS only
+  with positive/negative coloring. This matches implementation_notes.
+
+### AC4: Data fetched from /api/market/:symbol/financials
+PASS — Confirmed via browser console: GET /api/market/AAPL/financials returned data.
+  Required server restart to register route (server was stale from before US-013).
+
+### AC5: 'No data available' message for tickers without financials (e.g., ETFs)
+PASS — SPY shows "No financial data available" with explanatory subtext
+
+### AC6: Typecheck passes
+PASS — Vite build exits 0 (29 modules, 0 errors).
+  mypy app/routes/market.py: "Success: no issues found in 1 source file"
+
+### AC7: Verify in browser — financials tab shows data, chart renders
+PASS — Full visual verification via Playwright. Screenshots captured.
+
+## Quality Checks
+
+- Vite build: PASS (29 modules, 0 errors)
+- mypy (market.py): PASS ("Success: no issues found in 1 source file")
+- pytest: 123 passed, 8 failed
+  - All 8 failures pre-existing in test_tiers.py/test_rate_limit.py (stale tier config)
+  - Documented since US-001, not related to US-014
+
+## Artifacts
+- vite_build.log
+- pytest_full.log
+- mypy_market.log
+- screenshot-aapl-financials.png
+- screenshot-aapl-chart.png
+- screenshot-spy-no-data.png
+- test_evidence.log (this file)

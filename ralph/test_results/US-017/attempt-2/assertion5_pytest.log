@@ -1,0 +1,28 @@
+============================= test session starts ==============================
+platform linux -- Python 3.10.20, pytest-9.0.2, pluggy-1.6.0 -- /home/haotiant/conda/envs/instnews/bin/python
+cachedir: .pytest_cache
+rootdir: /home/haotiant/Projects/Personal/InstantNews
+configfile: pyproject.toml
+plugins: typeguard-2.13.3, anyio-4.13.0
+collecting ... collected 156 items / 139 deselected / 17 selected
+
+tests/test_edgar_client.py::TestEdgarClientBasic::test_always_enabled PASSED [  5%]
+tests/test_edgar_client.py::TestEdgarClientBasic::test_import_works PASSED [ 11%]
+tests/test_edgar_client.py::TestEdgarClientCIKLookup::test_resolve_cik_success PASSED [ 17%]
+tests/test_edgar_client.py::TestEdgarClientCIKLookup::test_resolve_cik_not_found PASSED [ 23%]
+tests/test_edgar_client.py::TestEdgarClientCIKLookup::test_resolve_cik_cached PASSED [ 29%]
+tests/test_edgar_client.py::TestEdgarClientForm4::test_insider_transactions_success PASSED [ 35%]
+tests/test_edgar_client.py::TestEdgarClientForm4::test_insider_transactions_caching PASSED [ 41%]
+tests/test_edgar_client.py::TestEdgarClientForm4::test_insider_transactions_no_cik PASSED [ 47%]
+tests/test_edgar_client.py::TestEdgarClient13DG::test_major_position_changes_success PASSED [ 52%]
+tests/test_edgar_client.py::TestEdgarClient13DG::test_major_position_changes_empty PASSED [ 58%]
+tests/test_edgar_client.py::TestNormalizeCompanyName::test_strips_inc PASSED [ 64%]
+tests/test_edgar_client.py::TestNormalizeCompanyName::test_strips_corp PASSED [ 70%]
+tests/test_edgar_client.py::TestNormalizeCompanyName::test_strips_corporation PASSED [ 76%]
+tests/test_edgar_client.py::TestNormalizeCompanyName::test_handles_plain_name PASSED [ 82%]
+tests/test_edgar_client.py::TestEdgarClient13F::test_institutional_holders_returns_list_with_data PASSED [ 88%]
+tests/test_edgar_client.py::TestEdgarClient13F::test_institutional_holders_deduplicates PASSED [ 94%]
+tests/test_edgar_client.py::TestEdgarClient13F::test_institutional_holders_caching PASSED [100%]
+
+====================== 17 passed, 139 deselected in 1.57s ======================
+EXIT: 0

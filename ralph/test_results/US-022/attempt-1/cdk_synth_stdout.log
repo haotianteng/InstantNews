@@ -1,0 +1,1846 @@
+Resources:
+  Vpc8378EB38:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: 10.0.0.0/16
+      EnableDnsHostnames: true
+      EnableDnsSupport: true
+      InstanceTenancy: default
+      Tags:
+        - Key: Name
+          Value: InstantNewsStack/Vpc
+    Metadata:
+      aws:cdk:path: InstantNewsStack/Vpc/Resource
+  VpcPublicSubnet1Subnet5C2D37C4:
+    Type: AWS::EC2::Subnet
+    Properties:
+      AvailabilityZone: us-east-1a
+      CidrBlock: 10.0.0.0/18
+      MapPublicIpOnLaunch: true
+      Tags:
+        - Key: aws-cdk:subnet-name
+          Value: Public
+        - Key: aws-cdk:subnet-type
+          Value: Public
+        - Key: Name
+          Value: InstantNewsStack/Vpc/PublicSubnet1
+      VpcId:
+        Ref: Vpc8378EB38
+    Metadata:
+      aws:cdk:path: InstantNewsStack/Vpc/PublicSubnet1/Subnet
+  VpcPublicSubnet1RouteTable6C95E38E:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      Tags:
+        - Key: Name
+          Value: InstantNewsStack/Vpc/PublicSubnet1
+      VpcId:
+        Ref: Vpc8378EB38
+    Metadata:
+      aws:cdk:path: InstantNewsStack/Vpc/PublicSubnet1/RouteTable
+  VpcPublicSubnet1RouteTableAssociation97140677:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId:
+        Ref: VpcPublicSubnet1RouteTable6C95E38E
+      SubnetId:
+        Ref: VpcPublicSubnet1Subnet5C2D37C4
+    Metadata:
+      aws:cdk:path: InstantNewsStack/Vpc/PublicSubnet1/RouteTableAssociation
+  VpcPublicSubnet1DefaultRoute3DA9E72A:
+    Type: AWS::EC2::Route
+    Properties:
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId:
+        Ref: VpcIGWD7BA715C
+      RouteTableId:
+        Ref: VpcPublicSubnet1RouteTable6C95E38E
+    DependsOn:
+      - VpcVPCGWBF912B6E
+    Metadata:
+      aws:cdk:path: InstantNewsStack/Vpc/PublicSubnet1/DefaultRoute
+  VpcPublicSubnet1EIPD7E02669:
+    Type: AWS::EC2::EIP
+    Properties:
+      Domain: vpc
+      Tags:
+        - Key: Name
+          Value: InstantNewsStack/Vpc/PublicSubnet1
+    Metadata:
+      aws:cdk:path: InstantNewsStack/Vpc/PublicSubnet1/EIP
+  VpcPublicSubnet1NATGateway4D7517AA:
+    Type: AWS::EC2::NatGateway
+    Properties:
+      AllocationId:
+        Fn::GetAtt:
+          - VpcPublicSubnet1EIPD7E02669
+          - AllocationId
+      SubnetId:
+        Ref: VpcPublicSubnet1Subnet5C2D37C4
+      Tags:
+        - Key: Name
+          Value: InstantNewsStack/Vpc/PublicSubnet1
+    DependsOn:
+      - VpcPublicSubnet1DefaultRoute3DA9E72A
+      - VpcPublicSubnet1RouteTableAssociation97140677
+    Metadata:
+      aws:cdk:path: InstantNewsStack/Vpc/PublicSubnet1/NATGateway
+  VpcPublicSubnet2Subnet691E08A3:
+    Type: AWS::EC2::Subnet
+    Properties:
+      AvailabilityZone: us-east-1b
+      CidrBlock: 10.0.64.0/18
+      MapPublicIpOnLaunch: true
+      Tags:
+        - Key: aws-cdk:subnet-name
+          Value: Public
+        - Key: aws-cdk:subnet-type
+          Value: Public
+        - Key: Name
+          Value: InstantNewsStack/Vpc/PublicSubnet2
+      VpcId:
+        Ref: Vpc8378EB38
+    Metadata:
+      aws:cdk:path: InstantNewsStack/Vpc/PublicSubnet2/Subnet
+  VpcPublicSubnet2RouteTable94F7E489:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      Tags:
+        - Key: Name
+          Value: InstantNewsStack/Vpc/PublicSubnet2
+      VpcId:
+        Ref: Vpc8378EB38
+    Metadata:
+      aws:cdk:path: InstantNewsStack/Vpc/PublicSubnet2/RouteTable
+  VpcPublicSubnet2RouteTableAssociationDD5762D8:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId:
+        Ref: VpcPublicSubnet2RouteTable94F7E489
+      SubnetId:
+        Ref: VpcPublicSubnet2Subnet691E08A3
+    Metadata:
+      aws:cdk:path: InstantNewsStack/Vpc/PublicSubnet2/RouteTableAssociation
+  VpcPublicSubnet2DefaultRoute97F91067:
+    Type: AWS::EC2::Route
+    Properties:
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId:
+        Ref: VpcIGWD7BA715C
+      RouteTableId:
+        Ref: VpcPublicSubnet2RouteTable94F7E489
+    DependsOn:
+      - VpcVPCGWBF912B6E
+    Metadata:
+      aws:cdk:path: InstantNewsStack/Vpc/PublicSubnet2/DefaultRoute
+  VpcPrivateSubnet1Subnet536B997A:
+    Type: AWS::EC2::Subnet
+    Properties:
+      AvailabilityZone: us-east-1a
+      CidrBlock: 10.0.128.0/18
+      MapPublicIpOnLaunch: false
+      Tags:
+        - Key: aws-cdk:subnet-name
+          Value: Private
+        - Key: aws-cdk:subnet-type
+          Value: Private
+        - Key: Name
+          Value: InstantNewsStack/Vpc/PrivateSubnet1
+      VpcId:
+        Ref: Vpc8378EB38
+    Metadata:
+      aws:cdk:path: InstantNewsStack/Vpc/PrivateSubnet1/Subnet
+  VpcPrivateSubnet1RouteTableB2C5B500:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      Tags:
+        - Key: Name
+          Value: InstantNewsStack/Vpc/PrivateSubnet1
+      VpcId:
+        Ref: Vpc8378EB38
+    Metadata:
+      aws:cdk:path: InstantNewsStack/Vpc/PrivateSubnet1/RouteTable
+  VpcPrivateSubnet1RouteTableAssociation70C59FA6:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId:
+        Ref: VpcPrivateSubnet1RouteTableB2C5B500
+      SubnetId:
+        Ref: VpcPrivateSubnet1Subnet536B997A
+    Metadata:
+      aws:cdk:path: InstantNewsStack/Vpc/PrivateSubnet1/RouteTableAssociation
+  VpcPrivateSubnet1DefaultRouteBE02A9ED:
+    Type: AWS::EC2::Route
+    Properties:
+      DestinationCidrBlock: 0.0.0.0/0
+      NatGatewayId:
+        Ref: VpcPublicSubnet1NATGateway4D7517AA
+      RouteTableId:
+        Ref: VpcPrivateSubnet1RouteTableB2C5B500
+    Metadata:
+      aws:cdk:path: InstantNewsStack/Vpc/PrivateSubnet1/DefaultRoute
+  VpcPrivateSubnet2Subnet3788AAA1:
+    Type: AWS::EC2::Subnet
+    Properties:
+      AvailabilityZone: us-east-1b
+      CidrBlock: 10.0.192.0/18
+      MapPublicIpOnLaunch: false
+      Tags:
+        - Key: aws-cdk:subnet-name
+          Value: Private
+        - Key: aws-cdk:subnet-type
+          Value: Private
+        - Key: Name
+          Value: InstantNewsStack/Vpc/PrivateSubnet2
+      VpcId:
+        Ref: Vpc8378EB38
+    Metadata:
+      aws:cdk:path: InstantNewsStack/Vpc/PrivateSubnet2/Subnet
+  VpcPrivateSubnet2RouteTableA678073B:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      Tags:
+        - Key: Name
+          Value: InstantNewsStack/Vpc/PrivateSubnet2
+      VpcId:
+        Ref: Vpc8378EB38
+    Metadata:
+      aws:cdk:path: InstantNewsStack/Vpc/PrivateSubnet2/RouteTable
+  VpcPrivateSubnet2RouteTableAssociationA89CAD56:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId:
+        Ref: VpcPrivateSubnet2RouteTableA678073B
+      SubnetId:
+        Ref: VpcPrivateSubnet2Subnet3788AAA1
+    Metadata:
+      aws:cdk:path: InstantNewsStack/Vpc/PrivateSubnet2/RouteTableAssociation
+  VpcPrivateSubnet2DefaultRoute060D2087:
+    Type: AWS::EC2::Route
+    Properties:
+      DestinationCidrBlock: 0.0.0.0/0
+      NatGatewayId:
+        Ref: VpcPublicSubnet1NATGateway4D7517AA
+      RouteTableId:
+        Ref: VpcPrivateSubnet2RouteTableA678073B
+    Metadata:
+      aws:cdk:path: InstantNewsStack/Vpc/PrivateSubnet2/DefaultRoute
+  VpcIGWD7BA715C:
+    Type: AWS::EC2::InternetGateway
+    Properties:
+      Tags:
+        - Key: Name
+          Value: InstantNewsStack/Vpc
+    Metadata:
+      aws:cdk:path: InstantNewsStack/Vpc/IGW
+  VpcVPCGWBF912B6E:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      InternetGatewayId:
+        Ref: VpcIGWD7BA715C
+      VpcId:
+        Ref: Vpc8378EB38
+    Metadata:
+      aws:cdk:path: InstantNewsStack/Vpc/VPCGW
+  DbSecret685A0FA5:
+    Type: AWS::SecretsManager::Secret
+    Properties:
+      GenerateSecretString:
+        ExcludePunctuation: true
+        GenerateStringKey: password
+        PasswordLength: 32
+        SecretStringTemplate: '{"username":"signal"}'
+      Name: instantnews/db
+    UpdateReplacePolicy: Delete
+    DeletionPolicy: Delete
+    Metadata:
+      aws:cdk:path: InstantNewsStack/DbSecret/Resource
+  DbSecretAttachment0609CE05:
+    Type: AWS::SecretsManager::SecretTargetAttachment
+    Properties:
+      SecretId:
+        Ref: DbSecret685A0FA5
+      TargetId:
+        Ref: DatabaseB269D8BB
+      TargetType: AWS::RDS::DBInstance
+    Metadata:
+      aws:cdk:path: InstantNewsStack/DbSecret/Attachment/Resource
+  AppSecretsA1997F2A:
+    Type: AWS::SecretsManager::Secret
+    Properties:
+      Description: Application secrets (Stripe, Firebase, AI, etc.)
+      GenerateSecretString: {}
+      Name: instantnews/app
+    UpdateReplacePolicy: Delete
+    DeletionPolicy: Delete
+    Metadata:
+      aws:cdk:path: InstantNewsStack/AppSecrets/Resource
+  DatabaseSubnetGroup7D60F180:
+    Type: AWS::RDS::DBSubnetGroup
+    Properties:
+      DBSubnetGroupDescription: Subnet group for Database database
+      SubnetIds:
+        - Ref: VpcPrivateSubnet1Subnet536B997A
+        - Ref: VpcPrivateSubnet2Subnet3788AAA1
+    Metadata:
+      aws:cdk:path: InstantNewsStack/Database/SubnetGroup/Default
+  DatabaseSecurityGroup5C91FDCB:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Security group for Database database
+      SecurityGroupEgress:
+        - CidrIp: 0.0.0.0/0
+          Description: Allow all outbound traffic by default
+          IpProtocol: "-1"
+      VpcId:
+        Ref: Vpc8378EB38
+    Metadata:
+      aws:cdk:path: InstantNewsStack/Database/SecurityGroup/Resource
+  DatabaseSecurityGroupfromInstantNewsStackWebServiceSecurityGroup0D20432A5432CE6284A9:
+    Type: AWS::EC2::SecurityGroupIngress
+    Properties:
+      Description: from InstantNewsStackWebServiceSecurityGroup0D20432A:5432
+      FromPort: 5432
+      GroupId:
+        Fn::GetAtt:
+          - DatabaseSecurityGroup5C91FDCB
+          - GroupId
+      IpProtocol: tcp
+      SourceSecurityGroupId:
+        Fn::GetAtt:
+          - WebServiceSecurityGroup7A3EB149
+          - GroupId
+      ToPort: 5432
+    Metadata:
+      aws:cdk:path: InstantNewsStack/Database/SecurityGroup/from InstantNewsStackWebServiceSecurityGroup0D20432A:5432
+  DatabaseSecurityGroupfromInstantNewsStackAdminServiceSecurityGroupED352E0254327818D403:
+    Type: AWS::EC2::SecurityGroupIngress
+    Properties:
+      Description: from InstantNewsStackAdminServiceSecurityGroupED352E02:5432
+      FromPort: 5432
+      GroupId:
+        Fn::GetAtt:
+          - DatabaseSecurityGroup5C91FDCB
+          - GroupId
+      IpProtocol: tcp
+      SourceSecurityGroupId:
+        Fn::GetAtt:
+          - AdminServiceSecurityGroup1797293A
+          - GroupId
+      ToPort: 5432
+    Metadata:
+      aws:cdk:path: InstantNewsStack/Database/SecurityGroup/from InstantNewsStackAdminServiceSecurityGroupED352E02:5432
+  DatabaseSecurityGroupfromInstantNewsStackWorkerServiceSecurityGroup7F465C275432F127E578:
+    Type: AWS::EC2::SecurityGroupIngress
+    Properties:
+      Description: from InstantNewsStackWorkerServiceSecurityGroup7F465C27:5432
+      FromPort: 5432
+      GroupId:
+        Fn::GetAtt:
+          - DatabaseSecurityGroup5C91FDCB
+          - GroupId
+      IpProtocol: tcp
+      SourceSecurityGroupId:
+        Fn::GetAtt:
+          - WorkerServiceSecurityGroup254DBA6E
+          - GroupId
+      ToPort: 5432
+    Metadata:
+      aws:cdk:path: InstantNewsStack/Database/SecurityGroup/from InstantNewsStackWorkerServiceSecurityGroup7F465C27:5432
+  DatabaseB269D8BB:
+    Type: AWS::RDS::DBInstance
+    Properties:
+      AllocatedStorage: "20"
+      BackupRetentionPeriod: 7
+      CopyTagsToSnapshot: true
+      DBInstanceClass: db.t3.small
+      DBName: signal_news
+      DBSubnetGroupName:
+        Ref: DatabaseSubnetGroup7D60F180
+      DeletionProtection: true
+      Engine: postgres
+      EngineVersion: "16"
+      MasterUserPassword:
+        Fn::Join:
+          - ""
+          - - "{{resolve:secretsmanager:"
+            - Ref: DbSecret685A0FA5
+            - :SecretString:password::}}
+      MasterUsername:
+        Fn::Join:
+          - ""
+          - - "{{resolve:secretsmanager:"
+            - Ref: DbSecret685A0FA5
+            - :SecretString:username::}}
+      MaxAllocatedStorage: 100
+      MultiAZ: true
+      PubliclyAccessible: false
+      StorageType: gp2
+      VPCSecurityGroups:
+        - Fn::GetAtt:
+            - DatabaseSecurityGroup5C91FDCB
+            - GroupId
+    UpdateReplacePolicy: Snapshot
+    DeletionPolicy: Snapshot
+    Metadata:
+      aws:cdk:path: InstantNewsStack/Database/Resource
+  DatabaseReplicaSubnetGroup30CDD0E3:
+    Type: AWS::RDS::DBSubnetGroup
+    Properties:
+      DBSubnetGroupDescription: Subnet group for DatabaseReplica database
+      SubnetIds:
+        - Ref: VpcPrivateSubnet1Subnet536B997A
+        - Ref: VpcPrivateSubnet2Subnet3788AAA1
+    Metadata:
+      aws:cdk:path: InstantNewsStack/DatabaseReplica/SubnetGroup/Default
+  DatabaseReplicaSecurityGroup953160EC:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Security group for DatabaseReplica database
+      SecurityGroupEgress:
+        - CidrIp: 0.0.0.0/0
+          Description: Allow all outbound traffic by default
+          IpProtocol: "-1"
+      VpcId:
+        Ref: Vpc8378EB38
+    Metadata:
+      aws:cdk:path: InstantNewsStack/DatabaseReplica/SecurityGroup/Resource
+  DatabaseReplicaSecurityGroupfromInstantNewsStackAdminServiceSecurityGroupED352E025432D1677AE3:
+    Type: AWS::EC2::SecurityGroupIngress
+    Properties:
+      Description: from InstantNewsStackAdminServiceSecurityGroupED352E02:5432
+      FromPort: 5432
+      GroupId:
+        Fn::GetAtt:
+          - DatabaseReplicaSecurityGroup953160EC
+          - GroupId
+      IpProtocol: tcp
+      SourceSecurityGroupId:
+        Fn::GetAtt:
+          - AdminServiceSecurityGroup1797293A
+          - GroupId
+      ToPort: 5432
+    Metadata:
+      aws:cdk:path: InstantNewsStack/DatabaseReplica/SecurityGroup/from InstantNewsStackAdminServiceSecurityGroupED352E02:5432
+  DatabaseReplicaFD06AB0D:
+    Type: AWS::RDS::DBInstance
+    Properties:
+      CopyTagsToSnapshot: true
+      DBInstanceClass: db.t3.micro
+      DBSubnetGroupName:
+        Ref: DatabaseReplicaSubnetGroup30CDD0E3
+      PubliclyAccessible: false
+      SourceDBInstanceIdentifier:
+        Fn::Join:
+          - ""
+          - - "arn:"
+            - Ref: AWS::Partition
+            - ":rds:us-east-1:596080539716:db:"
+            - Ref: DatabaseB269D8BB
+      StorageType: gp2
+      VPCSecurityGroups:
+        - Fn::GetAtt:
+            - DatabaseReplicaSecurityGroup953160EC
+            - GroupId
+    UpdateReplacePolicy: Delete
+    DeletionPolicy: Delete
+    Metadata:
+      aws:cdk:path: InstantNewsStack/DatabaseReplica/Resource
+  ClusterEB0386A7:
+    Type: AWS::ECS::Cluster
+    Properties:
+      ClusterName: instantnews
+      ClusterSettings:
+        - Name: containerInsights
+          Value: enabled
+    Metadata:
+      aws:cdk:path: InstantNewsStack/Cluster/Resource
+  Cert5C9FAEC1:
+    Type: AWS::CertificateManager::Certificate
+    Properties:
+      DomainName: instnews.net
+      DomainValidationOptions:
+        - DomainName: instnews.net
+          HostedZoneId: Z03718532307U3AUJEOBX
+        - DomainName: www.instnews.net
+          HostedZoneId: Z03718532307U3AUJEOBX
+      SubjectAlternativeNames:
+        - www.instnews.net
+      Tags:
+        - Key: Name
+          Value: InstantNewsStack/Cert
+      ValidationMethod: DNS
+    Metadata:
+      aws:cdk:path: InstantNewsStack/Cert/Resource
+  AdminCert78FC845D:
+    Type: AWS::CertificateManager::Certificate
+    Properties:
+      DomainName: admin.instnews.net
+      DomainValidationOptions:
+        - DomainName: admin.instnews.net
+          HostedZoneId: Z03718532307U3AUJEOBX
+      Tags:
+        - Key: Name
+          Value: InstantNewsStack/AdminCert
+      ValidationMethod: DNS
+    Metadata:
+      aws:cdk:path: InstantNewsStack/AdminCert/Resource
+  PrivateZone27242E85:
+    Type: AWS::Route53::HostedZone
+    Properties:
+      Name: instnews.net.
+      VPCs:
+        - VPCId:
+            Ref: Vpc8378EB38
+          VPCRegion: us-east-1
+    Metadata:
+      aws:cdk:path: InstantNewsStack/PrivateZone/Resource
+  WebLogs48A7C011:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: /ecs/instantnews-web
+      RetentionInDays: 30
+    UpdateReplacePolicy: Delete
+    DeletionPolicy: Delete
+    Metadata:
+      aws:cdk:path: InstantNewsStack/WebLogs/Resource
+  WebTaskTaskRole6A095794:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action: sts:AssumeRole
+            Effect: Allow
+            Principal:
+              Service: ecs-tasks.amazonaws.com
+        Version: "2012-10-17"
+    Metadata:
+      aws:cdk:path: InstantNewsStack/WebTask/TaskRole/Resource
+  WebTask51ED7374:
+    Type: AWS::ECS::TaskDefinition
+    Properties:
+      ContainerDefinitions:
+        - Environment:
+            - Name: STALE_SECONDS
+              Value: "30"
+            - Name: FETCH_TIMEOUT
+              Value: "5"
+            - Name: DEDUP_THRESHOLD
+              Value: "0.85"
+            - Name: BEDROCK_ENABLED
+              Value: "true"
+            - Name: BEDROCK_REGION
+              Value: us-east-1
+            - Name: MINIMAX_MODEL_ID
+              Value: MiniMax-M2.7
+            - Name: DB_HOST
+              Value:
+                Fn::GetAtt:
+                  - DatabaseB269D8BB
+                  - Endpoint.Address
+            - Name: DB_PORT
+              Value:
+                Fn::GetAtt:
+                  - DatabaseB269D8BB
+                  - Endpoint.Port
+            - Name: DB_NAME
+              Value: signal_news
+            - Name: DB_USER
+              Value: signal
+            - Name: PORT
+              Value: "8000"
+            - Name: GUNICORN_PORT
+              Value: "8001"
+            - Name: WORKER_ENABLED
+              Value: "false"
+            - Name: ADMIN_ENABLED
+              Value: "false"
+          Essential: true
+          HealthCheck:
+            Command:
+              - CMD-SHELL
+              - curl -f http://localhost:8000/api/stats || exit 1
+            Interval: 30
+            Retries: 3
+            StartPeriod: 60
+            Timeout: 5
+          Image:
+            Fn::Join:
+              - ""
+              - - 596080539716.dkr.ecr.us-east-1.
+                - Ref: AWS::URLSuffix
+                - /instantnews:latest
+          LogConfiguration:
+            LogDriver: awslogs
+            Options:
+              awslogs-group:
+                Ref: WebLogs48A7C011
+              awslogs-stream-prefix: web
+              awslogs-region: us-east-1
+          Name: web
+          PortMappings:
+            - ContainerPort: 8000
+              Protocol: tcp
+          Secrets:
+            - Name: DB_PASSWORD
+              ValueFrom:
+                Fn::Join:
+                  - ""
+                  - - Ref: DbSecret685A0FA5
+                    - ":password::"
+            - Name: FIREBASE_CREDENTIALS_JSON
+              ValueFrom:
+                Fn::Join:
+                  - ""
+                  - - Ref: AppSecretsA1997F2A
+                    - ":FIREBASE_CREDENTIALS_JSON::"
+            - Name: MINIMAX_API_KEY
+              ValueFrom:
+                Fn::Join:
+                  - ""
+                  - - Ref: AppSecretsA1997F2A
+                    - ":MINIMAX_API_KEY::"
+            - Name: MINIMAX_BASE_URL
+              ValueFrom:
+                Fn::Join:
+                  - ""
+                  - - Ref: AppSecretsA1997F2A
+                    - ":MINIMAX_BASE_URL::"
+            - Name: ANTHROPIC_API_KEY
+              ValueFrom:
+                Fn::Join:
+                  - ""
+                  - - Ref: AppSecretsA1997F2A
+                    - ":ANTHROPIC_API_KEY::"
+            - Name: POLYGON_API_KEY
+              ValueFrom:
+                Fn::Join:
+                  - ""
+                  - - Ref: AppSecretsA1997F2A
+                    - ":POLYGON_API_KEY::"
+            - Name: STRIPE_SECRET_KEY
+              ValueFrom:
+                Fn::Join:
+                  - ""
+                  - - Ref: AppSecretsA1997F2A
+                    - ":STRIPE_SECRET_KEY::"
+            - Name: STRIPE_WEBHOOK_SECRET
+              ValueFrom:
+                Fn::Join:
+                  - ""
+                  - - Ref: AppSecretsA1997F2A
+                    - ":STRIPE_WEBHOOK_SECRET::"
+            - Name: STRIPE_PUBLISHABLE_KEY
+              ValueFrom:
+                Fn::Join:
+                  - ""
+                  - - Ref: AppSecretsA1997F2A
+                    - ":STRIPE_PUBLISHABLE_KEY::"
+            - Name: STRIPE_PRICE_PLUS
+              ValueFrom:
+                Fn::Join:
+                  - ""
+                  - - Ref: AppSecretsA1997F2A
+                    - ":STRIPE_PRICE_PLUS::"
+            - Name: STRIPE_PRICE_MAX
+              ValueFrom:
+                Fn::Join:
+                  - ""
+                  - - Ref: AppSecretsA1997F2A
+                    - ":STRIPE_PRICE_MAX::"
+            - Name: WECHAT_APP_ID
+              ValueFrom:
+                Fn::Join:
+                  - ""
+                  - - Ref: AppSecretsA1997F2A
+                    - ":WECHAT_APP_ID::"
+            - Name: WECHAT_APP_SECRET
+              ValueFrom:
+                Fn::Join:
+                  - ""
+                  - - Ref: AppSecretsA1997F2A
+                    - ":WECHAT_APP_SECRET::"
+            - Name: APP_JWT_SECRET
+              ValueFrom:
+                Fn::Join:
+                  - ""
+                  - - Ref: AppSecretsA1997F2A
+                    - ":APP_JWT_SECRET::"
+      Cpu: "512"
+      ExecutionRoleArn:
+        Fn::GetAtt:
+          - WebTaskExecutionRole28FA0566
+          - Arn
+      Family: InstantNewsStackWebTask0317381D
+      Memory: "1024"
+      NetworkMode: awsvpc
+      RequiresCompatibilities:
+        - FARGATE
+      TaskRoleArn:
+        Fn::GetAtt:
+          - WebTaskTaskRole6A095794
+          - Arn
+    Metadata:
+      aws:cdk:path: InstantNewsStack/WebTask/Resource
+  WebTaskExecutionRole28FA0566:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action: sts:AssumeRole
+            Effect: Allow
+            Principal:
+              Service: ecs-tasks.amazonaws.com
+        Version: "2012-10-17"
+    Metadata:
+      aws:cdk:path: InstantNewsStack/WebTask/ExecutionRole/Resource
+  WebTaskExecutionRoleDefaultPolicy20822D46:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyDocument:
+        Statement:
+          - Action:
+              - ecr:BatchCheckLayerAvailability
+              - ecr:GetDownloadUrlForLayer
+              - ecr:BatchGetImage
+            Effect: Allow
+            Resource:
+              Fn::Join:
+                - ""
+                - - "arn:"
+                  - Ref: AWS::Partition
+                  - :ecr:us-east-1:596080539716:repository/instantnews
+          - Action: ecr:GetAuthorizationToken
+            Effect: Allow
+            Resource: "*"
+          - Action:
+              - logs:CreateLogStream
+              - logs:PutLogEvents
+            Effect: Allow
+            Resource:
+              Fn::GetAtt:
+                - WebLogs48A7C011
+                - Arn
+          - Action:
+              - secretsmanager:GetSecretValue
+              - secretsmanager:DescribeSecret
+            Effect: Allow
+            Resource:
+              Ref: DbSecret685A0FA5
+          - Action:
+              - secretsmanager:GetSecretValue
+              - secretsmanager:DescribeSecret
+            Effect: Allow
+            Resource:
+              Ref: AppSecretsA1997F2A
+        Version: "2012-10-17"
+      PolicyName: WebTaskExecutionRoleDefaultPolicy20822D46
+      Roles:
+        - Ref: WebTaskExecutionRole28FA0566
+    Metadata:
+      aws:cdk:path: InstantNewsStack/WebTask/ExecutionRole/DefaultPolicy/Resource
+  WebServiceLB9CAD0C10:
+    Type: AWS::ElasticLoadBalancingV2::LoadBalancer
+    Properties:
+      LoadBalancerAttributes:
+        - Key: deletion_protection.enabled
+          Value: "false"
+      Scheme: internet-facing
+      SecurityGroups:
+        - Fn::GetAtt:
+            - WebServiceLBSecurityGroup66424F28
+            - GroupId
+      Subnets:
+        - Ref: VpcPublicSubnet1Subnet5C2D37C4
+        - Ref: VpcPublicSubnet2Subnet691E08A3
+      Type: application
+    DependsOn:
+      - VpcPublicSubnet1DefaultRoute3DA9E72A
+      - VpcPublicSubnet1RouteTableAssociation97140677
+      - VpcPublicSubnet2DefaultRoute97F91067
+      - VpcPublicSubnet2RouteTableAssociationDD5762D8
+    Metadata:
+      aws:cdk:path: InstantNewsStack/WebService/LB/Resource
+  WebServiceLBSecurityGroup66424F28:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Automatically created Security Group for ELB InstantNewsStackWebServiceLBEC8FB407
+      SecurityGroupIngress:
+        - CidrIp: 0.0.0.0/0
+          Description: Allow from anyone on port 443
+          FromPort: 443
+          IpProtocol: tcp
+          ToPort: 443
+        - CidrIp: 0.0.0.0/0
+          Description: Allow from anyone on port 80
+          FromPort: 80
+          IpProtocol: tcp
+          ToPort: 80
+      VpcId:
+        Ref: Vpc8378EB38
+    Metadata:
+      aws:cdk:path: InstantNewsStack/WebService/LB/SecurityGroup/Resource
+  WebServiceLBSecurityGrouptoInstantNewsStackWebServiceSecurityGroup0D20432A8000456612BF:
+    Type: AWS::EC2::SecurityGroupEgress
+    Properties:
+      Description: Load balancer to target
+      DestinationSecurityGroupId:
+        Fn::GetAtt:
+          - WebServiceSecurityGroup7A3EB149
+          - GroupId
+      FromPort: 8000
+      GroupId:
+        Fn::GetAtt:
+          - WebServiceLBSecurityGroup66424F28
+          - GroupId
+      IpProtocol: tcp
+      ToPort: 8000
+    Metadata:
+      aws:cdk:path: InstantNewsStack/WebService/LB/SecurityGroup/to InstantNewsStackWebServiceSecurityGroup0D20432A:8000
+  WebServiceLBPublicListenerEA62BC7F:
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    Properties:
+      Certificates:
+        - CertificateArn:
+            Ref: Cert5C9FAEC1
+      DefaultActions:
+        - TargetGroupArn:
+            Ref: WebServiceLBPublicListenerECSGroup909B7188
+          Type: forward
+      LoadBalancerArn:
+        Ref: WebServiceLB9CAD0C10
+      Port: 443
+      Protocol: HTTPS
+    Metadata:
+      aws:cdk:path: InstantNewsStack/WebService/LB/PublicListener/Resource
+  WebServiceLBPublicListenerECSGroup909B7188:
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    Properties:
+      HealthCheckIntervalSeconds: 30
+      HealthCheckPath: /api/stats
+      HealthCheckTimeoutSeconds: 10
+      Matcher:
+        HttpCode: "200"
+      Port: 80
+      Protocol: HTTP
+      TargetGroupAttributes:
+        - Key: stickiness.enabled
+          Value: "false"
+      TargetType: ip
+      VpcId:
+        Ref: Vpc8378EB38
+    Metadata:
+      aws:cdk:path: InstantNewsStack/WebService/LB/PublicListener/ECSGroup/Resource
+  WebServiceLBPublicRedirectListener0D5B9C79:
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    Properties:
+      DefaultActions:
+        - RedirectConfig:
+            Port: "443"
+            Protocol: HTTPS
+            StatusCode: HTTP_301
+          Type: redirect
+      LoadBalancerArn:
+        Ref: WebServiceLB9CAD0C10
+      Port: 80
+      Protocol: HTTP
+    DependsOn:
+      - WebServiceLBPublicListenerECSGroup909B7188
+      - WebServiceLBPublicListenerEA62BC7F
+    Metadata:
+      aws:cdk:path: InstantNewsStack/WebService/LB/PublicRedirectListener/Resource
+  WebServiceDNS2BC6D2B6:
+    Type: AWS::Route53::RecordSet
+    Properties:
+      AliasTarget:
+        DNSName:
+          Fn::Join:
+            - ""
+            - - dualstack.
+              - Fn::GetAtt:
+                  - WebServiceLB9CAD0C10
+                  - DNSName
+        HostedZoneId:
+          Fn::GetAtt:
+            - WebServiceLB9CAD0C10
+            - CanonicalHostedZoneID
+      HostedZoneId: Z03718532307U3AUJEOBX
+      Name: www.instnews.net.
+      Type: A
+    Metadata:
+      aws:cdk:path: InstantNewsStack/WebService/DNS/Resource
+  WebService5EA589E6:
+    Type: AWS::ECS::Service
+    Properties:
+      Cluster:
+        Ref: ClusterEB0386A7
+      DeploymentConfiguration:
+        Alarms:
+          AlarmNames: []
+          Enable: false
+          Rollback: false
+        MaximumPercent: 200
+        MinimumHealthyPercent: 50
+      DesiredCount: 2
+      EnableECSManagedTags: false
+      HealthCheckGracePeriodSeconds: 120
+      LaunchType: FARGATE
+      LoadBalancers:
+        - ContainerName: web
+          ContainerPort: 8000
+          TargetGroupArn:
+            Ref: WebServiceLBPublicListenerECSGroup909B7188
+      NetworkConfiguration:
+        AwsvpcConfiguration:
+          AssignPublicIp: DISABLED
+          SecurityGroups:
+            - Fn::GetAtt:
+                - WebServiceSecurityGroup7A3EB149
+                - GroupId
+          Subnets:
+            - Ref: VpcPrivateSubnet1Subnet536B997A
+            - Ref: VpcPrivateSubnet2Subnet3788AAA1
+      TaskDefinition:
+        Ref: WebTask51ED7374
+    DependsOn:
+      - WebServiceLBPublicListenerECSGroup909B7188
+      - WebServiceLBPublicListenerEA62BC7F
+      - WebTaskTaskRole6A095794
+    Metadata:
+      aws:cdk:path: InstantNewsStack/WebService/Service/Service
+  WebServiceSecurityGroup7A3EB149:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: InstantNewsStack/WebService/Service/SecurityGroup
+      SecurityGroupEgress:
+        - CidrIp: 0.0.0.0/0
+          Description: Allow all outbound traffic by default
+          IpProtocol: "-1"
+      VpcId:
+        Ref: Vpc8378EB38
+    DependsOn:
+      - WebTaskTaskRole6A095794
+    Metadata:
+      aws:cdk:path: InstantNewsStack/WebService/Service/SecurityGroup/Resource
+  WebServiceSecurityGroupfromInstantNewsStackWebServiceLBSecurityGroupDEC6E26F8000EF35C132:
+    Type: AWS::EC2::SecurityGroupIngress
+    Properties:
+      Description: Load balancer to target
+      FromPort: 8000
+      GroupId:
+        Fn::GetAtt:
+          - WebServiceSecurityGroup7A3EB149
+          - GroupId
+      IpProtocol: tcp
+      SourceSecurityGroupId:
+        Fn::GetAtt:
+          - WebServiceLBSecurityGroup66424F28
+          - GroupId
+      ToPort: 8000
+    DependsOn:
+      - WebTaskTaskRole6A095794
+    Metadata:
+      aws:cdk:path: InstantNewsStack/WebService/Service/SecurityGroup/from InstantNewsStackWebServiceLBSecurityGroupDEC6E26F:8000
+  WebServiceTaskCountTargetD0215E6E:
+    Type: AWS::ApplicationAutoScaling::ScalableTarget
+    Properties:
+      MaxCapacity: 10
+      MinCapacity: 2
+      ResourceId:
+        Fn::Join:
+          - ""
+          - - service/
+            - Ref: ClusterEB0386A7
+            - /
+            - Fn::GetAtt:
+                - WebService5EA589E6
+                - Name
+      RoleARN:
+        Fn::Join:
+          - ""
+          - - "arn:"
+            - Ref: AWS::Partition
+            - :iam::596080539716:role/aws-service-role/ecs.application-autoscaling.amazonaws.com/AWSServiceRoleForApplicationAutoScaling_ECSService
+      ScalableDimension: ecs:service:DesiredCount
+      ServiceNamespace: ecs
+    DependsOn:
+      - WebTaskTaskRole6A095794
+    Metadata:
+      aws:cdk:path: InstantNewsStack/WebService/Service/TaskCount/Target/Resource
+  WebServiceTaskCountTargetCpuScaling29F758B1:
+    Type: AWS::ApplicationAutoScaling::ScalingPolicy
+    Properties:
+      PolicyName: InstantNewsStackWebServiceTaskCountTargetCpuScalingB75ADBF9
+      PolicyType: TargetTrackingScaling
+      ScalingTargetId:
+        Ref: WebServiceTaskCountTargetD0215E6E
+      TargetTrackingScalingPolicyConfiguration:
+        PredefinedMetricSpecification:
+          PredefinedMetricType: ECSServiceAverageCPUUtilization
+        ScaleInCooldown: 300
+        ScaleOutCooldown: 60
+        TargetValue: 60
+    DependsOn:
+      - WebTaskTaskRole6A095794
+    Metadata:
+      aws:cdk:path: InstantNewsStack/WebService/Service/TaskCount/Target/CpuScaling/Resource
+  WebServiceTaskCountTargetRequestScaling60BB1385:
+    Type: AWS::ApplicationAutoScaling::ScalingPolicy
+    Properties:
+      PolicyName: InstantNewsStackWebServiceTaskCountTargetRequestScalingD8DD5FF8
+      PolicyType: TargetTrackingScaling
+      ScalingTargetId:
+        Ref: WebServiceTaskCountTargetD0215E6E
+      TargetTrackingScalingPolicyConfiguration:
+        PredefinedMetricSpecification:
+          PredefinedMetricType: ALBRequestCountPerTarget
+          ResourceLabel:
+            Fn::Join:
+              - ""
+              - - Fn::Select:
+                    - 1
+                    - Fn::Split:
+                        - /
+                        - Ref: WebServiceLBPublicListenerEA62BC7F
+                - /
+                - Fn::Select:
+                    - 2
+                    - Fn::Split:
+                        - /
+                        - Ref: WebServiceLBPublicListenerEA62BC7F
+                - /
+                - Fn::Select:
+                    - 3
+                    - Fn::Split:
+                        - /
+                        - Ref: WebServiceLBPublicListenerEA62BC7F
+                - /
+                - Fn::GetAtt:
+                    - WebServiceLBPublicListenerECSGroup909B7188
+                    - TargetGroupFullName
+        ScaleInCooldown: 300
+        ScaleOutCooldown: 60
+        TargetValue: 500
+    DependsOn:
+      - WebTaskTaskRole6A095794
+    Metadata:
+      aws:cdk:path: InstantNewsStack/WebService/Service/TaskCount/Target/RequestScaling/Resource
+  AdminLogs4026B555:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: /ecs/instantnews-admin
+      RetentionInDays: 90
+    UpdateReplacePolicy: Delete
+    DeletionPolicy: Delete
+    Metadata:
+      aws:cdk:path: InstantNewsStack/AdminLogs/Resource
+  AdminTaskTaskRole229B8B1F:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action: sts:AssumeRole
+            Effect: Allow
+            Principal:
+              Service: ecs-tasks.amazonaws.com
+        Version: "2012-10-17"
+    Metadata:
+      aws:cdk:path: InstantNewsStack/AdminTask/TaskRole/Resource
+  AdminTaskD8C87731:
+    Type: AWS::ECS::TaskDefinition
+    Properties:
+      ContainerDefinitions:
+        - Environment:
+            - Name: STALE_SECONDS
+              Value: "30"
+            - Name: FETCH_TIMEOUT
+              Value: "5"
+            - Name: DEDUP_THRESHOLD
+              Value: "0.85"
+            - Name: BEDROCK_ENABLED
+              Value: "true"
+            - Name: BEDROCK_REGION
+              Value: us-east-1
+            - Name: MINIMAX_MODEL_ID
+              Value: MiniMax-M2.7
+            - Name: DB_HOST
+              Value:
+                Fn::GetAtt:
+                  - DatabaseB269D8BB
+                  - Endpoint.Address
+            - Name: DB_PORT
+              Value:
+                Fn::GetAtt:
+                  - DatabaseB269D8BB
+                  - Endpoint.Port
+            - Name: DB_NAME
+              Value: signal_news
+            - Name: DB_USER
+              Value: signal
+            - Name: PORT
+              Value: "8000"
+            - Name: GUNICORN_PORT
+              Value: "8001"
+            - Name: WORKER_ENABLED
+              Value: "false"
+            - Name: ADMIN_ENABLED
+              Value: "true"
+            - Name: DB_REPLICA_HOST
+              Value:
+                Fn::GetAtt:
+                  - DatabaseReplicaFD06AB0D
+                  - Endpoint.Address
+          Essential: true
+          HealthCheck:
+            Command:
+              - CMD-SHELL
+              - curl -f http://localhost:8000/api/stats || exit 1
+            Interval: 30
+            Retries: 3
+            StartPeriod: 60
+            Timeout: 5
+          Image:
+            Fn::Join:
+              - ""
+              - - 596080539716.dkr.ecr.us-east-1.
+                - Ref: AWS::URLSuffix
+                - /instantnews:latest
+          LogConfiguration:
+            LogDriver: awslogs
+            Options:
+              awslogs-group:
+                Ref: AdminLogs4026B555
+              awslogs-stream-prefix: admin
+              awslogs-region: us-east-1
+          Name: admin
+          PortMappings:
+            - ContainerPort: 8000
+              Protocol: tcp
+          Secrets:
+            - Name: DB_PASSWORD
+              ValueFrom:
+                Fn::Join:
+                  - ""
+                  - - Ref: DbSecret685A0FA5
+                    - ":password::"
+            - Name: FIREBASE_CREDENTIALS_JSON
+              ValueFrom:
+                Fn::Join:
+                  - ""
+                  - - Ref: AppSecretsA1997F2A
+                    - ":FIREBASE_CREDENTIALS_JSON::"
+            - Name: MINIMAX_API_KEY
+              ValueFrom:
+                Fn::Join:
+                  - ""
+                  - - Ref: AppSecretsA1997F2A
+                    - ":MINIMAX_API_KEY::"
+            - Name: MINIMAX_BASE_URL
+              ValueFrom:
+                Fn::Join:
+                  - ""
+                  - - Ref: AppSecretsA1997F2A
+                    - ":MINIMAX_BASE_URL::"
+            - Name: ANTHROPIC_API_KEY
+              ValueFrom:
+                Fn::Join:
+                  - ""
+                  - - Ref: AppSecretsA1997F2A
+                    - ":ANTHROPIC_API_KEY::"
+            - Name: POLYGON_API_KEY
+              ValueFrom:
+                Fn::Join:
+                  - ""
+                  - - Ref: AppSecretsA1997F2A
+                    - ":POLYGON_API_KEY::"
+            - Name: STRIPE_SECRET_KEY
+              ValueFrom:
+                Fn::Join:
+                  - ""
+                  - - Ref: AppSecretsA1997F2A
+                    - ":STRIPE_SECRET_KEY::"
+            - Name: STRIPE_WEBHOOK_SECRET
+              ValueFrom:
+                Fn::Join:
+                  - ""
+                  - - Ref: AppSecretsA1997F2A
+                    - ":STRIPE_WEBHOOK_SECRET::"
+            - Name: STRIPE_PUBLISHABLE_KEY
+              ValueFrom:
+                Fn::Join:
+                  - ""
+                  - - Ref: AppSecretsA1997F2A
+                    - ":STRIPE_PUBLISHABLE_KEY::"
+            - Name: STRIPE_PRICE_PLUS
+              ValueFrom:
+                Fn::Join:
+                  - ""
+                  - - Ref: AppSecretsA1997F2A
+                    - ":STRIPE_PRICE_PLUS::"
+            - Name: STRIPE_PRICE_MAX
+              ValueFrom:
+                Fn::Join:
+                  - ""
+                  - - Ref: AppSecretsA1997F2A
+                    - ":STRIPE_PRICE_MAX::"
+            - Name: WECHAT_APP_ID
+              ValueFrom:
+                Fn::Join:
+                  - ""
+                  - - Ref: AppSecretsA1997F2A
+                    - ":WECHAT_APP_ID::"
+            - Name: WECHAT_APP_SECRET
+              ValueFrom:
+                Fn::Join:
+                  - ""
+                  - - Ref: AppSecretsA1997F2A
+                    - ":WECHAT_APP_SECRET::"
+            - Name: APP_JWT_SECRET
+              ValueFrom:
+                Fn::Join:
+                  - ""
+                  - - Ref: AppSecretsA1997F2A
+                    - ":APP_JWT_SECRET::"
+      Cpu: "256"
+      ExecutionRoleArn:
+        Fn::GetAtt:
+          - AdminTaskExecutionRole324B07C4
+          - Arn
+      Family: InstantNewsStackAdminTaskD47806AE
+      Memory: "512"
+      NetworkMode: awsvpc
+      RequiresCompatibilities:
+        - FARGATE
+      TaskRoleArn:
+        Fn::GetAtt:
+          - AdminTaskTaskRole229B8B1F
+          - Arn
+    Metadata:
+      aws:cdk:path: InstantNewsStack/AdminTask/Resource
+  AdminTaskExecutionRole324B07C4:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action: sts:AssumeRole
+            Effect: Allow
+            Principal:
+              Service: ecs-tasks.amazonaws.com
+        Version: "2012-10-17"
+    Metadata:
+      aws:cdk:path: InstantNewsStack/AdminTask/ExecutionRole/Resource
+  AdminTaskExecutionRoleDefaultPolicyB22E73D9:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyDocument:
+        Statement:
+          - Action:
+              - ecr:BatchCheckLayerAvailability
+              - ecr:GetDownloadUrlForLayer
+              - ecr:BatchGetImage
+            Effect: Allow
+            Resource:
+              Fn::Join:
+                - ""
+                - - "arn:"
+                  - Ref: AWS::Partition
+                  - :ecr:us-east-1:596080539716:repository/instantnews
+          - Action: ecr:GetAuthorizationToken
+            Effect: Allow
+            Resource: "*"
+          - Action:
+              - logs:CreateLogStream
+              - logs:PutLogEvents
+            Effect: Allow
+            Resource:
+              Fn::GetAtt:
+                - AdminLogs4026B555
+                - Arn
+          - Action:
+              - secretsmanager:GetSecretValue
+              - secretsmanager:DescribeSecret
+            Effect: Allow
+            Resource:
+              Ref: DbSecret685A0FA5
+          - Action:
+              - secretsmanager:GetSecretValue
+              - secretsmanager:DescribeSecret
+            Effect: Allow
+            Resource:
+              Ref: AppSecretsA1997F2A
+        Version: "2012-10-17"
+      PolicyName: AdminTaskExecutionRoleDefaultPolicyB22E73D9
+      Roles:
+        - Ref: AdminTaskExecutionRole324B07C4
+    Metadata:
+      aws:cdk:path: InstantNewsStack/AdminTask/ExecutionRole/DefaultPolicy/Resource
+  AdminServiceLBEB88CDDB:
+    Type: AWS::ElasticLoadBalancingV2::LoadBalancer
+    Properties:
+      LoadBalancerAttributes:
+        - Key: deletion_protection.enabled
+          Value: "false"
+      Scheme: internal
+      SecurityGroups:
+        - Fn::GetAtt:
+            - AdminServiceLBSecurityGroup48B4C545
+            - GroupId
+      Subnets:
+        - Ref: VpcPrivateSubnet1Subnet536B997A
+        - Ref: VpcPrivateSubnet2Subnet3788AAA1
+      Type: application
+    Metadata:
+      aws:cdk:path: InstantNewsStack/AdminService/LB/Resource
+  AdminServiceLBSecurityGroup48B4C545:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Automatically created Security Group for ELB InstantNewsStackAdminServiceLB37EA33CB
+      SecurityGroupIngress:
+        - CidrIp: 0.0.0.0/0
+          Description: Allow from anyone on port 443
+          FromPort: 443
+          IpProtocol: tcp
+          ToPort: 443
+      VpcId:
+        Ref: Vpc8378EB38
+    Metadata:
+      aws:cdk:path: InstantNewsStack/AdminService/LB/SecurityGroup/Resource
+  AdminServiceLBSecurityGrouptoInstantNewsStackAdminServiceSecurityGroupED352E028000F2F36D32:
+    Type: AWS::EC2::SecurityGroupEgress
+    Properties:
+      Description: Load balancer to target
+      DestinationSecurityGroupId:
+        Fn::GetAtt:
+          - AdminServiceSecurityGroup1797293A
+          - GroupId
+      FromPort: 8000
+      GroupId:
+        Fn::GetAtt:
+          - AdminServiceLBSecurityGroup48B4C545
+          - GroupId
+      IpProtocol: tcp
+      ToPort: 8000
+    Metadata:
+      aws:cdk:path: InstantNewsStack/AdminService/LB/SecurityGroup/to InstantNewsStackAdminServiceSecurityGroupED352E02:8000
+  AdminServiceLBPublicListener13810D66:
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    Properties:
+      Certificates:
+        - CertificateArn:
+            Ref: AdminCert78FC845D
+      DefaultActions:
+        - TargetGroupArn:
+            Ref: AdminServiceLBPublicListenerECSGroup1498466E
+          Type: forward
+      LoadBalancerArn:
+        Ref: AdminServiceLBEB88CDDB
+      Port: 443
+      Protocol: HTTPS
+    Metadata:
+      aws:cdk:path: InstantNewsStack/AdminService/LB/PublicListener/Resource
+  AdminServiceLBPublicListenerECSGroup1498466E:
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    Properties:
+      HealthCheckIntervalSeconds: 30
+      HealthCheckPath: /api/stats
+      HealthCheckTimeoutSeconds: 10
+      Matcher:
+        HttpCode: "200"
+      Port: 80
+      Protocol: HTTP
+      TargetGroupAttributes:
+        - Key: stickiness.enabled
+          Value: "false"
+      TargetType: ip
+      VpcId:
+        Ref: Vpc8378EB38
+    Metadata:
+      aws:cdk:path: InstantNewsStack/AdminService/LB/PublicListener/ECSGroup/Resource
+  AdminServiceFA17513E:
+    Type: AWS::ECS::Service
+    Properties:
+      Cluster:
+        Ref: ClusterEB0386A7
+      DeploymentConfiguration:
+        Alarms:
+          AlarmNames: []
+          Enable: false
+          Rollback: false
+        MaximumPercent: 200
+        MinimumHealthyPercent: 50
+      DesiredCount: 1
+      EnableECSManagedTags: false
+      HealthCheckGracePeriodSeconds: 120
+      LaunchType: FARGATE
+      LoadBalancers:
+        - ContainerName: admin
+          ContainerPort: 8000
+          TargetGroupArn:
+            Ref: AdminServiceLBPublicListenerECSGroup1498466E
+      NetworkConfiguration:
+        AwsvpcConfiguration:
+          AssignPublicIp: DISABLED
+          SecurityGroups:
+            - Fn::GetAtt:
+                - AdminServiceSecurityGroup1797293A
+                - GroupId
+          Subnets:
+            - Ref: VpcPrivateSubnet1Subnet536B997A
+            - Ref: VpcPrivateSubnet2Subnet3788AAA1
+      TaskDefinition:
+        Ref: AdminTaskD8C87731
+    DependsOn:
+      - AdminServiceLBPublicListenerECSGroup1498466E
+      - AdminServiceLBPublicListener13810D66
+      - AdminTaskTaskRole229B8B1F
+    Metadata:
+      aws:cdk:path: InstantNewsStack/AdminService/Service/Service
+  AdminServiceSecurityGroup1797293A:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: InstantNewsStack/AdminService/Service/SecurityGroup
+      SecurityGroupEgress:
+        - CidrIp: 0.0.0.0/0
+          Description: Allow all outbound traffic by default
+          IpProtocol: "-1"
+      VpcId:
+        Ref: Vpc8378EB38
+    DependsOn:
+      - AdminTaskTaskRole229B8B1F
+    Metadata:
+      aws:cdk:path: InstantNewsStack/AdminService/Service/SecurityGroup/Resource
+  AdminServiceSecurityGroupfromInstantNewsStackAdminServiceLBSecurityGroup71D9FF5880000F944CAF:
+    Type: AWS::EC2::SecurityGroupIngress
+    Properties:
+      Description: Load balancer to target
+      FromPort: 8000
+      GroupId:
+        Fn::GetAtt:
+          - AdminServiceSecurityGroup1797293A
+          - GroupId
+      IpProtocol: tcp
+      SourceSecurityGroupId:
+        Fn::GetAtt:
+          - AdminServiceLBSecurityGroup48B4C545
+          - GroupId
+      ToPort: 8000
+    DependsOn:
+      - AdminTaskTaskRole229B8B1F
+    Metadata:
+      aws:cdk:path: InstantNewsStack/AdminService/Service/SecurityGroup/from InstantNewsStackAdminServiceLBSecurityGroup71D9FF58:8000
+  AdminDns43A7B8A7:
+    Type: AWS::Route53::RecordSet
+    Properties:
+      AliasTarget:
+        DNSName:
+          Fn::Join:
+            - ""
+            - - dualstack.
+              - Fn::GetAtt:
+                  - AdminServiceLBEB88CDDB
+                  - DNSName
+        HostedZoneId:
+          Fn::GetAtt:
+            - AdminServiceLBEB88CDDB
+            - CanonicalHostedZoneID
+      HostedZoneId:
+        Ref: PrivateZone27242E85
+      Name: admin.instnews.net.
+      Type: A
+    Metadata:
+      aws:cdk:path: InstantNewsStack/AdminDns/Resource
+  WorkerLogsC1193B08:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: /ecs/instantnews-worker
+      RetentionInDays: 30
+    UpdateReplacePolicy: Delete
+    DeletionPolicy: Delete
+    Metadata:
+      aws:cdk:path: InstantNewsStack/WorkerLogs/Resource
+  WorkerTaskTaskRoleC4141168:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action: sts:AssumeRole
+            Effect: Allow
+            Principal:
+              Service: ecs-tasks.amazonaws.com
+        Version: "2012-10-17"
+    Metadata:
+      aws:cdk:path: InstantNewsStack/WorkerTask/TaskRole/Resource
+  WorkerTaskCBB1FEE3:
+    Type: AWS::ECS::TaskDefinition
+    Properties:
+      ContainerDefinitions:
+        - Command:
+            - python
+            - -m
+            - app.worker
+          Environment:
+            - Name: STALE_SECONDS
+              Value: "30"
+            - Name: FETCH_TIMEOUT
+              Value: "5"
+            - Name: DEDUP_THRESHOLD
+              Value: "0.85"
+            - Name: BEDROCK_ENABLED
+              Value: "true"
+            - Name: BEDROCK_REGION
+              Value: us-east-1
+            - Name: MINIMAX_MODEL_ID
+              Value: MiniMax-M2.7
+            - Name: DB_HOST
+              Value:
+                Fn::GetAtt:
+                  - DatabaseB269D8BB
+                  - Endpoint.Address
+            - Name: DB_PORT
+              Value:
+                Fn::GetAtt:
+                  - DatabaseB269D8BB
+                  - Endpoint.Port
+            - Name: DB_NAME
+              Value: signal_news
+            - Name: DB_USER
+              Value: signal
+            - Name: WORKER_INTERVAL_SECONDS
+              Value: "30"
+          Essential: true
+          Image:
+            Fn::Join:
+              - ""
+              - - 596080539716.dkr.ecr.us-east-1.
+                - Ref: AWS::URLSuffix
+                - /instantnews:latest
+          LogConfiguration:
+            LogDriver: awslogs
+            Options:
+              awslogs-group:
+                Ref: WorkerLogsC1193B08
+              awslogs-stream-prefix: worker
+              awslogs-region: us-east-1
+          Name: worker
+          Secrets:
+            - Name: DB_PASSWORD
+              ValueFrom:
+                Fn::Join:
+                  - ""
+                  - - Ref: DbSecret685A0FA5
+                    - ":password::"
+            - Name: FIREBASE_CREDENTIALS_JSON
+              ValueFrom:
+                Fn::Join:
+                  - ""
+                  - - Ref: AppSecretsA1997F2A
+                    - ":FIREBASE_CREDENTIALS_JSON::"
+            - Name: MINIMAX_API_KEY
+              ValueFrom:
+                Fn::Join:
+                  - ""
+                  - - Ref: AppSecretsA1997F2A
+                    - ":MINIMAX_API_KEY::"
+            - Name: MINIMAX_BASE_URL
+              ValueFrom:
+                Fn::Join:
+                  - ""
+                  - - Ref: AppSecretsA1997F2A
+                    - ":MINIMAX_BASE_URL::"
+            - Name: ANTHROPIC_API_KEY
+              ValueFrom:
+                Fn::Join:
+                  - ""
+                  - - Ref: AppSecretsA1997F2A
+                    - ":ANTHROPIC_API_KEY::"
+            - Name: POLYGON_API_KEY
+              ValueFrom:
+                Fn::Join:
+                  - ""
+                  - - Ref: AppSecretsA1997F2A
+                    - ":POLYGON_API_KEY::"
+      Cpu: "512"
+      ExecutionRoleArn:
+        Fn::GetAtt:
+          - WorkerTaskExecutionRole9C03D68C
+          - Arn
+      Family: InstantNewsStackWorkerTaskFC16F439
+      Memory: "2048"
+      NetworkMode: awsvpc
+      RequiresCompatibilities:
+        - FARGATE
+      TaskRoleArn:
+        Fn::GetAtt:
+          - WorkerTaskTaskRoleC4141168
+          - Arn
+    Metadata:
+      aws:cdk:path: InstantNewsStack/WorkerTask/Resource
+  WorkerTaskExecutionRole9C03D68C:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action: sts:AssumeRole
+            Effect: Allow
+            Principal:
+              Service: ecs-tasks.amazonaws.com
+        Version: "2012-10-17"
+    Metadata:
+      aws:cdk:path: InstantNewsStack/WorkerTask/ExecutionRole/Resource
+  WorkerTaskExecutionRoleDefaultPolicyAF6178D4:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyDocument:
+        Statement:
+          - Action:
+              - ecr:BatchCheckLayerAvailability
+              - ecr:GetDownloadUrlForLayer
+              - ecr:BatchGetImage
+            Effect: Allow
+            Resource:
+              Fn::Join:
+                - ""
+                - - "arn:"
+                  - Ref: AWS::Partition
+                  - :ecr:us-east-1:596080539716:repository/instantnews
+          - Action: ecr:GetAuthorizationToken
+            Effect: Allow
+            Resource: "*"
+          - Action:
+              - logs:CreateLogStream
+              - logs:PutLogEvents
+            Effect: Allow
+            Resource:
+              Fn::GetAtt:
+                - WorkerLogsC1193B08
+                - Arn
+          - Action:
+              - secretsmanager:GetSecretValue
+              - secretsmanager:DescribeSecret
+            Effect: Allow
+            Resource:
+              Ref: DbSecret685A0FA5
+          - Action:
+              - secretsmanager:GetSecretValue
+              - secretsmanager:DescribeSecret
+            Effect: Allow
+            Resource:
+              Ref: AppSecretsA1997F2A
+        Version: "2012-10-17"
+      PolicyName: WorkerTaskExecutionRoleDefaultPolicyAF6178D4
+      Roles:
+        - Ref: WorkerTaskExecutionRole9C03D68C
+    Metadata:
+      aws:cdk:path: InstantNewsStack/WorkerTask/ExecutionRole/DefaultPolicy/Resource
+  WorkerService99815FA9:
+    Type: AWS::ECS::Service
+    Properties:
+      Cluster:
+        Ref: ClusterEB0386A7
+      DeploymentConfiguration:
+        Alarms:
+          AlarmNames: []
+          Enable: false
+          Rollback: false
+        MaximumPercent: 200
+        MinimumHealthyPercent: 50
+      DesiredCount: 1
+      EnableECSManagedTags: false
+      LaunchType: FARGATE
+      NetworkConfiguration:
+        AwsvpcConfiguration:
+          AssignPublicIp: DISABLED
+          SecurityGroups:
+            - Fn::GetAtt:
+                - WorkerServiceSecurityGroup254DBA6E
+                - GroupId
+          Subnets:
+            - Ref: VpcPrivateSubnet1Subnet536B997A
+            - Ref: VpcPrivateSubnet2Subnet3788AAA1
+      TaskDefinition:
+        Ref: WorkerTaskCBB1FEE3
+    DependsOn:
+      - WorkerTaskTaskRoleC4141168
+    Metadata:
+      aws:cdk:path: InstantNewsStack/WorkerService/Service
+  WorkerServiceSecurityGroup254DBA6E:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: InstantNewsStack/WorkerService/SecurityGroup
+      SecurityGroupEgress:
+        - CidrIp: 0.0.0.0/0
+          Description: Allow all outbound traffic by default
+          IpProtocol: "-1"
+      VpcId:
+        Ref: Vpc8378EB38
+    DependsOn:
+      - WorkerTaskTaskRoleC4141168
+    Metadata:
+      aws:cdk:path: InstantNewsStack/WorkerService/SecurityGroup/Resource
+  VpnLogsC6601F45:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: /vpn/instantnews-admin
+      RetentionInDays: 90
+    UpdateReplacePolicy: Delete
+    DeletionPolicy: Delete
+    Metadata:
+      aws:cdk:path: InstantNewsStack/VpnLogs/Resource
+  VpnEndpointSecurityGroup2D6B91C5:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: InstantNewsStack/VpnEndpoint/SecurityGroup
+      SecurityGroupEgress:
+        - CidrIp: 0.0.0.0/0
+          Description: Allow all outbound traffic by default
+          IpProtocol: "-1"
+      SecurityGroupIngress:
+        - CidrIp: 0.0.0.0/0
+          Description: from 0.0.0.0/0:UDP 443
+          FromPort: 443
+          IpProtocol: udp
+          ToPort: 443
+      VpcId:
+        Ref: Vpc8378EB38
+    Metadata:
+      aws:cdk:path: InstantNewsStack/VpnEndpoint/SecurityGroup/Resource
+  VpnEndpointB49A1A88:
+    Type: AWS::EC2::ClientVpnEndpoint
+    Properties:
+      AuthenticationOptions:
+        - MutualAuthentication:
+            ClientRootCertificateChainArn: arn:aws:acm:us-east-1:596080539716:certificate/2ac9ae7a-c3f4-4171-97a3-b866b4396d5e
+          Type: certificate-authentication
+      ClientCidrBlock: 10.100.0.0/22
+      ConnectionLogOptions:
+        CloudwatchLogGroup:
+          Ref: VpnLogsC6601F45
+        Enabled: true
+      DnsServers:
+        - 10.0.0.2
+      SecurityGroupIds:
+        - Fn::GetAtt:
+            - VpnEndpointSecurityGroup2D6B91C5
+            - GroupId
+      ServerCertificateArn: arn:aws:acm:us-east-1:596080539716:certificate/8ffaef3f-3cb6-478c-ac23-14a806cffc70
+      SplitTunnel: true
+      VpcId:
+        Ref: Vpc8378EB38
+    Metadata:
+      aws:cdk:path: InstantNewsStack/VpnEndpoint/Resource
+  VpnEndpointAssociation0B17848D4:
+    Type: AWS::EC2::ClientVpnTargetNetworkAssociation
+    Properties:
+      ClientVpnEndpointId:
+        Ref: VpnEndpointB49A1A88
+      SubnetId:
+        Ref: VpcPrivateSubnet1Subnet536B997A
+    Metadata:
+      aws:cdk:path: InstantNewsStack/VpnEndpoint/Association0
+  VpnEndpointAssociation1F06CE7C8:
+    Type: AWS::EC2::ClientVpnTargetNetworkAssociation
+    Properties:
+      ClientVpnEndpointId:
+        Ref: VpnEndpointB49A1A88
+      SubnetId:
+        Ref: VpcPrivateSubnet2Subnet3788AAA1
+    Metadata:
+      aws:cdk:path: InstantNewsStack/VpnEndpoint/Association1
+  VpnEndpointAuthorizeAllD69620A3:
+    Type: AWS::EC2::ClientVpnAuthorizationRule
+    Properties:
+      AuthorizeAllGroups: true
+      ClientVpnEndpointId:
+        Ref: VpnEndpointB49A1A88
+      TargetNetworkCidr:
+        Fn::GetAtt:
+          - Vpc8378EB38
+          - CidrBlock
+    Metadata:
+      aws:cdk:path: InstantNewsStack/VpnEndpoint/AuthorizeAll/Resource
+  VpnEndpointAllowallVPNusers1879FB71:
+    Type: AWS::EC2::ClientVpnAuthorizationRule
+    Properties:
+      AuthorizeAllGroups: true
+      ClientVpnEndpointId:
+        Ref: VpnEndpointB49A1A88
+      TargetNetworkCidr: 0.0.0.0/0
+    Metadata:
+      aws:cdk:path: InstantNewsStack/VpnEndpoint/Allow all VPN users/Resource
+  CDKMetadata:
+    Type: AWS::CDK::Metadata
+    Properties:
+      Analytics: v2:deflate64:H4sIAAAAAAAA/31Sy27bMBD8ltwZNnXSD3CcNDUQpIZk5NBLsKY2ytY0KZBLG66gfy9IypLitDnt7HCW2MfM5OzmRl5dwMFfqmp7qWkj25JBbQUc/EuLaibb50aJxat5Xi3EKmw0qTJsDHLkRlTYwLiGjcaRH7m591YRMFkziCO4X65ieAJ+AMYDHMXK0R4Yx4+XhtEZHAS5kz6bM4N626FhUaIKjvj44GxoUg+fEktTO/T+A3/f05rQ8HNj7k3VWDKplc/JNbga+Qn5YN323cAnxTzwm3X0J9FFyKv6/2snUDlZYGM9sXXHW/AoPCqH7HdgoEYn2zLl/RgR5ZCbmaxnEJy/dMJVXrZ3wLABj0vjGYxCkS8wLO/u9gMxSM9rC4SqwEaTgjiDl+1CB8/o8rwZfgdXQ7SH397hKxk6meOcsYaBDLoJ19eW6PaksuF6WCrQ0XDxk4UNcTyFjumVFDAOW1uMXOppTDvhojm/Xcu2t+IP6xmrX9Yk6SSbF6isq5KhEyqRO6Ft7WX7aOthUyfcCYKdbAubD5/iympSydQZpX29NMDR9F7Om7TFOPSjheoWdNxvdTY/avBMSluoNklBpt7PZPvvapd7muRTHXlG02tOePKe3TOMNkk7AaMMAluvQJOpZTveJIrTtd4zOawdqC2Zusx142beEV0nCvQ2uHz3n4GbwJ1YHfnNmi/X8uuVnF1d/PZEly4Yph3KIse/m+yPpOwEAAA=
+    Metadata:
+      aws:cdk:path: InstantNewsStack/CDKMetadata/Default
+Outputs:
+  WebServiceLoadBalancerDNSE01F32A9:
+    Value:
+      Fn::GetAtt:
+        - WebServiceLB9CAD0C10
+        - DNSName
+  WebServiceServiceURL970B691A:
+    Value:
+      Fn::Join:
+        - ""
+        - - https://
+          - Ref: WebServiceDNS2BC6D2B6
+  AdminServiceLoadBalancerDNSBFC91C5E:
+    Value:
+      Fn::GetAtt:
+        - AdminServiceLBEB88CDDB
+        - DNSName
+  AdminServiceServiceURLB28C8F0A:
+    Value:
+      Fn::Join:
+        - ""
+        - - https://
+          - Fn::GetAtt:
+              - AdminServiceLBEB88CDDB
+              - DNSName
+  VpnEndpointId:
+    Value:
+      Ref: VpnEndpointB49A1A88
+  AlbDns:
+    Value:
+      Fn::GetAtt:
+        - WebServiceLB9CAD0C10
+        - DNSName
+  AdminAlbDns:
+    Value:
+      Fn::GetAtt:
+        - AdminServiceLBEB88CDDB
+        - DNSName
+  EcrRepoUri:
+    Value:
+      Fn::Join:
+        - ""
+        - - 596080539716.dkr.ecr.us-east-1.
+          - Ref: AWS::URLSuffix
+          - /instantnews
+  DbEndpoint:
+    Value:
+      Fn::GetAtt:
+        - DatabaseB269D8BB
+        - Endpoint.Address
+  DbReplicaEndpoint:
+    Value:
+      Fn::GetAtt:
+        - DatabaseReplicaFD06AB0D
+        - Endpoint.Address
+  DbSecretArn:
+    Value:
+      Ref: DbSecret685A0FA5
+  AppSecretsArn:
+    Value:
+      Ref: AppSecretsA1997F2A
+  WebUrl:
+    Value: https://www.instnews.net
+  AdminUrl:
+    Value: https://admin.instnews.net (VPN required)
+Parameters:
+  BootstrapVersion:
+    Type: AWS::SSM::Parameter::Value<String>
+    Default: /cdk-bootstrap/hnb659fds/version
+    Description: Version of the CDK Bootstrap resources in this environment, automatically retrieved from SSM Parameter Store. [cdk:skip]
+

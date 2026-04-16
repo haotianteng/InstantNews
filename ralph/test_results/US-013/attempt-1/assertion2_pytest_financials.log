@@ -1,0 +1,23 @@
+============================= test session starts ==============================
+platform linux -- Python 3.10.20, pytest-9.0.2, pluggy-1.6.0 -- /home/haotiant/conda/envs/instnews/bin/python
+cachedir: .pytest_cache
+rootdir: /home/haotiant/Projects/Personal/InstantNews
+configfile: pyproject.toml
+plugins: typeguard-2.13.3, anyio-4.13.0
+collecting ... collected 131 items / 118 deselected / 13 selected
+
+tests/test_financials.py::TestPolygonClientGetFinancials::test_get_financials_disabled PASSED [  7%]
+tests/test_financials.py::TestPolygonClientGetFinancials::test_get_financials_success PASSED [ 15%]
+tests/test_financials.py::TestPolygonClientGetFinancials::test_get_financials_empty_results PASSED [ 23%]
+tests/test_financials.py::TestPolygonClientGetFinancials::test_get_financials_cache PASSED [ 30%]
+tests/test_financials.py::TestPolygonClientGetEarnings::test_get_earnings_disabled PASSED [ 38%]
+tests/test_financials.py::TestPolygonClientGetEarnings::test_get_earnings_success PASSED [ 46%]
+tests/test_financials.py::TestPolygonClientGetEarnings::test_get_earnings_empty PASSED [ 53%]
+tests/test_financials.py::TestPolygonClientGetEarnings::test_get_earnings_cache PASSED [ 61%]
+tests/test_financials.py::TestFinancialsEndpointAuth::test_unauthenticated_returns_401 PASSED [ 69%]
+tests/test_financials.py::TestFinancialsEndpoint::test_financials_response_fields PASSED [ 76%]
+tests/test_financials.py::TestFinancialsEndpoint::test_financials_404_unknown_ticker PASSED [ 84%]
+tests/test_financials.py::TestFinancialsEndpoint::test_financials_503_when_disabled PASSED [ 92%]
+tests/test_financials.py::TestFinancialsEndpoint::test_financials_graceful_empty_data PASSED [100%]
+
+====================== 13 passed, 118 deselected in 0.27s ======================

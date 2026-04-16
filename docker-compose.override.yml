@@ -1,0 +1,23 @@
+# Dev override: use SQLite, no PostgreSQL needed.
+# Active by default when running `docker compose up`.
+# For production: docker compose -f docker-compose.yml up
+services:
+  postgres:
+    profiles: ["prod"]  # disabled in dev
+
+  signal:
+    env_file: .env
+    environment:
+      - DATABASE_URL=sqlite:////app/data/news_terminal.db
+      - WORKER_ENABLED=true
+      - FIREBASE_CREDENTIALS=/app/credentials/firebase_service_account_key.json
+    volumes:
+      - ./data:/app/data
+      - ./credentials:/app/credentials:ro
+    depends_on: {}
+
+  feed-worker:
+    profiles: ["prod"]  # single-process in dev (worker runs in-app)
+
+volumes:
+  signal-data:

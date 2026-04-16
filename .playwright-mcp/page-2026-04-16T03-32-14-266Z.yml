@@ -1,0 +1,721 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - banner [ref=e3]:
+      - generic [ref=e4]:
+        - generic [ref=e5]:
+          - img [ref=e7]
+          - generic [ref=e10]: InstNews SIGNAL
+        - generic [ref=e12]: Wed, Apr 15, 2026 23:32:14
+        - generic [ref=e16]: LIVE
+      - generic [ref=e17]:
+        - generic [ref=e18]:
+          - generic [ref=e19]: Items
+          - generic [ref=e20]: "50"
+        - generic [ref=e21]:
+          - generic [ref=e22]: Feeds
+          - generic [ref=e23]: "15"
+        - generic [ref=e24]:
+          - generic [ref=e25]: Avg Sent
+          - generic [ref=e26]: "--"
+        - button "Sound" [ref=e27] [cursor=pointer]:
+          - img [ref=e28]
+          - generic [ref=e32]: Sound
+        - button "Refresh" [ref=e33] [cursor=pointer]:
+          - img [ref=e34]
+          - generic [ref=e37]: Refresh
+        - button "API Docs" [ref=e38] [cursor=pointer]:
+          - img [ref=e39]
+          - generic [ref=e42]: API Docs
+        - button "Columns" [ref=e44] [cursor=pointer]:
+          - img [ref=e45]
+          - generic [ref=e46]: Columns
+        - button "Sign In" [ref=e48] [cursor=pointer]:
+          - img [ref=e49]
+          - generic [ref=e52]: Sign In
+    - complementary [ref=e53]:
+      - generic [ref=e54]:
+        - generic [ref=e55]: Search
+        - generic [ref=e56]:
+          - img
+          - textbox "Filter headlines..." [ref=e57]
+          - generic: F
+      - generic [ref=e58]:
+        - generic [ref=e59]: Date Range
+        - generic [ref=e60]:
+          - generic [ref=e61]:
+            - generic [ref=e62]: From
+            - textbox "From" [ref=e63]
+          - generic [ref=e64]:
+            - generic [ref=e65]: To
+            - textbox "To" [ref=e66]
+          - button "Clear dates" [ref=e67] [cursor=pointer]:
+            - img [ref=e68]
+            - text: Clear dates
+      - generic [ref=e72] [cursor=pointer]:
+        - checkbox "Hide duplicates" [ref=e73]
+        - generic [ref=e74]: Hide duplicates
+      - generic [ref=e75]:
+        - generic [ref=e76]: Sentiment
+        - generic [ref=e77]:
+          - button "All 50 1" [ref=e78] [cursor=pointer]:
+            - text: All
+            - generic [ref=e80]: "50"
+            - generic [ref=e81]: "1"
+          - button "Bullish 0 2" [ref=e82] [cursor=pointer]:
+            - text: Bullish
+            - generic [ref=e84]: "0"
+            - generic [ref=e85]: "2"
+          - button "Bearish 0 3" [ref=e86] [cursor=pointer]:
+            - text: Bearish
+            - generic [ref=e88]: "0"
+            - generic [ref=e89]: "3"
+          - button "Neutral 0 4" [ref=e90] [cursor=pointer]:
+            - text: Neutral
+            - generic [ref=e92]: "0"
+            - generic [ref=e93]: "4"
+      - generic [ref=e94]:
+        - generic [ref=e95]: Sources
+        - generic [ref=e96]:
+          - generic [ref=e97] [cursor=pointer]:
+            - checkbox "CNBC 1022" [checked] [ref=e98]
+            - generic [ref=e99]: CNBC
+            - generic [ref=e100]: "1022"
+          - generic [ref=e101] [cursor=pointer]:
+            - checkbox "CNBC World 333" [checked] [ref=e102]
+            - generic [ref=e103]: CNBC World
+            - generic [ref=e104]: "333"
+          - generic [ref=e105] [cursor=pointer]:
+            - checkbox "Reuters Business 0" [checked] [ref=e106]
+            - generic [ref=e107]: Reuters Business
+            - generic [ref=e108]: "0"
+          - generic [ref=e109] [cursor=pointer]:
+            - checkbox "MarketWatch 695" [checked] [ref=e110]
+            - generic [ref=e111]: MarketWatch
+            - generic [ref=e112]: "695"
+          - generic [ref=e113] [cursor=pointer]:
+            - checkbox "MarketWatch Markets 32" [checked] [ref=e114]
+            - generic [ref=e115]: MarketWatch Markets
+            - generic [ref=e116]: "32"
+          - generic [ref=e117] [cursor=pointer]:
+            - checkbox "Investing com 9830" [checked] [ref=e118]
+            - generic [ref=e119]: Investing com
+            - generic [ref=e120]: "9830"
+          - generic [ref=e121] [cursor=pointer]:
+            - checkbox "Yahoo Finance 11558" [checked] [ref=e122]
+            - generic [ref=e123]: Yahoo Finance
+            - generic [ref=e124]: "11558"
+          - generic [ref=e125] [cursor=pointer]:
+            - checkbox "Nasdaq 4967" [checked] [ref=e126]
+            - generic [ref=e127]: Nasdaq
+            - generic [ref=e128]: "4967"
+          - generic [ref=e129] [cursor=pointer]:
+            - checkbox "SeekingAlpha 5959" [checked] [ref=e130]
+            - generic [ref=e131]: SeekingAlpha
+            - generic [ref=e132]: "5959"
+          - generic [ref=e133] [cursor=pointer]:
+            - checkbox "Benzinga 0" [checked] [ref=e134]
+            - generic [ref=e135]: Benzinga
+            - generic [ref=e136]: "0"
+          - generic [ref=e137] [cursor=pointer]:
+            - checkbox "AP News 0" [checked] [ref=e138]
+            - generic [ref=e139]: AP News
+            - generic [ref=e140]: "0"
+          - generic [ref=e141] [cursor=pointer]:
+            - checkbox "Bloomberg Business 0" [checked] [ref=e142]
+            - generic [ref=e143]: Bloomberg Business
+            - generic [ref=e144]: "0"
+          - generic [ref=e145] [cursor=pointer]:
+            - checkbox "Bloomberg Markets 0" [checked] [ref=e146]
+            - generic [ref=e147]: Bloomberg Markets
+            - generic [ref=e148]: "0"
+          - generic [ref=e149] [cursor=pointer]:
+            - checkbox "BBC Business 246" [checked] [ref=e150]
+            - generic [ref=e151]: BBC Business
+            - generic [ref=e152]: "246"
+          - generic [ref=e153] [cursor=pointer]:
+            - checkbox "Google News Business 2743" [checked] [ref=e154]
+            - generic [ref=e155]: Google News Business
+            - generic [ref=e156]: "2743"
+      - generic [ref=e157]:
+        - generic [ref=e158]: Refresh Interval
+        - combobox [ref=e159] [cursor=pointer]:
+          - option "3 seconds"
+          - option "5 seconds" [selected]
+          - option "10 seconds"
+          - option "15 seconds"
+          - option "30 seconds"
+          - option "60 seconds"
+      - generic [ref=e160]: R Refresh F Search 1-4 Sentiment
+    - main [ref=e161]:
+      - table [ref=e162]:
+        - rowgroup [ref=e163]:
+          - row "Time Sentiment Source Headline" [ref=e164]:
+            - columnheader "Time" [ref=e165]: Time
+            - columnheader "Sentiment" [ref=e167]: Sentiment
+            - columnheader "Source" [ref=e169]: Source
+            - columnheader "Headline" [ref=e171]: Headline
+        - rowgroup [ref=e173]:
+          - row "21:35:00 undefined Nasdaq Is Lucid Under $10 a Bargain or a Trap? Here's the Honest Answer." [ref=e174] [cursor=pointer]:
+            - cell "21:35:00" [ref=e175]
+            - cell "undefined" [ref=e176]:
+              - generic [ref=e177]: undefined
+            - cell "Nasdaq" [ref=e179]:
+              - generic [ref=e180]: Nasdaq
+            - cell "Is Lucid Under $10 a Bargain or a Trap? Here's the Honest Answer." [ref=e181]:
+              - link "Is Lucid Under $10 a Bargain or a Trap? Here's the Honest Answer." [ref=e182]:
+                - /url: https://www.nasdaq.com/articles/lucid-under-10-bargain-or-trap-heres-honest-answer
+          - row "21:33:12 undefined Nasdaq Indonesia Stock Market May Bounce Higher Again On Thursday" [ref=e183] [cursor=pointer]:
+            - cell "21:33:12" [ref=e184]
+            - cell "undefined" [ref=e185]:
+              - generic [ref=e186]: undefined
+            - cell "Nasdaq" [ref=e188]:
+              - generic [ref=e189]: Nasdaq
+            - cell "Indonesia Stock Market May Bounce Higher Again On Thursday" [ref=e190]:
+              - link "Indonesia Stock Market May Bounce Higher Again On Thursday" [ref=e191]:
+                - /url: https://www.nasdaq.com/articles/indonesia-stock-market-may-bounce-higher-again-thursday
+          - row "21:18:12 undefined Nasdaq Hong Kong Shares Expected To Open In The Green" [ref=e192] [cursor=pointer]:
+            - cell "21:18:12" [ref=e193]
+            - cell "undefined" [ref=e194]:
+              - generic [ref=e195]: undefined
+            - cell "Nasdaq" [ref=e197]:
+              - generic [ref=e198]: Nasdaq
+            - cell "Hong Kong Shares Expected To Open In The Green" [ref=e199]:
+              - link "Hong Kong Shares Expected To Open In The Green" [ref=e200]:
+                - /url: https://www.nasdaq.com/articles/hong-kong-shares-expected-open-green
+          - row "21:03:42 undefined Nasdaq Australian Market Slightly Higher" [ref=e201] [cursor=pointer]:
+            - cell "21:03:42" [ref=e202]
+            - cell "undefined" [ref=e203]:
+              - generic [ref=e204]: undefined
+            - cell "Nasdaq" [ref=e206]:
+              - generic [ref=e207]: Nasdaq
+            - cell "Australian Market Slightly Higher" [ref=e208]:
+              - link "Australian Market Slightly Higher" [ref=e209]:
+                - /url: https://www.nasdaq.com/articles/australian-market-slightly-higher-4
+          - row "21:03:12 undefined Nasdaq Higher Open Predicted For China Stock Market" [ref=e210] [cursor=pointer]:
+            - cell "21:03:12" [ref=e211]
+            - cell "undefined" [ref=e212]:
+              - generic [ref=e213]: undefined
+            - cell "Nasdaq" [ref=e215]:
+              - generic [ref=e216]: Nasdaq
+            - cell "Higher Open Predicted For China Stock Market" [ref=e217]:
+              - link "Higher Open Predicted For China Stock Market" [ref=e218]:
+                - /url: https://www.nasdaq.com/articles/higher-open-predicted-china-stock-market-0
+          - row "20:54:03 undefined Nasdaq Flexible Solutions International, Inc. Bottom Line Drops In Full Year" [ref=e219] [cursor=pointer]:
+            - cell "20:54:03" [ref=e220]
+            - cell "undefined" [ref=e221]:
+              - generic [ref=e222]: undefined
+            - cell "Nasdaq" [ref=e224]:
+              - generic [ref=e225]: Nasdaq
+            - cell "Flexible Solutions International, Inc. Bottom Line Drops In Full Year" [ref=e226]:
+              - link "Flexible Solutions International, Inc. Bottom Line Drops In Full Year" [ref=e227]:
+                - /url: https://www.nasdaq.com/articles/flexible-solutions-international-inc-bottom-line-drops-full-year
+          - row "20:47:45 undefined Nasdaq Should Investors Buy Lowe's Stock Today?" [ref=e228] [cursor=pointer]:
+            - cell "20:47:45" [ref=e229]
+            - cell "undefined" [ref=e230]:
+              - generic [ref=e231]: undefined
+            - cell "Nasdaq" [ref=e233]:
+              - generic [ref=e234]: Nasdaq
+            - cell "Should Investors Buy Lowe's Stock Today?" [ref=e235]:
+              - link "Should Investors Buy Lowe's Stock Today?" [ref=e236]:
+                - /url: https://www.nasdaq.com/articles/should-investors-buy-lowes-stock-today
+          - row "20:46:51 undefined Nasdaq Why is Kraft Heinz Stock Falling, and is it a Generational Buying Opportunity?" [ref=e237] [cursor=pointer]:
+            - cell "20:46:51" [ref=e238]
+            - cell "undefined" [ref=e239]:
+              - generic [ref=e240]: undefined
+            - cell "Nasdaq" [ref=e242]:
+              - generic [ref=e243]: Nasdaq
+            - cell "Why is Kraft Heinz Stock Falling, and is it a Generational Buying Opportunity?" [ref=e244]:
+              - link "Why is Kraft Heinz Stock Falling, and is it a Generational Buying Opportunity?" [ref=e245]:
+                - /url: https://www.nasdaq.com/articles/why-kraft-heinz-stock-falling-and-it-generational-buying-opportunity
+          - row "20:44:57 undefined Nasdaq Could Qualcomm Stock be One of the Best Semiconductor Stocks to Buy Today?" [ref=e246] [cursor=pointer]:
+            - cell "20:44:57" [ref=e247]
+            - cell "undefined" [ref=e248]:
+              - generic [ref=e249]: undefined
+            - cell "Nasdaq" [ref=e251]:
+              - generic [ref=e252]: Nasdaq
+            - cell "Could Qualcomm Stock be One of the Best Semiconductor Stocks to Buy Today?" [ref=e253]:
+              - link "Could Qualcomm Stock be One of the Best Semiconductor Stocks to Buy Today?" [ref=e254]:
+                - /url: https://www.nasdaq.com/articles/could-qualcomm-stock-be-one-best-semiconductor-stocks-buy-today
+          - row "20:43:23 undefined Nasdaq For the First Time Ever, I am Upgrading Archer Aviation Stock to a Buy Rating" [ref=e255] [cursor=pointer]:
+            - cell "20:43:23" [ref=e256]
+            - cell "undefined" [ref=e257]:
+              - generic [ref=e258]: undefined
+            - cell "Nasdaq" [ref=e260]:
+              - generic [ref=e261]: Nasdaq
+            - cell "For the First Time Ever, I am Upgrading Archer Aviation Stock to a Buy Rating" [ref=e262]:
+              - link "For the First Time Ever, I am Upgrading Archer Aviation Stock to a Buy Rating" [ref=e263]:
+                - /url: https://www.nasdaq.com/articles/first-time-ever-i-am-upgrading-archer-aviation-stock-buy-rating
+          - row "20:37:08 undefined Nasdaq Why Is UiPath Stock Crashing, and is it a Buying Opportunity?" [ref=e264] [cursor=pointer]:
+            - cell "20:37:08" [ref=e265]
+            - cell "undefined" [ref=e266]:
+              - generic [ref=e267]: undefined
+            - cell "Nasdaq" [ref=e269]:
+              - generic [ref=e270]: Nasdaq
+            - cell "Why Is UiPath Stock Crashing, and is it a Buying Opportunity?" [ref=e271]:
+              - link "Why Is UiPath Stock Crashing, and is it a Buying Opportunity?" [ref=e272]:
+                - /url: https://www.nasdaq.com/articles/why-uipath-stock-crashing-and-it-buying-opportunity
+          - 'row "20:35:00 undefined Nasdaq 3M vs. United Parcel Service: One of These Industrial Stocks Is a Much Better Buy Right Now" [ref=e273] [cursor=pointer]':
+            - cell "20:35:00" [ref=e274]
+            - cell "undefined" [ref=e275]:
+              - generic [ref=e276]: undefined
+            - cell "Nasdaq" [ref=e278]:
+              - generic [ref=e279]: Nasdaq
+            - 'cell "3M vs. United Parcel Service: One of These Industrial Stocks Is a Much Better Buy Right Now" [ref=e280]':
+              - 'link "3M vs. United Parcel Service: One of These Industrial Stocks Is a Much Better Buy Right Now" [ref=e281]':
+                - /url: https://www.nasdaq.com/articles/3m-vs-united-parcel-service-one-these-industrial-stocks-much-better-buy-right-now
+          - row "20:11:00 undefined Nasdaq Fair Isaac Stock Is Down 40% This Year. Is Now the Time to Buy?" [ref=e282] [cursor=pointer]:
+            - cell "20:11:00" [ref=e283]
+            - cell "undefined" [ref=e284]:
+              - generic [ref=e285]: undefined
+            - cell "Nasdaq" [ref=e287]:
+              - generic [ref=e288]: Nasdaq
+            - cell "Fair Isaac Stock Is Down 40% This Year. Is Now the Time to Buy?" [ref=e289]:
+              - link "Fair Isaac Stock Is Down 40% This Year. Is Now the Time to Buy?" [ref=e290]:
+                - /url: https://www.nasdaq.com/articles/fair-isaac-stock-down-40-year-now-time-buy
+          - row "20:03:12 undefined Nasdaq Singapore Bourse May Add To Its Winnings" [ref=e291] [cursor=pointer]:
+            - cell "20:03:12" [ref=e292]
+            - cell "undefined" [ref=e293]:
+              - generic [ref=e294]: undefined
+            - cell "Nasdaq" [ref=e296]:
+              - generic [ref=e297]: Nasdaq
+            - cell "Singapore Bourse May Add To Its Winnings" [ref=e298]:
+              - link "Singapore Bourse May Add To Its Winnings" [ref=e299]:
+                - /url: https://www.nasdaq.com/articles/singapore-bourse-may-add-its-winnings
+          - row "19:55:09 undefined Nasdaq TKO Group Holdings Breaks Below 200-Day Moving Average - Notable for TKO" [ref=e300] [cursor=pointer]:
+            - cell "19:55:09" [ref=e301]
+            - cell "undefined" [ref=e302]:
+              - generic [ref=e303]: undefined
+            - cell "Nasdaq" [ref=e305]:
+              - generic [ref=e306]: Nasdaq
+            - cell "TKO Group Holdings Breaks Below 200-Day Moving Average - Notable for TKO" [ref=e307]:
+              - link "TKO Group Holdings Breaks Below 200-Day Moving Average - Notable for TKO" [ref=e308]:
+                - /url: https://www.nasdaq.com/articles/tko-group-holdings-breaks-below-200-day-moving-average-notable-tko
+          - row "19:54:15 undefined Nasdaq Will AI Destroy the Software Industry?" [ref=e309] [cursor=pointer]:
+            - cell "19:54:15" [ref=e310]
+            - cell "undefined" [ref=e311]:
+              - generic [ref=e312]: undefined
+            - cell "Nasdaq" [ref=e314]:
+              - generic [ref=e315]: Nasdaq
+            - cell "Will AI Destroy the Software Industry?" [ref=e316]:
+              - link "Will AI Destroy the Software Industry?" [ref=e317]:
+                - /url: https://www.nasdaq.com/articles/will-ai-destroy-software-industry
+          - row "19:53:00 undefined Nasdaq The First 5 AI Stocks I'd Buy If I Started From Scratch" [ref=e318] [cursor=pointer]:
+            - cell "19:53:00" [ref=e319]
+            - cell "undefined" [ref=e320]:
+              - generic [ref=e321]: undefined
+            - cell "Nasdaq" [ref=e323]:
+              - generic [ref=e324]: Nasdaq
+            - cell "The First 5 AI Stocks I'd Buy If I Started From Scratch" [ref=e325]:
+              - link "The First 5 AI Stocks I'd Buy If I Started From Scratch" [ref=e326]:
+                - /url: https://www.nasdaq.com/articles/first-5-ai-stocks-id-buy-if-i-started-scratch
+          - row "19:50:22 undefined Nasdaq See Which Recent 13F Filers Hold PG" [ref=e327] [cursor=pointer]:
+            - cell "19:50:22" [ref=e328]
+            - cell "undefined" [ref=e329]:
+              - generic [ref=e330]: undefined
+            - cell "Nasdaq" [ref=e332]:
+              - generic [ref=e333]: Nasdaq
+            - cell "See Which Recent 13F Filers Hold PG" [ref=e334]:
+              - link "See Which Recent 13F Filers Hold PG" [ref=e335]:
+                - /url: https://www.nasdaq.com/articles/see-which-recent-13f-filers-hold-pg
+          - row "19:50:19 undefined Nasdaq Gabelli Equity Trust's Series K Preferred Stock Shares Cross 6% Yield Mark" [ref=e336] [cursor=pointer]:
+            - cell "19:50:19" [ref=e337]
+            - cell "undefined" [ref=e338]:
+              - generic [ref=e339]: undefined
+            - cell "Nasdaq" [ref=e341]:
+              - generic [ref=e342]: Nasdaq
+            - cell "Gabelli Equity Trust's Series K Preferred Stock Shares Cross 6% Yield Mark" [ref=e343]:
+              - link "Gabelli Equity Trust's Series K Preferred Stock Shares Cross 6% Yield Mark" [ref=e344]:
+                - /url: https://www.nasdaq.com/articles/gabelli-equity-trusts-series-k-preferred-stock-shares-cross-6-yield-mark
+          - row "19:48:47 undefined Nasdaq Why Broadcom Stock Climbed Today" [ref=e345] [cursor=pointer]:
+            - cell "19:48:47" [ref=e346]
+            - cell "undefined" [ref=e347]:
+              - generic [ref=e348]: undefined
+            - cell "Nasdaq" [ref=e350]:
+              - generic [ref=e351]: Nasdaq
+            - cell "Why Broadcom Stock Climbed Today" [ref=e352]:
+              - link "Why Broadcom Stock Climbed Today" [ref=e353]:
+                - /url: https://www.nasdaq.com/articles/why-broadcom-stock-climbed-today
+          - row "19:33:12 undefined Nasdaq Rebound Anticipated For Malaysia Stock Market" [ref=e354] [cursor=pointer]:
+            - cell "19:33:12" [ref=e355]
+            - cell "undefined" [ref=e356]:
+              - generic [ref=e357]: undefined
+            - cell "Nasdaq" [ref=e359]:
+              - generic [ref=e360]: Nasdaq
+            - cell "Rebound Anticipated For Malaysia Stock Market" [ref=e361]:
+              - link "Rebound Anticipated For Malaysia Stock Market" [ref=e362]:
+                - /url: https://www.nasdaq.com/articles/rebound-anticipated-malaysia-stock-market-0
+          - row "19:20:00 undefined Nasdaq The Company That Makes Every AI Chip Possible Just Reported, and What It Said Should Excite Every Investor" [ref=e363] [cursor=pointer]:
+            - cell "19:20:00" [ref=e364]
+            - cell "undefined" [ref=e365]:
+              - generic [ref=e366]: undefined
+            - cell "Nasdaq" [ref=e368]:
+              - generic [ref=e369]: Nasdaq
+            - cell "The Company That Makes Every AI Chip Possible Just Reported, and What It Said Should Excite Every Investor" [ref=e370]:
+              - link "The Company That Makes Every AI Chip Possible Just Reported, and What It Said Should Excite Every Investor" [ref=e371]:
+                - /url: https://www.nasdaq.com/articles/company-makes-every-ai-chip-possible-just-reported-and-what-it-said-should-excite-every
+          - 'row "19:20:00 undefined Nasdaq Toast (TOST): A Strong Contender in Restaurant Tech" [ref=e372] [cursor=pointer]':
+            - cell "19:20:00" [ref=e373]
+            - cell "undefined" [ref=e374]:
+              - generic [ref=e375]: undefined
+            - cell "Nasdaq" [ref=e377]:
+              - generic [ref=e378]: Nasdaq
+            - 'cell "Toast (TOST): A Strong Contender in Restaurant Tech" [ref=e379]':
+              - 'link "Toast (TOST): A Strong Contender in Restaurant Tech" [ref=e380]':
+                - /url: https://www.nasdaq.com/articles/toast-tost-strong-contender-restaurant-tech
+          - row "19:18:12 undefined Nasdaq Additional Support Anticipated For Japan Stock Market" [ref=e381] [cursor=pointer]:
+            - cell "19:18:12" [ref=e382]
+            - cell "undefined" [ref=e383]:
+              - generic [ref=e384]: undefined
+            - cell "Nasdaq" [ref=e386]:
+              - generic [ref=e387]: Nasdaq
+            - cell "Additional Support Anticipated For Japan Stock Market" [ref=e388]:
+              - link "Additional Support Anticipated For Japan Stock Market" [ref=e389]:
+                - /url: https://www.nasdaq.com/articles/additional-support-anticipated-japan-stock-market
+          - 'row "19:11:00 undefined Nasdaq Prediction: This Will Be Amazon''s Stock Price in 1 Year" [ref=e390] [cursor=pointer]':
+            - cell "19:11:00" [ref=e391]
+            - cell "undefined" [ref=e392]:
+              - generic [ref=e393]: undefined
+            - cell "Nasdaq" [ref=e395]:
+              - generic [ref=e396]: Nasdaq
+            - 'cell "Prediction: This Will Be Amazon''s Stock Price in 1 Year" [ref=e397]':
+              - 'link "Prediction: This Will Be Amazon''s Stock Price in 1 Year" [ref=e398]':
+                - /url: https://www.nasdaq.com/articles/prediction-will-be-amazons-stock-price-1-year
+          - row "19:10:51 undefined Nasdaq Kimco Realty's Series D Preferred Shares Crosses Above 6% Yield Territory" [ref=e399] [cursor=pointer]:
+            - cell "19:10:51" [ref=e400]
+            - cell "undefined" [ref=e401]:
+              - generic [ref=e402]: undefined
+            - cell "Nasdaq" [ref=e404]:
+              - generic [ref=e405]: Nasdaq
+            - cell "Kimco Realty's Series D Preferred Shares Crosses Above 6% Yield Territory" [ref=e406]:
+              - link "Kimco Realty's Series D Preferred Shares Crosses Above 6% Yield Territory" [ref=e407]:
+                - /url: https://www.nasdaq.com/articles/kimco-realtys-series-d-preferred-shares-crosses-above-6-yield-territory
+          - row "19:09:44 undefined Nasdaq Why Blue Owl Capital Stock Soared More Than 8% Higher Today" [ref=e408] [cursor=pointer]:
+            - cell "19:09:44" [ref=e409]
+            - cell "undefined" [ref=e410]:
+              - generic [ref=e411]: undefined
+            - cell "Nasdaq" [ref=e413]:
+              - generic [ref=e414]: Nasdaq
+            - cell "Why Blue Owl Capital Stock Soared More Than 8% Higher Today" [ref=e415]:
+              - link "Why Blue Owl Capital Stock Soared More Than 8% Higher Today" [ref=e416]:
+                - /url: https://www.nasdaq.com/articles/why-blue-owl-capital-stock-soared-more-8-higher-today
+          - row "19:01:04 undefined Nasdaq MKC Trading Below Director's Recent Buy Price" [ref=e417] [cursor=pointer]:
+            - cell "19:01:04" [ref=e418]
+            - cell "undefined" [ref=e419]:
+              - generic [ref=e420]: undefined
+            - cell "Nasdaq" [ref=e422]:
+              - generic [ref=e423]: Nasdaq
+            - cell "MKC Trading Below Director's Recent Buy Price" [ref=e424]:
+              - link "MKC Trading Below Director's Recent Buy Price" [ref=e425]:
+                - /url: https://www.nasdaq.com/articles/mkc-trading-below-directors-recent-buy-price
+          - row "18:58:32 undefined Nasdaq SPFF Makes Bullish Cross Above Critical Moving Average" [ref=e426] [cursor=pointer]:
+            - cell "18:58:32" [ref=e427]
+            - cell "undefined" [ref=e428]:
+              - generic [ref=e429]: undefined
+            - cell "Nasdaq" [ref=e431]:
+              - generic [ref=e432]: Nasdaq
+            - cell "SPFF Makes Bullish Cross Above Critical Moving Average" [ref=e433]:
+              - link "SPFF Makes Bullish Cross Above Critical Moving Average" [ref=e434]:
+                - /url: https://www.nasdaq.com/articles/spff-makes-bullish-cross-above-critical-moving-average
+          - 'row "18:51:31 undefined Nasdaq Peter Thiel''s Billion‑Dollar Bet on Palantir: What His Roughly 4% Stake Really Means for Investors" [ref=e435] [cursor=pointer]':
+            - cell "18:51:31" [ref=e436]
+            - cell "undefined" [ref=e437]:
+              - generic [ref=e438]: undefined
+            - cell "Nasdaq" [ref=e440]:
+              - generic [ref=e441]: Nasdaq
+            - 'cell "Peter Thiel''s Billion‑Dollar Bet on Palantir: What His Roughly 4% Stake Really Means for Investors" [ref=e442]':
+              - 'link "Peter Thiel''s Billion‑Dollar Bet on Palantir: What His Roughly 4% Stake Really Means for Investors" [ref=e443]':
+                - /url: https://www.nasdaq.com/articles/peter-thiels-billion-dollar-bet-palantir-what-his-roughly-4-stake-really-means-investors
+          - row "18:50:00 undefined Nasdaq This $2 Billion Nvidia Investment Signals What's Coming Next" [ref=e444] [cursor=pointer]:
+            - cell "18:50:00" [ref=e445]
+            - cell "undefined" [ref=e446]:
+              - generic [ref=e447]: undefined
+            - cell "Nasdaq" [ref=e449]:
+              - generic [ref=e450]: Nasdaq
+            - cell "This $2 Billion Nvidia Investment Signals What's Coming Next" [ref=e451]:
+              - link "This $2 Billion Nvidia Investment Signals What's Coming Next" [ref=e452]:
+                - /url: https://www.nasdaq.com/articles/2-billion-nvidia-investment-signals-whats-coming-next
+          - row "18:43:18 undefined Nasdaq Why Morgan Stanley Stock Rocked the Market Today" [ref=e453] [cursor=pointer]:
+            - cell "18:43:18" [ref=e454]
+            - cell "undefined" [ref=e455]:
+              - generic [ref=e456]: undefined
+            - cell "Nasdaq" [ref=e458]:
+              - generic [ref=e459]: Nasdaq
+            - cell "Why Morgan Stanley Stock Rocked the Market Today" [ref=e460]:
+              - link "Why Morgan Stanley Stock Rocked the Market Today" [ref=e461]:
+                - /url: https://www.nasdaq.com/articles/why-morgan-stanley-stock-rocked-market-today
+          - row "18:41:28 undefined Nasdaq J.B. Hunt (JBHT) Q1 2026 Earnings Call Transcript" [ref=e462] [cursor=pointer]:
+            - cell "18:41:28" [ref=e463]
+            - cell "undefined" [ref=e464]:
+              - generic [ref=e465]: undefined
+            - cell "Nasdaq" [ref=e467]:
+              - generic [ref=e468]: Nasdaq
+            - cell "J.B. Hunt (JBHT) Q1 2026 Earnings Call Transcript" [ref=e469]:
+              - link "J.B. Hunt (JBHT) Q1 2026 Earnings Call Transcript" [ref=e470]:
+                - /url: https://www.nasdaq.com/articles/jb-hunt-jbht-q1-2026-earnings-call-transcript
+          - row "18:34:50 undefined Nasdaq Google Brings Gemini AI App To Apple MacOS With Native Desktop Experience" [ref=e471] [cursor=pointer]:
+            - cell "18:34:50" [ref=e472]
+            - cell "undefined" [ref=e473]:
+              - generic [ref=e474]: undefined
+            - cell "Nasdaq" [ref=e476]:
+              - generic [ref=e477]: Nasdaq
+            - cell "Google Brings Gemini AI App To Apple MacOS With Native Desktop Experience" [ref=e478]:
+              - link "Google Brings Gemini AI App To Apple MacOS With Native Desktop Experience" [ref=e479]:
+                - /url: https://www.nasdaq.com/articles/google-brings-gemini-ai-app-apple-macos-native-desktop-experience
+          - row "18:20:00 undefined Nasdaq Buying the Dip on Palantir Stock? Read This First" [ref=e480] [cursor=pointer]:
+            - cell "18:20:00" [ref=e481]
+            - cell "undefined" [ref=e482]:
+              - generic [ref=e483]: undefined
+            - cell "Nasdaq" [ref=e485]:
+              - generic [ref=e486]: Nasdaq
+            - cell "Buying the Dip on Palantir Stock? Read This First" [ref=e487]:
+              - link "Buying the Dip on Palantir Stock? Read This First" [ref=e488]:
+                - /url: https://www.nasdaq.com/articles/buying-dip-palantir-stock-read-first
+          - row "18:16:43 undefined Nasdaq Does Trump's Record Defense Budget Make Lockheed Martin a &quot;Never Sell&quot; Stock?" [ref=e489] [cursor=pointer]:
+            - cell "18:16:43" [ref=e490]
+            - cell "undefined" [ref=e491]:
+              - generic [ref=e492]: undefined
+            - cell "Nasdaq" [ref=e494]:
+              - generic [ref=e495]: Nasdaq
+            - cell "Does Trump's Record Defense Budget Make Lockheed Martin a &quot;Never Sell&quot; Stock?" [ref=e496]:
+              - link "Does Trump's Record Defense Budget Make Lockheed Martin a &quot;Never Sell&quot; Stock?" [ref=e497]:
+                - /url: https://www.nasdaq.com/articles/does-trumps-record-defense-budget-make-lockheed-martin-never-sell-stock
+          - row "18:08:17 undefined Nasdaq IMAX Insider Sells Shares in $5.11 Million Transaction" [ref=e498] [cursor=pointer]:
+            - cell "18:08:17" [ref=e499]
+            - cell "undefined" [ref=e500]:
+              - generic [ref=e501]: undefined
+            - cell "Nasdaq" [ref=e503]:
+              - generic [ref=e504]: Nasdaq
+            - cell "IMAX Insider Sells Shares in $5.11 Million Transaction" [ref=e505]:
+              - link "IMAX Insider Sells Shares in $5.11 Million Transaction" [ref=e506]:
+                - /url: https://www.nasdaq.com/articles/imax-insider-sells-shares-511-million-transaction
+          - 'row "18:06:57 undefined Nasdaq Stock Market Today, April 15: Eos Energy Enterprises Jumps on AI Data Center Power Partnership" [ref=e507] [cursor=pointer]':
+            - cell "18:06:57" [ref=e508]
+            - cell "undefined" [ref=e509]:
+              - generic [ref=e510]: undefined
+            - cell "Nasdaq" [ref=e512]:
+              - generic [ref=e513]: Nasdaq
+            - 'cell "Stock Market Today, April 15: Eos Energy Enterprises Jumps on AI Data Center Power Partnership" [ref=e514]':
+              - 'link "Stock Market Today, April 15: Eos Energy Enterprises Jumps on AI Data Center Power Partnership" [ref=e515]':
+                - /url: https://www.nasdaq.com/articles/stock-market-today-april-15-eos-energy-enterprises-jumps-ai-data-center-power-partnership
+          - 'row "18:06:24 undefined Nasdaq Stock Market Today, April 15: D-Wave Quantum Inc. Surges as Nvidia’s Ising Models Fuel Rally in Quantum Stocks" [ref=e516] [cursor=pointer]':
+            - cell "18:06:24" [ref=e517]
+            - cell "undefined" [ref=e518]:
+              - generic [ref=e519]: undefined
+            - cell "Nasdaq" [ref=e521]:
+              - generic [ref=e522]: Nasdaq
+            - 'cell "Stock Market Today, April 15: D-Wave Quantum Inc. Surges as Nvidia’s Ising Models Fuel Rally in Quantum Stocks" [ref=e523]':
+              - 'link "Stock Market Today, April 15: D-Wave Quantum Inc. Surges as Nvidia’s Ising Models Fuel Rally in Quantum Stocks" [ref=e524]':
+                - /url: https://www.nasdaq.com/articles/stock-market-today-april-15-d-wave-quantum-inc-surges-nvidias-ising-models-fuel-rally
+          - row "18:01:40 undefined Nasdaq Starbucks Launches ChatGPT Beta App To Inspire Drink Orders" [ref=e525] [cursor=pointer]:
+            - cell "18:01:40" [ref=e526]
+            - cell "undefined" [ref=e527]:
+              - generic [ref=e528]: undefined
+            - cell "Nasdaq" [ref=e530]:
+              - generic [ref=e531]: Nasdaq
+            - cell "Starbucks Launches ChatGPT Beta App To Inspire Drink Orders" [ref=e532]:
+              - link "Starbucks Launches ChatGPT Beta App To Inspire Drink Orders" [ref=e533]:
+                - /url: https://www.nasdaq.com/articles/starbucks-launches-chatgpt-beta-app-inspire-drink-orders
+          - row "18:00:00 undefined MarketWatch Google’s stake in SpaceX could be worth more than most companies on the planet" [ref=e534] [cursor=pointer]:
+            - cell "18:00:00" [ref=e535]
+            - cell "undefined" [ref=e536]:
+              - generic [ref=e537]: undefined
+            - cell "MarketWatch" [ref=e539]:
+              - generic [ref=e540]: MarketWatch
+            - cell "Google’s stake in SpaceX could be worth more than most companies on the planet" [ref=e541]:
+              - link "Google’s stake in SpaceX could be worth more than most companies on the planet" [ref=e542]:
+                - /url: https://www.marketwatch.com/story/googles-stake-in-spacex-could-be-worth-more-than-most-companies-on-the-planet-9ef1a6bb?mod=mw_rss_topstories
+          - row "17:50:00 undefined Nasdaq I've Owned Apple Stock for Years. Here's Why I'm Letting Its AI Story Play Out." [ref=e543] [cursor=pointer]:
+            - cell "17:50:00" [ref=e544]
+            - cell "undefined" [ref=e545]:
+              - generic [ref=e546]: undefined
+            - cell "Nasdaq" [ref=e548]:
+              - generic [ref=e549]: Nasdaq
+            - cell "I've Owned Apple Stock for Years. Here's Why I'm Letting Its AI Story Play Out." [ref=e550]:
+              - link "I've Owned Apple Stock for Years. Here's Why I'm Letting Its AI Story Play Out." [ref=e551]:
+                - /url: https://www.nasdaq.com/articles/ive-owned-apple-stock-years-heres-why-im-letting-its-ai-story-play-out
+          - 'row "17:49:06 undefined Nasdaq Stock Market Today, April 15: IonQ Surges Over 20% on String of Good News" [ref=e552] [cursor=pointer]':
+            - cell "17:49:06" [ref=e553]
+            - cell "undefined" [ref=e554]:
+              - generic [ref=e555]: undefined
+            - cell "Nasdaq" [ref=e557]:
+              - generic [ref=e558]: Nasdaq
+            - 'cell "Stock Market Today, April 15: IonQ Surges Over 20% on String of Good News" [ref=e559]':
+              - 'link "Stock Market Today, April 15: IonQ Surges Over 20% on String of Good News" [ref=e560]':
+                - /url: https://www.nasdaq.com/articles/stock-market-today-april-15-ionq-surges-over-20-string-good-news
+          - row "17:42:43 undefined SeekingAlpha Raytheon wins $234.8M contract for AMRAAM ER production shift" [ref=e561] [cursor=pointer]:
+            - cell "17:42:43" [ref=e562]
+            - cell "undefined" [ref=e563]:
+              - generic [ref=e564]: undefined
+            - cell "SeekingAlpha" [ref=e566]:
+              - generic [ref=e567]: SeekingAlpha
+            - cell "Raytheon wins $234.8M contract for AMRAAM ER production shift" [ref=e568]:
+              - link "Raytheon wins $234.8M contract for AMRAAM ER production shift" [ref=e569]:
+                - /url: https://seekingalpha.com/news/4575509-raytheon-wins-2348m-contract-for-amraam-er-production-shift?utm_source=feed_news_all&utm_medium=referral&feed_item_type=news
+          - row "17:40:00 undefined MarketWatch The ‘ultimate contrarian trade’ is starting to pay off for investors. Why it might have more room to run." [ref=e570] [cursor=pointer]:
+            - cell "17:40:00" [ref=e571]
+            - cell "undefined" [ref=e572]:
+              - generic [ref=e573]: undefined
+            - cell "MarketWatch" [ref=e575]:
+              - generic [ref=e576]: MarketWatch
+            - cell "The ‘ultimate contrarian trade’ is starting to pay off for investors. Why it might have more room to run." [ref=e577]:
+              - link "The ‘ultimate contrarian trade’ is starting to pay off for investors. Why it might have more room to run." [ref=e578]:
+                - /url: https://www.marketwatch.com/story/the-ultimate-contrarian-trade-is-starting-to-pay-off-for-investors-why-it-might-have-more-room-to-run-58141cac?mod=mw_rss_topstories
+          - row "17:39:00 undefined MarketWatch Hims & Hers stock jumps as U.S. moves forward with plan to reassess popular peptides" [ref=e579] [cursor=pointer]:
+            - cell "17:39:00" [ref=e580]
+            - cell "undefined" [ref=e581]:
+              - generic [ref=e582]: undefined
+            - cell "MarketWatch" [ref=e584]:
+              - generic [ref=e585]: MarketWatch
+            - cell "Hims & Hers stock jumps as U.S. moves forward with plan to reassess popular peptides" [ref=e586]:
+              - link "Hims & Hers stock jumps as U.S. moves forward with plan to reassess popular peptides" [ref=e587]:
+                - /url: https://www.marketwatch.com/story/hims-hers-stock-jumps-as-u-s-moves-forward-with-plan-to-reassess-popular-peptides-4815d489?mod=mw_rss_topstories
+          - 'row "17:38:27 undefined Nasdaq Stock Market Today, April 15: Snap Jumps After Announcing 1,000 Job Cuts and $500 Million Cost Savings Plan" [ref=e588] [cursor=pointer]':
+            - cell "17:38:27" [ref=e589]
+            - cell "undefined" [ref=e590]:
+              - generic [ref=e591]: undefined
+            - cell "Nasdaq" [ref=e593]:
+              - generic [ref=e594]: Nasdaq
+            - 'cell "Stock Market Today, April 15: Snap Jumps After Announcing 1,000 Job Cuts and $500 Million Cost Savings Plan" [ref=e595]':
+              - 'link "Stock Market Today, April 15: Snap Jumps After Announcing 1,000 Job Cuts and $500 Million Cost Savings Plan" [ref=e596]':
+                - /url: https://www.nasdaq.com/articles/stock-market-today-april-15-snap-jumps-after-announcing-1000-job-cuts-and-500-million-cost
+          - row "17:37:27 undefined SeekingAlpha Goldstorm Metals upsizes private placement to $7 million" [ref=e597] [cursor=pointer]:
+            - cell "17:37:27" [ref=e598]
+            - cell "undefined" [ref=e599]:
+              - generic [ref=e600]: undefined
+            - cell "SeekingAlpha" [ref=e602]:
+              - generic [ref=e603]: SeekingAlpha
+            - cell "Goldstorm Metals upsizes private placement to $7 million" [ref=e604]:
+              - link "Goldstorm Metals upsizes private placement to $7 million" [ref=e605]:
+                - /url: https://seekingalpha.com/news/4575510-goldstorm-metals-upsizes-private-placement-to-7-million?utm_source=feed_news_all&utm_medium=referral&feed_item_type=news
+          - row "17:36:46 undefined SeekingAlpha Silver heads for sixth straight annual deficit with drawdown raising squeeze risk" [ref=e606] [cursor=pointer]:
+            - cell "17:36:46" [ref=e607]
+            - cell "undefined" [ref=e608]:
+              - generic [ref=e609]: undefined
+            - cell "SeekingAlpha" [ref=e611]:
+              - generic [ref=e612]: SeekingAlpha
+            - cell "Silver heads for sixth straight annual deficit with drawdown raising squeeze risk" [ref=e613]:
+              - link "Silver heads for sixth straight annual deficit with drawdown raising squeeze risk" [ref=e614]:
+                - /url: https://seekingalpha.com/news/4575498-silver-heads-for-sixth-straight-annual-deficit-with-drawdown-raising-squeeze-risk?utm_source=feed_news_all&utm_medium=referral&feed_item_type=news
+          - row "17:35:20 undefined SeekingAlpha F.N.B. Q1 2026 Earnings Preview" [ref=e615] [cursor=pointer]:
+            - cell "17:35:20" [ref=e616]
+            - cell "undefined" [ref=e617]:
+              - generic [ref=e618]: undefined
+            - cell "SeekingAlpha" [ref=e620]:
+              - generic [ref=e621]: SeekingAlpha
+            - cell "F.N.B. Q1 2026 Earnings Preview" [ref=e622]:
+              - link "F.N.B. Q1 2026 Earnings Preview" [ref=e623]:
+                - /url: https://seekingalpha.com/news/4575392-f-n-b-q1-2026-earnings-preview?utm_source=feed_news_all&utm_medium=referral&feed_item_type=news
+    - contentinfo [ref=e624]:
+      - generic [ref=e625]:
+        - generic [ref=e626]:
+          - text: "Last refresh:"
+          - generic [ref=e627]: 23:32:14
+        - generic [ref=e628]:
+          - text: "Rate:"
+          - generic [ref=e629]: "2083.3"
+          - text: items/s
+      - generic [ref=e630]:
+        - generic [ref=e631]:
+          - link "Pricing" [ref=e632] [cursor=pointer]:
+            - /url: /pricing
+          - link "Privacy Policy" [ref=e633] [cursor=pointer]:
+            - /url: /privacy
+          - link "Terms of Service" [ref=e634] [cursor=pointer]:
+            - /url: /terms
+        - generic "Click to copy API endpoint" [ref=e635] [cursor=pointer]: /api/news
+  - generic:
+    - generic:
+      - generic:
+        - heading "// API Documentation" [level=2]
+        - button "Close":
+          - img
+      - generic:
+        - paragraph:
+          - text: "REST API for programmatic access. All responses are JSON. Base URL:"
+          - code: http://localhost:8000
+          - text: /api
+        - generic:
+          - generic:
+            - generic: GET
+            - generic: /news
+          - generic:
+            - paragraph: Returns latest news items with sentiment scoring.
+            - generic:
+              - term: limit
+              - definition: Number of items (default 50, max 500)
+              - term: source
+              - definition: Filter by source name (default "all")
+              - term: sentiment
+              - definition: "Filter: bullish, bearish, neutral (default \"all\")"
+              - term: q
+              - definition: Keyword search in title and summary
+              - term: from
+              - definition: Filter from date (ISO 8601, e.g. "2026-03-01")
+              - term: to
+              - definition: Filter to date (ISO 8601, e.g. "2026-03-02")
+            - generic:
+              - text: curl "
+              - text: /api/news?limit=10&sentiment=bullish"
+        - generic:
+          - generic:
+            - generic: GET
+            - generic: /sources
+          - generic:
+            - paragraph: Returns all active feed sources with item counts and status.
+            - generic:
+              - text: curl "
+              - text: /api/sources"
+        - generic:
+          - generic:
+            - generic: GET
+            - generic: /stats
+          - generic:
+            - paragraph: "Returns aggregated statistics: total items, by source, by sentiment, average score."
+            - generic:
+              - text: curl "
+              - text: /api/stats"
+        - generic:
+          - generic:
+            - generic: POST
+            - generic: /refresh
+          - generic:
+            - paragraph: Force refresh all feeds immediately. Returns count of new items found.
+            - generic:
+              - text: curl -X POST "
+              - text: /api/refresh"
+        - generic:
+          - generic:
+            - generic: GET
+            - generic: /docs
+          - generic:
+            - paragraph: Returns this API documentation as JSON.
+            - generic:
+              - text: curl "
+              - text: /api/docs"
+  - generic:
+    - generic:
+      - generic:
+        - heading "// Ticker Recommendation" [level=2]
+        - button "Close":
+          - img
+  - generic:
+    - generic:
+      - generic:
+        - heading "// COMPANY" [level=2]
+        - button "Close":
+          - img
+      - generic:
+        - button "Fundamentals"
+        - button "Financials"
+        - button "Competitors"
+        - button "Institutions"
+        - button "Insiders"
+  - generic [ref=e637]:
+    - img "InstNews" [ref=e638]
+    - heading "Sign in to access SIGNAL" [level=2] [ref=e639]
+    - paragraph [ref=e640]: Create a free account to access the real-time news terminal. No credit card required.
+    - button "Sign in with Google" [ref=e641] [cursor=pointer]:
+      - img [ref=e642]
+      - text: Sign in with Google
+    - link "← Back to home" [ref=e647] [cursor=pointer]:
+      - /url: /

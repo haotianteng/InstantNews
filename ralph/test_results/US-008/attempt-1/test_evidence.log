@@ -1,0 +1,81 @@
+## US-008 Test Evidence — Dynamic Column Width Customization
+## Date: 2026-04-13 23:33 EDT
+## Attempt: 1
+
+### Assertion 1: Vite build exits 0
+PASS: `cd frontend && npx vite build` — 29 modules, 0 errors (see vite_build.log)
+
+### Assertion 2: Drag Headline column border to resize
+PASS:
+- Before: Headline th width = 361px (auto)
+- Dragged resize handle 150px to the right
+- During drag: width updated to 511px in real time
+- After mouseup: th.style.width = "511px"
+- localStorage updated: {"headline":511}
+- table-layout switched to "fixed"
+
+### Assertion 3: Double-click Source column border to auto-fit
+PASS:
+- Before: Source th width = 120px (auto under fixed layout)
+- Double-clicked resize handle
+- After: localStorage shows source: 107 (auto-fitted to content width)
+- Re-render confirmed: th.style.width = "107px", actualWidth = 107
+
+### Assertion 4: Reload page — custom widths persist
+PASS:
+- Full page reload via navigation to http://localhost:8000/terminal
+- localStorage preserved: {"headline": 511, "source": 107}
+- Headline th: style.width="511px", actualWidth=511
+- Source th: style.width="107px", actualWidth=107
+- table-layout: "fixed"
+
+### AC1: Column borders are draggable to resize
+PASS: All 5 visible column headers (Time, Sentiment, Source, Headline, Summary) have:
+- .col-resize-handle span (6px wide, position: absolute, cursor: col-resize)
+- Parent th has position: relative
+- Drag events (mousedown, mousemove, mouseup) correctly update th.style.width
+
+### AC2: Minimum column width of 60px
+PASS:
+- Dragged Time column 500px to the left (well past 0)
+- Result: clamped to 60px (localStorage: {"time": 60})
+- MIN_COL_WIDTH constant enforced
+
+### AC3: Double-click to auto-fit
+PASS:
+- Double-clicked Source column resize handle
+- Auto-fitted to 107px based on content measurement (header text + cell widths)
+- Content includes "CNBC", "Nasdaq", "Investing_com", etc.
+
+### AC4: localStorage persistence
+PASS:
+- Key: instnews_column_widths
+- Value persists across full page reload
+- Widths restored on init: headline=511, source=107, time=60
+
+### AC5: Resizing works after column reorder or toggle
+PASS:
+- Toggled Sentiment column off via column settings panel
+- Visible columns changed from [Time, Sentiment, Source, Headline, Summary] to [Time, Source, Headline, Summary]
+- All previously set widths preserved (Time: 60px, Source: 107px, Headline: 511px)
+- All remaining columns still have resize handles
+- Successfully drag-resized Source from 107 to 157px after toggle
+- Width keyed by column ID survives toggle/reorder
+
+### AC6: Typecheck passes
+PASS:
+- mypy app/models.py app/routes/news.py: "Success: no issues found in 2 source files" (see mypy_stdout.log)
+- pytest: 86 passed, 8 failed (all pre-existing in test_tiers.py/test_rate_limit.py — stale tier config, NOT related to US-008) (see pytest_full.log)
+
+### AC7: Browser verification
+PASS: All features verified in browser via Playwright automation:
+- Drag resize: real-time width update during drag
+- Double-click auto-fit: measures content and sets optimal width
+- Persistence: survives full page reload
+- Column toggle: widths preserved after hiding/showing columns
+- Minimum width: enforced at 60px
+
+### Screenshots
+- screenshot-after-resize.png: Terminal after dragging Headline wider
+- screenshot-terminal-visible.png: Terminal with resized columns visible
+- screenshot-after-toggle-resize.png: Column settings panel open, Sentiment off, resize still working

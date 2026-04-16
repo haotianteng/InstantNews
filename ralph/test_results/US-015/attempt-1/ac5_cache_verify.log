@@ -1,0 +1,15 @@
+POLYGON_API_KEY not set — market data service disabled
+polygon details: unexpected response for MSFT: None
+polygon snapshot: unexpected response for MSFT: None
+polygon details: unexpected response for MSFT: None
+polygon snapshot: unexpected response for MSFT: None
+CacheEntry(ttl=3600): expires_at - now = 3600.0s, is_valid=True
+CacheEntry(ttl=0) after 10ms: is_valid=False
+Actual cache TTL: 3600s remaining (expected ~3600)
+Cache hit: 0 API calls on second get_related_companies()
+Cache expired: 3 API calls on refresh
+
+AC5 PASS: 1-hour cache TTL confirmed
+  - New entries expire in ~3600s (3600s observed)
+  - Fresh entries serve from cache (0 API calls)
+  - Expired entries trigger refresh (3 API calls)

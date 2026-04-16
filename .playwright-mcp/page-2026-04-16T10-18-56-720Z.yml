@@ -1,0 +1,874 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - banner [ref=e3]:
+      - generic [ref=e4]:
+        - generic [ref=e5]:
+          - img [ref=e7]
+          - generic [ref=e10]: InstNews SIGNAL
+        - generic [ref=e12]: Thu, Apr 16, 2026 06:18:56
+        - generic [ref=e16]: LIVE
+      - generic [ref=e17]:
+        - generic [ref=e18]:
+          - generic [ref=e19]: Items
+          - generic [ref=e20]: "50"
+        - generic [ref=e21]:
+          - generic [ref=e22]: Feeds
+          - generic [ref=e23]: "15"
+        - generic [ref=e24]:
+          - generic [ref=e25]: Avg Sent
+          - generic [ref=e26]: "--"
+        - button "Sound" [ref=e27] [cursor=pointer]:
+          - img [ref=e28]
+          - generic [ref=e32]: Sound
+        - button "Refresh" [ref=e33] [cursor=pointer]:
+          - img [ref=e34]
+          - generic [ref=e37]: Refresh
+        - button "API Docs" [ref=e38] [cursor=pointer]:
+          - img [ref=e39]
+          - generic [ref=e42]: API Docs
+        - button "Columns" [ref=e44] [cursor=pointer]:
+          - img [ref=e45]
+          - generic [ref=e46]: Columns
+        - button "Sign In" [ref=e48] [cursor=pointer]:
+          - img [ref=e49]
+          - generic [ref=e52]: Sign In
+    - complementary [ref=e53]:
+      - generic [ref=e54]:
+        - generic [ref=e55]: Search
+        - generic [ref=e56]:
+          - img
+          - textbox "Filter headlines..." [ref=e57]
+          - generic: F
+      - generic [ref=e58]:
+        - generic [ref=e59]: Date Range
+        - generic [ref=e60]:
+          - generic [ref=e61]:
+            - generic [ref=e62]: From
+            - textbox "From" [ref=e63]
+          - generic [ref=e64]:
+            - generic [ref=e65]: To
+            - textbox "To" [ref=e66]
+          - button "Clear dates" [ref=e67] [cursor=pointer]:
+            - img [ref=e68]
+            - text: Clear dates
+      - generic [ref=e72] [cursor=pointer]:
+        - checkbox "Hide duplicates" [ref=e73]
+        - generic [ref=e74]: Hide duplicates
+      - generic [ref=e75]:
+        - generic [ref=e76]: Sentiment
+        - generic [ref=e77]:
+          - button "All 50 1" [ref=e78] [cursor=pointer]:
+            - text: All
+            - generic [ref=e80]: "50"
+            - generic [ref=e81]: "1"
+          - button "Bullish 0 2" [ref=e82] [cursor=pointer]:
+            - text: Bullish
+            - generic [ref=e84]: "0"
+            - generic [ref=e85]: "2"
+          - button "Bearish 0 3" [ref=e86] [cursor=pointer]:
+            - text: Bearish
+            - generic [ref=e88]: "0"
+            - generic [ref=e89]: "3"
+          - button "Neutral 0 4" [ref=e90] [cursor=pointer]:
+            - text: Neutral
+            - generic [ref=e92]: "0"
+            - generic [ref=e93]: "4"
+      - generic [ref=e94]:
+        - generic [ref=e95]: Sources
+        - generic [ref=e96]:
+          - generic [ref=e97] [cursor=pointer]:
+            - checkbox "CNBC 1025" [checked] [ref=e98]
+            - generic [ref=e99]: CNBC
+            - generic [ref=e100]: "1025"
+          - generic [ref=e101] [cursor=pointer]:
+            - checkbox "CNBC World 336" [checked] [ref=e102]
+            - generic [ref=e103]: CNBC World
+            - generic [ref=e104]: "336"
+          - generic [ref=e105] [cursor=pointer]:
+            - checkbox "Reuters Business 0" [checked] [ref=e106]
+            - generic [ref=e107]: Reuters Business
+            - generic [ref=e108]: "0"
+          - generic [ref=e109] [cursor=pointer]:
+            - checkbox "MarketWatch 697" [checked] [ref=e110]
+            - generic [ref=e111]: MarketWatch
+            - generic [ref=e112]: "697"
+          - generic [ref=e113] [cursor=pointer]:
+            - checkbox "MarketWatch Markets 32" [checked] [ref=e114]
+            - generic [ref=e115]: MarketWatch Markets
+            - generic [ref=e116]: "32"
+          - generic [ref=e117] [cursor=pointer]:
+            - checkbox "Investing com 9850" [checked] [ref=e118]
+            - generic [ref=e119]: Investing com
+            - generic [ref=e120]: "9850"
+          - generic [ref=e121] [cursor=pointer]:
+            - checkbox "Yahoo Finance 11694" [checked] [ref=e122]
+            - generic [ref=e123]: Yahoo Finance
+            - generic [ref=e124]: "11694"
+          - generic [ref=e125] [cursor=pointer]:
+            - checkbox "Nasdaq 4986" [checked] [ref=e126]
+            - generic [ref=e127]: Nasdaq
+            - generic [ref=e128]: "4986"
+          - generic [ref=e129] [cursor=pointer]:
+            - checkbox "SeekingAlpha 6015" [checked] [ref=e130]
+            - generic [ref=e131]: SeekingAlpha
+            - generic [ref=e132]: "6015"
+          - generic [ref=e133] [cursor=pointer]:
+            - checkbox "Benzinga 0" [checked] [ref=e134]
+            - generic [ref=e135]: Benzinga
+            - generic [ref=e136]: "0"
+          - generic [ref=e137] [cursor=pointer]:
+            - checkbox "AP News 0" [checked] [ref=e138]
+            - generic [ref=e139]: AP News
+            - generic [ref=e140]: "0"
+          - generic [ref=e141] [cursor=pointer]:
+            - checkbox "Bloomberg Business 0" [checked] [ref=e142]
+            - generic [ref=e143]: Bloomberg Business
+            - generic [ref=e144]: "0"
+          - generic [ref=e145] [cursor=pointer]:
+            - checkbox "Bloomberg Markets 0" [checked] [ref=e146]
+            - generic [ref=e147]: Bloomberg Markets
+            - generic [ref=e148]: "0"
+          - generic [ref=e149] [cursor=pointer]:
+            - checkbox "BBC Business 246" [checked] [ref=e150]
+            - generic [ref=e151]: BBC Business
+            - generic [ref=e152]: "246"
+          - generic [ref=e153] [cursor=pointer]:
+            - checkbox "Google News Business 2744" [checked] [ref=e154]
+            - generic [ref=e155]: Google News Business
+            - generic [ref=e156]: "2744"
+      - generic [ref=e157]:
+        - generic [ref=e158]: Refresh Interval
+        - combobox [ref=e159] [cursor=pointer]:
+          - option "3 seconds"
+          - option "5 seconds" [selected]
+          - option "10 seconds"
+          - option "15 seconds"
+          - option "30 seconds"
+          - option "60 seconds"
+      - generic [ref=e160]: R Refresh F Search 1-4 Sentiment
+    - main [ref=e161]:
+      - table [ref=e162]:
+        - rowgroup [ref=e163]:
+          - row "Time Sentiment Source Headline Ticker Confidence Risk Level" [ref=e164]:
+            - columnheader "Time" [ref=e165]: Time
+            - columnheader "Sentiment" [ref=e167]: Sentiment
+            - columnheader "Source" [ref=e169]: Source
+            - columnheader "Headline" [ref=e171]: Headline
+            - columnheader "Ticker" [ref=e173]: Ticker
+            - columnheader "Confidence" [ref=e175]: Confidence
+            - columnheader "Risk Level" [ref=e177]: Risk Level
+        - rowgroup [ref=e179]:
+          - row "06:12:46 undefined SeekingAlpha Arthur J. Gallagher buys Bridge Insurance Brokers — — —" [ref=e180] [cursor=pointer]:
+            - cell "06:12:46" [ref=e181]
+            - cell "undefined" [ref=e182]:
+              - generic [ref=e183]: undefined
+            - cell "SeekingAlpha" [ref=e185]:
+              - generic [ref=e186]: SeekingAlpha
+            - cell "Arthur J. Gallagher buys Bridge Insurance Brokers" [ref=e187]:
+              - link "Arthur J. Gallagher buys Bridge Insurance Brokers" [ref=e188]:
+                - /url: https://seekingalpha.com/news/4575606-arthur-j-gallagher-buys-bridge-insurance-brokers?utm_source=feed_news_all&utm_medium=referral&feed_item_type=news
+            - cell "—" [ref=e189]
+            - cell "—" [ref=e190]
+            - cell "—" [ref=e191]
+          - 'row "06:12:30 undefined SeekingAlpha AM Markets Need to Know: Private credit demand, Strait of Hormuz talks, and more — — —" [ref=e192] [cursor=pointer]':
+            - cell "06:12:30" [ref=e193]
+            - cell "undefined" [ref=e194]:
+              - generic [ref=e195]: undefined
+            - cell "SeekingAlpha" [ref=e197]:
+              - generic [ref=e198]: SeekingAlpha
+            - 'cell "AM Markets Need to Know: Private credit demand, Strait of Hormuz talks, and more" [ref=e199]':
+              - 'link "AM Markets Need to Know: Private credit demand, Strait of Hormuz talks, and more" [ref=e200]':
+                - /url: https://seekingalpha.com/news/4575577-am-markets-need-to-know-private-credit-demand-strait-of-hormuz-talks-and-more?utm_source=feed_news_all&utm_medium=referral&feed_item_type=news
+            - cell "—" [ref=e201]
+            - cell "—" [ref=e202]
+            - cell "—" [ref=e203]
+          - row "06:08:11 undefined SeekingAlpha Hooker Furnishings GAAP EPS of $0.08 beats by $0.01, revenue of $66.98M misses by $7.11M — — —" [ref=e204] [cursor=pointer]:
+            - cell "06:08:11" [ref=e205]
+            - cell "undefined" [ref=e206]:
+              - generic [ref=e207]: undefined
+            - cell "SeekingAlpha" [ref=e209]:
+              - generic [ref=e210]: SeekingAlpha
+            - cell "Hooker Furnishings GAAP EPS of $0.08 beats by $0.01, revenue of $66.98M misses by $7.11M" [ref=e211]:
+              - link "Hooker Furnishings GAAP EPS of $0.08 beats by $0.01, revenue of $66.98M misses by $7.11M" [ref=e212]:
+                - /url: https://seekingalpha.com/news/4575608-hooker-furnishings-gaap-eps-of-0_08-beats-by-0_01-revenue-of-66_98m-misses-by-7_11m?utm_source=feed_news_all&utm_medium=referral&feed_item_type=news
+            - cell "—" [ref=e213]
+            - cell "—" [ref=e214]
+            - cell "—" [ref=e215]
+          - row "06:06:11 undefined SeekingAlpha Pepsico Non-GAAP EPS of $1.61 beats by $0.06, revenue of $19.44B beats by $500M — — —" [ref=e216] [cursor=pointer]:
+            - cell "06:06:11" [ref=e217]
+            - cell "undefined" [ref=e218]:
+              - generic [ref=e219]: undefined
+            - cell "SeekingAlpha" [ref=e221]:
+              - generic [ref=e222]: SeekingAlpha
+            - cell "Pepsico Non-GAAP EPS of $1.61 beats by $0.06, revenue of $19.44B beats by $500M" [ref=e223]:
+              - link "Pepsico Non-GAAP EPS of $1.61 beats by $0.06, revenue of $19.44B beats by $500M" [ref=e224]:
+                - /url: https://seekingalpha.com/news/4575607-pepsico-non-gaap-eps-of-1_61-beats-by-0_06-revenue-of-19_44b-beats-by-500m?utm_source=feed_news_all&utm_medium=referral&feed_item_type=news
+            - cell "—" [ref=e225]
+            - cell "—" [ref=e226]
+            - cell "—" [ref=e227]
+          - row "05:29:30 undefined SeekingAlpha S&P 500 rebounds to record highs in near-record time after sharp pullback — — —" [ref=e228] [cursor=pointer]:
+            - cell "05:29:30" [ref=e229]
+            - cell "undefined" [ref=e230]:
+              - generic [ref=e231]: undefined
+            - cell "SeekingAlpha" [ref=e233]:
+              - generic [ref=e234]: SeekingAlpha
+            - cell "S&P 500 rebounds to record highs in near-record time after sharp pullback" [ref=e235]:
+              - link "S&P 500 rebounds to record highs in near-record time after sharp pullback" [ref=e236]:
+                - /url: https://seekingalpha.com/news/4575580-sp-500-rebounds-to-record-highs-in-near-record-time-after-sharp-pullback?utm_source=feed_news_all&utm_medium=referral&feed_item_type=news
+            - cell "—" [ref=e237]
+            - cell "—" [ref=e238]
+            - cell "—" [ref=e239]
+          - row "05:21:52 undefined SeekingAlpha Taiwan Semi raises 2026 outlook after Q1 profit surges amid AI demand — — —" [ref=e240] [cursor=pointer]:
+            - cell "05:21:52" [ref=e241]
+            - cell "undefined" [ref=e242]:
+              - generic [ref=e243]: undefined
+            - cell "SeekingAlpha" [ref=e245]:
+              - generic [ref=e246]: SeekingAlpha
+            - cell "Taiwan Semi raises 2026 outlook after Q1 profit surges amid AI demand" [ref=e247]:
+              - link "Taiwan Semi raises 2026 outlook after Q1 profit surges amid AI demand" [ref=e248]:
+                - /url: https://seekingalpha.com/news/4575561-taiwan-semi-raises-2026-outlook-after-q1-profit-surges-amid-ai-demand?utm_source=feed_news_all&utm_medium=referral&feed_item_type=news
+            - cell "—" [ref=e249]
+            - cell "—" [ref=e250]
+            - cell "—" [ref=e251]
+          - row "05:15:13 undefined SeekingAlpha Hims & Hers on track to extend gains as RFK Jr. seeks to loosen peptide regulations — — —" [ref=e252] [cursor=pointer]:
+            - cell "05:15:13" [ref=e253]
+            - cell "undefined" [ref=e254]:
+              - generic [ref=e255]: undefined
+            - cell "SeekingAlpha" [ref=e257]:
+              - generic [ref=e258]: SeekingAlpha
+            - cell "Hims & Hers on track to extend gains as RFK Jr. seeks to loosen peptide regulations" [ref=e259]:
+              - link "Hims & Hers on track to extend gains as RFK Jr. seeks to loosen peptide regulations" [ref=e260]:
+                - /url: https://seekingalpha.com/news/4575564-hims-hers-on-track-to-extend-gains-as-rfk-jr-seeks-to-loosen-peptide-regulations?utm_source=feed_news_all&utm_medium=referral&feed_item_type=news
+            - cell "—" [ref=e261]
+            - cell "—" [ref=e262]
+            - cell "—" [ref=e263]
+          - row "05:03:29 undefined SeekingAlpha Great Southern Bancorp GAAP EPS of $1.58 beats by $0.29, revenue of $48.33M misses by $6.42M — — —" [ref=e264] [cursor=pointer]:
+            - cell "05:03:29" [ref=e265]
+            - cell "undefined" [ref=e266]:
+              - generic [ref=e267]: undefined
+            - cell "SeekingAlpha" [ref=e269]:
+              - generic [ref=e270]: SeekingAlpha
+            - cell "Great Southern Bancorp GAAP EPS of $1.58 beats by $0.29, revenue of $48.33M misses by $6.42M" [ref=e271]:
+              - link "Great Southern Bancorp GAAP EPS of $1.58 beats by $0.29, revenue of $48.33M misses by $6.42M" [ref=e272]:
+                - /url: https://seekingalpha.com/news/4575579-great-southern-bancorp-gaap-eps-of-158-beats-by-029-revenue-of-4833m-misses-by-642m?utm_source=feed_news_all&utm_medium=referral&feed_item_type=news
+            - cell "—" [ref=e273]
+            - cell "—" [ref=e274]
+            - cell "—" [ref=e275]
+          - 'row "05:01:19 undefined SeekingAlpha Biggest stock movers Thursday: HIMS, quantum computing stocks, and more — — —" [ref=e276] [cursor=pointer]':
+            - cell "05:01:19" [ref=e277]
+            - cell "undefined" [ref=e278]:
+              - generic [ref=e279]: undefined
+            - cell "SeekingAlpha" [ref=e281]:
+              - generic [ref=e282]: SeekingAlpha
+            - 'cell "Biggest stock movers Thursday: HIMS, quantum computing stocks, and more" [ref=e283]':
+              - 'link "Biggest stock movers Thursday: HIMS, quantum computing stocks, and more" [ref=e284]':
+                - /url: https://seekingalpha.com/news/4575571-biggest-stock-movers-thursday-quantum-computing-stocks-hims-and-more?utm_source=feed_news_all&utm_medium=referral&feed_item_type=news
+            - cell "—" [ref=e285]
+            - cell "—" [ref=e286]
+            - cell "—" [ref=e287]
+          - row "04:53:18 undefined SeekingAlpha Pernod Ricard reports Q3 results; updates FY26 outlook — — —" [ref=e288] [cursor=pointer]:
+            - cell "04:53:18" [ref=e289]
+            - cell "undefined" [ref=e290]:
+              - generic [ref=e291]: undefined
+            - cell "SeekingAlpha" [ref=e293]:
+              - generic [ref=e294]: SeekingAlpha
+            - cell "Pernod Ricard reports Q3 results; updates FY26 outlook" [ref=e295]:
+              - link "Pernod Ricard reports Q3 results; updates FY26 outlook" [ref=e296]:
+                - /url: https://seekingalpha.com/news/4575573-pernod-ricard-reports-q3-results-updates-fy26-outlook?utm_source=feed_news_all&utm_medium=referral&feed_item_type=news
+            - cell "—" [ref=e297]
+            - cell "—" [ref=e298]
+            - cell "—" [ref=e299]
+          - 'row "04:48:18 undefined SeekingAlpha Bessent: Banks must be prepared to collect customers'' citizenship data — — —" [ref=e300] [cursor=pointer]':
+            - cell "04:48:18" [ref=e301]
+            - cell "undefined" [ref=e302]:
+              - generic [ref=e303]: undefined
+            - cell "SeekingAlpha" [ref=e305]:
+              - generic [ref=e306]: SeekingAlpha
+            - 'cell "Bessent: Banks must be prepared to collect customers'' citizenship data" [ref=e307]':
+              - 'link "Bessent: Banks must be prepared to collect customers'' citizenship data" [ref=e308]':
+                - /url: https://seekingalpha.com/news/4575551-bessent-banks-customers-citizenship-data?utm_source=feed_news_all&utm_medium=referral&feed_item_type=news
+            - cell "—" [ref=e309]
+            - cell "—" [ref=e310]
+            - cell "—" [ref=e311]
+          - row "04:45:44 undefined SeekingAlpha European markets climb cautiously on hopes of ceasefire extensions — — —" [ref=e312] [cursor=pointer]:
+            - cell "04:45:44" [ref=e313]
+            - cell "undefined" [ref=e314]:
+              - generic [ref=e315]: undefined
+            - cell "SeekingAlpha" [ref=e317]:
+              - generic [ref=e318]: SeekingAlpha
+            - cell "European markets climb cautiously on hopes of ceasefire extensions" [ref=e319]:
+              - link "European markets climb cautiously on hopes of ceasefire extensions" [ref=e320]:
+                - /url: https://seekingalpha.com/news/4575563-european-markets-climb-cautiously-on-hopes-of-ceasefire-extensions?utm_source=feed_news_all&utm_medium=referral&feed_item_type=news
+            - cell "—" [ref=e321]
+            - cell "—" [ref=e322]
+            - cell "—" [ref=e323]
+          - row "04:38:46 undefined SeekingAlpha Orchid Island Capital slashes dividend by 16.7% to $0.10 as share — — —" [ref=e324] [cursor=pointer]:
+            - cell "04:38:46" [ref=e325]
+            - cell "undefined" [ref=e326]:
+              - generic [ref=e327]: undefined
+            - cell "SeekingAlpha" [ref=e329]:
+              - generic [ref=e330]: SeekingAlpha
+            - cell "Orchid Island Capital slashes dividend by 16.7% to $0.10 as share" [ref=e331]:
+              - link "Orchid Island Capital slashes dividend by 16.7% to $0.10 as share" [ref=e332]:
+                - /url: https://seekingalpha.com/news/4575570-orchid-island-capital-slashes-dividend-by-167-to-010-as-share?utm_source=feed_news_all&utm_medium=referral&feed_item_type=news
+            - cell "—" [ref=e333]
+            - cell "—" [ref=e334]
+            - cell "—" [ref=e335]
+          - row "04:35:05 undefined SeekingAlpha K-Bro Linen declares CAD 0.10 dividend — — —" [ref=e336] [cursor=pointer]:
+            - cell "04:35:05" [ref=e337]
+            - cell "undefined" [ref=e338]:
+              - generic [ref=e339]: undefined
+            - cell "SeekingAlpha" [ref=e341]:
+              - generic [ref=e342]: SeekingAlpha
+            - cell "K-Bro Linen declares CAD 0.10 dividend" [ref=e343]:
+              - link "K-Bro Linen declares CAD 0.10 dividend" [ref=e344]:
+                - /url: https://seekingalpha.com/news/4575569-k-bro-linen-declares-cad-010-dividend?utm_source=feed_news_all&utm_medium=referral&feed_item_type=news
+            - cell "—" [ref=e345]
+            - cell "—" [ref=e346]
+            - cell "—" [ref=e347]
+          - row "04:33:23 undefined SeekingAlpha Whitecap Resources declares CAD 0.0608 dividend — — —" [ref=e348] [cursor=pointer]:
+            - cell "04:33:23" [ref=e349]
+            - cell "undefined" [ref=e350]:
+              - generic [ref=e351]: undefined
+            - cell "SeekingAlpha" [ref=e353]:
+              - generic [ref=e354]: SeekingAlpha
+            - cell "Whitecap Resources declares CAD 0.0608 dividend" [ref=e355]:
+              - link "Whitecap Resources declares CAD 0.0608 dividend" [ref=e356]:
+                - /url: https://seekingalpha.com/news/4575568-whitecap-resources-declares-cad-00608-dividend?utm_source=feed_news_all&utm_medium=referral&feed_item_type=news
+            - cell "—" [ref=e357]
+            - cell "—" [ref=e358]
+            - cell "—" [ref=e359]
+          - row "04:31:24 undefined SeekingAlpha Starfighters Space GAAP EPS of -$0.76 — — —" [ref=e360] [cursor=pointer]:
+            - cell "04:31:24" [ref=e361]
+            - cell "undefined" [ref=e362]:
+              - generic [ref=e363]: undefined
+            - cell "SeekingAlpha" [ref=e365]:
+              - generic [ref=e366]: SeekingAlpha
+            - cell "Starfighters Space GAAP EPS of -$0.76" [ref=e367]:
+              - link "Starfighters Space GAAP EPS of -$0.76" [ref=e368]:
+                - /url: https://seekingalpha.com/news/4575567-starfighters-space-gaap-eps-of-076?utm_source=feed_news_all&utm_medium=referral&feed_item_type=news
+            - cell "—" [ref=e369]
+            - cell "—" [ref=e370]
+            - cell "—" [ref=e371]
+          - row "04:28:12 undefined SeekingAlpha NextNRG reports FY results — — —" [ref=e372] [cursor=pointer]:
+            - cell "04:28:12" [ref=e373]
+            - cell "undefined" [ref=e374]:
+              - generic [ref=e375]: undefined
+            - cell "SeekingAlpha" [ref=e377]:
+              - generic [ref=e378]: SeekingAlpha
+            - cell "NextNRG reports FY results" [ref=e379]:
+              - link "NextNRG reports FY results" [ref=e380]:
+                - /url: https://seekingalpha.com/news/4575566-nextnrg-reports-fy-results?utm_source=feed_news_all&utm_medium=referral&feed_item_type=news
+            - cell "—" [ref=e381]
+            - cell "—" [ref=e382]
+            - cell "—" [ref=e383]
+          - row "04:26:09 undefined SeekingAlpha Home BancShares Non-GAAP EPS of $0.60 beats by $0.01, revenue of $266.7M misses by $6.88M — — —" [ref=e384] [cursor=pointer]:
+            - cell "04:26:09" [ref=e385]
+            - cell "undefined" [ref=e386]:
+              - generic [ref=e387]: undefined
+            - cell "SeekingAlpha" [ref=e389]:
+              - generic [ref=e390]: SeekingAlpha
+            - cell "Home BancShares Non-GAAP EPS of $0.60 beats by $0.01, revenue of $266.7M misses by $6.88M" [ref=e391]:
+              - link "Home BancShares Non-GAAP EPS of $0.60 beats by $0.01, revenue of $266.7M misses by $6.88M" [ref=e392]:
+                - /url: https://seekingalpha.com/news/4575565-home-bancshares-non-gaap-eps-of-060-beats-by-001-revenue-of-2667m-misses-by-688m?utm_source=feed_news_all&utm_medium=referral&feed_item_type=news
+            - cell "—" [ref=e393]
+            - cell "—" [ref=e394]
+            - cell "—" [ref=e395]
+          - row "04:22:19 undefined SeekingAlpha Stock index futures rise as hopes of U.S.-Iran peace deal boost sentiment — — —" [ref=e396] [cursor=pointer]:
+            - cell "04:22:19" [ref=e397]
+            - cell "undefined" [ref=e398]:
+              - generic [ref=e399]: undefined
+            - cell "SeekingAlpha" [ref=e401]:
+              - generic [ref=e402]: SeekingAlpha
+            - cell "Stock index futures rise as hopes of U.S.-Iran peace deal boost sentiment" [ref=e403]:
+              - link "Stock index futures rise as hopes of U.S.-Iran peace deal boost sentiment" [ref=e404]:
+                - /url: https://seekingalpha.com/news/4575557-sp500-nasdaq-dow-jones-outlook-stock-market?utm_source=feed_news_all&utm_medium=referral&feed_item_type=news
+            - cell "—" [ref=e405]
+            - cell "—" [ref=e406]
+            - cell "—" [ref=e407]
+          - row "04:13:51 undefined SeekingAlpha Flexible Solutions International GAAP EPS of $0.06, revenue of $38.52M — — —" [ref=e408] [cursor=pointer]:
+            - cell "04:13:51" [ref=e409]
+            - cell "undefined" [ref=e410]:
+              - generic [ref=e411]: undefined
+            - cell "SeekingAlpha" [ref=e413]:
+              - generic [ref=e414]: SeekingAlpha
+            - cell "Flexible Solutions International GAAP EPS of $0.06, revenue of $38.52M" [ref=e415]:
+              - link "Flexible Solutions International GAAP EPS of $0.06, revenue of $38.52M" [ref=e416]:
+                - /url: https://seekingalpha.com/news/4575562-flexible-solutions-international-gaap-eps-of-006-revenue-of-3852m?utm_source=feed_news_all&utm_medium=referral&feed_item_type=news
+            - cell "—" [ref=e417]
+            - cell "—" [ref=e418]
+            - cell "—" [ref=e419]
+          - row "04:13:33 undefined SeekingAlpha Jameson maker Pernod Ricard flags Iran war impact on sales, sees FY decline — — —" [ref=e420] [cursor=pointer]:
+            - cell "04:13:33" [ref=e421]
+            - cell "undefined" [ref=e422]:
+              - generic [ref=e423]: undefined
+            - cell "SeekingAlpha" [ref=e425]:
+              - generic [ref=e426]: SeekingAlpha
+            - cell "Jameson maker Pernod Ricard flags Iran war impact on sales, sees FY decline" [ref=e427]:
+              - link "Jameson maker Pernod Ricard flags Iran war impact on sales, sees FY decline" [ref=e428]:
+                - /url: https://seekingalpha.com/news/4575552-jameson-maker-pernod-ricard-flags-iran-war-impact-on-sales-sees-fy-decline?utm_source=feed_news_all&utm_medium=referral&feed_item_type=news
+            - cell "—" [ref=e429]
+            - cell "—" [ref=e430]
+            - cell "—" [ref=e431]
+          - row "04:07:14 undefined SeekingAlpha Pentagon held talks with GM, Ford on weapons production - report — — —" [ref=e432] [cursor=pointer]:
+            - cell "04:07:14" [ref=e433]
+            - cell "undefined" [ref=e434]:
+              - generic [ref=e435]: undefined
+            - cell "SeekingAlpha" [ref=e437]:
+              - generic [ref=e438]: SeekingAlpha
+            - cell "Pentagon held talks with GM, Ford on weapons production - report" [ref=e439]:
+              - link "Pentagon held talks with GM, Ford on weapons production - report" [ref=e440]:
+                - /url: https://seekingalpha.com/news/4575549-pentagon-talks-gm-ford-weapons-production?utm_source=feed_news_all&utm_medium=referral&feed_item_type=news
+            - cell "—" [ref=e441]
+            - cell "—" [ref=e442]
+            - cell "—" [ref=e443]
+          - row "04:06:53 undefined SeekingAlpha Winmark GAAP EPS of $2.50, revenue of $20.85M — — —" [ref=e444] [cursor=pointer]:
+            - cell "04:06:53" [ref=e445]
+            - cell "undefined" [ref=e446]:
+              - generic [ref=e447]: undefined
+            - cell "SeekingAlpha" [ref=e449]:
+              - generic [ref=e450]: SeekingAlpha
+            - cell "Winmark GAAP EPS of $2.50, revenue of $20.85M" [ref=e451]:
+              - link "Winmark GAAP EPS of $2.50, revenue of $20.85M" [ref=e452]:
+                - /url: https://seekingalpha.com/news/4575559-winmark-gaap-eps-of-250-revenue-of-2085m?utm_source=feed_news_all&utm_medium=referral&feed_item_type=news
+            - cell "—" [ref=e453]
+            - cell "—" [ref=e454]
+            - cell "—" [ref=e455]
+          - row "04:06:22 undefined SeekingAlpha Private credit should keep drawing capital despite redemptions, Goldman’s Olson says — — —" [ref=e456] [cursor=pointer]:
+            - cell "04:06:22" [ref=e457]
+            - cell "undefined" [ref=e458]:
+              - generic [ref=e459]: undefined
+            - cell "SeekingAlpha" [ref=e461]:
+              - generic [ref=e462]: SeekingAlpha
+            - cell "Private credit should keep drawing capital despite redemptions, Goldman’s Olson says" [ref=e463]:
+              - link "Private credit should keep drawing capital despite redemptions, Goldman’s Olson says" [ref=e464]:
+                - /url: https://seekingalpha.com/news/4575553-private-credit-should-keep-drawing-capital-despite-redemptions-goldmans-olson-says?utm_source=feed_news_all&utm_medium=referral&feed_item_type=news
+            - cell "—" [ref=e465]
+            - cell "—" [ref=e466]
+            - cell "—" [ref=e467]
+          - row "04:05:22 undefined SeekingAlpha Solidion Technology GAAP EPS of -$10.39 — — —" [ref=e468] [cursor=pointer]:
+            - cell "04:05:22" [ref=e469]
+            - cell "undefined" [ref=e470]:
+              - generic [ref=e471]: undefined
+            - cell "SeekingAlpha" [ref=e473]:
+              - generic [ref=e474]: SeekingAlpha
+            - cell "Solidion Technology GAAP EPS of -$10.39" [ref=e475]:
+              - link "Solidion Technology GAAP EPS of -$10.39" [ref=e476]:
+                - /url: https://seekingalpha.com/news/4575558-solidion-technology-gaap-eps-of--1039?utm_source=feed_news_all&utm_medium=referral&feed_item_type=news
+            - cell "—" [ref=e477]
+            - cell "—" [ref=e478]
+            - cell "—" [ref=e479]
+          - 'row "04:05:00 undefined Nasdaq Down 50% and Still Standing: 3 Growth Stocks Worth Your Attention Now — — —" [ref=e480] [cursor=pointer]':
+            - cell "04:05:00" [ref=e481]
+            - cell "undefined" [ref=e482]:
+              - generic [ref=e483]: undefined
+            - cell "Nasdaq" [ref=e485]:
+              - generic [ref=e486]: Nasdaq
+            - 'cell "Down 50% and Still Standing: 3 Growth Stocks Worth Your Attention Now" [ref=e487]':
+              - 'link "Down 50% and Still Standing: 3 Growth Stocks Worth Your Attention Now" [ref=e488]':
+                - /url: https://www.nasdaq.com/articles/down-50-and-still-standing-3-growth-stocks-worth-your-attention-now
+            - cell "—" [ref=e489]
+            - cell "—" [ref=e490]
+            - cell "—" [ref=e491]
+          - row "04:03:38 undefined Investing_com Russian government eyes return to budget rule currency transactions — — —" [ref=e492] [cursor=pointer]:
+            - cell "04:03:38" [ref=e493]
+            - cell "undefined" [ref=e494]:
+              - generic [ref=e495]: undefined
+            - cell "Investing_com" [ref=e497]:
+              - generic [ref=e498]: Investing_com
+            - cell "Russian government eyes return to budget rule currency transactions" [ref=e499]:
+              - link "Russian government eyes return to budget rule currency transactions" [ref=e500]:
+                - /url: https://www.investing.com/news/forex-news/russian-government-eyes-return-to-budget-rule-currency-transactions-93CH-4617210
+            - cell "—" [ref=e501]
+            - cell "—" [ref=e502]
+            - cell "—" [ref=e503]
+          - row "04:02:52 undefined Investing_com Poland’s 2025 GDP growth confirmed at 3.6% — — —" [ref=e504] [cursor=pointer]:
+            - cell "04:02:52" [ref=e505]
+            - cell "undefined" [ref=e506]:
+              - generic [ref=e507]: undefined
+            - cell "Investing_com" [ref=e509]:
+              - generic [ref=e510]: Investing_com
+            - cell "Poland’s 2025 GDP growth confirmed at 3.6%" [ref=e511]:
+              - link "Poland’s 2025 GDP growth confirmed at 3.6%" [ref=e512]:
+                - /url: https://www.investing.com/news/economic-indicators/polands-2025-gdp-growth-confirmed-at-36-93CH-4617209
+            - cell "—" [ref=e513]
+            - cell "—" [ref=e514]
+            - cell "—" [ref=e515]
+          - row "04:01:58 undefined Investing_com JD Sports sells entire stake in Applied Nutrition for $66 million — — —" [ref=e516] [cursor=pointer]:
+            - cell "04:01:58" [ref=e517]
+            - cell "undefined" [ref=e518]:
+              - generic [ref=e519]: undefined
+            - cell "Investing_com" [ref=e521]:
+              - generic [ref=e522]: Investing_com
+            - cell "JD Sports sells entire stake in Applied Nutrition for $66 million" [ref=e523]:
+              - link "JD Sports sells entire stake in Applied Nutrition for $66 million" [ref=e524]:
+                - /url: https://www.investing.com/news/stock-market-news/jd-sports-sells-entire-stake-in-applied-nutrition-for-66-million-93CH-4617208
+            - cell "—" [ref=e525]
+            - cell "—" [ref=e526]
+            - cell "—" [ref=e527]
+          - row "04:01:11 undefined Investing_com Antofagasta stock downgraded to hold at Berenberg on valuation — — —" [ref=e528] [cursor=pointer]:
+            - cell "04:01:11" [ref=e529]
+            - cell "undefined" [ref=e530]:
+              - generic [ref=e531]: undefined
+            - cell "Investing_com" [ref=e533]:
+              - generic [ref=e534]: Investing_com
+            - cell "Antofagasta stock downgraded to hold at Berenberg on valuation" [ref=e535]:
+              - link "Antofagasta stock downgraded to hold at Berenberg on valuation" [ref=e536]:
+                - /url: https://www.investing.com/news/analyst-ratings/antofagasta-stock-downgraded-to-hold-at-berenberg-on-valuation-93CH-4617207
+            - cell "—" [ref=e537]
+            - cell "—" [ref=e538]
+            - cell "—" [ref=e539]
+          - row "04:01:03 undefined Investing_com UBS downgrades Ambev stock rating on valuation concerns — — —" [ref=e540] [cursor=pointer]:
+            - cell "04:01:03" [ref=e541]
+            - cell "undefined" [ref=e542]:
+              - generic [ref=e543]: undefined
+            - cell "Investing_com" [ref=e545]:
+              - generic [ref=e546]: Investing_com
+            - cell "UBS downgrades Ambev stock rating on valuation concerns" [ref=e547]:
+              - link "UBS downgrades Ambev stock rating on valuation concerns" [ref=e548]:
+                - /url: https://www.investing.com/news/analyst-ratings/ubs-downgrades-ambev-stock-rating-on-valuation-concerns-93CH-4617206
+            - cell "—" [ref=e549]
+            - cell "—" [ref=e550]
+            - cell "—" [ref=e551]
+          - row "04:00:56 undefined Investing_com Middle East war feeding uncertainty over economic outlook, SNB minutes show — — —" [ref=e552] [cursor=pointer]:
+            - cell "04:00:56" [ref=e553]
+            - cell "undefined" [ref=e554]:
+              - generic [ref=e555]: undefined
+            - cell "Investing_com" [ref=e557]:
+              - generic [ref=e558]: Investing_com
+            - cell "Middle East war feeding uncertainty over economic outlook, SNB minutes show" [ref=e559]:
+              - link "Middle East war feeding uncertainty over economic outlook, SNB minutes show" [ref=e560]:
+                - /url: https://www.investing.com/news/economy-news/middle-east-war-feeding-uncertainty-over-economic-outlook-snb-minutes-show-4617205
+            - cell "—" [ref=e561]
+            - cell "—" [ref=e562]
+            - cell "—" [ref=e563]
+          - row "04:00:37 undefined Investing_com Russian strikes kill 16 across Ukraine in worst attack this year — — —" [ref=e564] [cursor=pointer]:
+            - cell "04:00:37" [ref=e565]
+            - cell "undefined" [ref=e566]:
+              - generic [ref=e567]: undefined
+            - cell "Investing_com" [ref=e569]:
+              - generic [ref=e570]: Investing_com
+            - cell "Russian strikes kill 16 across Ukraine in worst attack this year" [ref=e571]:
+              - link "Russian strikes kill 16 across Ukraine in worst attack this year" [ref=e572]:
+                - /url: https://www.investing.com/news/world-news/russian-missiles-hit-ukraines-kyiv-officials-report-injuries-and-fires-4616978
+            - cell "—" [ref=e573]
+            - cell "—" [ref=e574]
+            - cell "—" [ref=e575]
+          - row "04:00:10 undefined Investing_com Dunelm shares tumble as sales growth slows, outlook dims — — —" [ref=e576] [cursor=pointer]:
+            - cell "04:00:10" [ref=e577]
+            - cell "undefined" [ref=e578]:
+              - generic [ref=e579]: undefined
+            - cell "Investing_com" [ref=e581]:
+              - generic [ref=e582]: Investing_com
+            - cell "Dunelm shares tumble as sales growth slows, outlook dims" [ref=e583]:
+              - link "Dunelm shares tumble as sales growth slows, outlook dims" [ref=e584]:
+                - /url: https://www.investing.com/news/earnings/dunelm-shares-tumble-as-sales-growth-slows-outlook-dims-4617204
+            - cell "—" [ref=e585]
+            - cell "—" [ref=e586]
+            - cell "—" [ref=e587]
+          - 'row "03:58:39 undefined Investing_com Earnings call transcript: Pernod Ricard reports mixed Q3 FY2026 performance — — —" [ref=e588] [cursor=pointer]':
+            - cell "03:58:39" [ref=e589]
+            - cell "undefined" [ref=e590]:
+              - generic [ref=e591]: undefined
+            - cell "Investing_com" [ref=e593]:
+              - generic [ref=e594]: Investing_com
+            - 'cell "Earnings call transcript: Pernod Ricard reports mixed Q3 FY2026 performance" [ref=e595]':
+              - 'link "Earnings call transcript: Pernod Ricard reports mixed Q3 FY2026 performance" [ref=e596]':
+                - /url: https://www.investing.com/news/transcripts/earnings-call-transcript-pernod-ricard-reports-mixed-q3-fy2026-performance-93CH-4617202
+            - cell "—" [ref=e597]
+            - cell "—" [ref=e598]
+            - cell "—" [ref=e599]
+          - 'row "03:55:26 undefined Investing_com TSMC Q1 2026 slides: margins soar past guidance on HPC demand — — —" [ref=e600] [cursor=pointer]':
+            - cell "03:55:26" [ref=e601]
+            - cell "undefined" [ref=e602]:
+              - generic [ref=e603]: undefined
+            - cell "Investing_com" [ref=e605]:
+              - generic [ref=e606]: Investing_com
+            - 'cell "TSMC Q1 2026 slides: margins soar past guidance on HPC demand" [ref=e607]':
+              - 'link "TSMC Q1 2026 slides: margins soar past guidance on HPC demand" [ref=e608]':
+                - /url: https://www.investing.com/news/company-news/tsmc-q1-2026-slides-margins-soar-past-guidance-on-hpc-demand-93CH-4617201
+            - cell "—" [ref=e609]
+            - cell "—" [ref=e610]
+            - cell "—" [ref=e611]
+          - 'row "03:38:00 undefined Nasdaq Social Security: The Little-Known Move That Could Boost Your Lifetime Benefits — — —" [ref=e612] [cursor=pointer]':
+            - cell "03:38:00" [ref=e613]
+            - cell "undefined" [ref=e614]:
+              - generic [ref=e615]: undefined
+            - cell "Nasdaq" [ref=e617]:
+              - generic [ref=e618]: Nasdaq
+            - 'cell "Social Security: The Little-Known Move That Could Boost Your Lifetime Benefits" [ref=e619]':
+              - 'link "Social Security: The Little-Known Move That Could Boost Your Lifetime Benefits" [ref=e620]':
+                - /url: https://www.nasdaq.com/articles/social-security-little-known-move-could-boost-your-lifetime-benefits
+            - cell "—" [ref=e621]
+            - cell "—" [ref=e622]
+            - cell "—" [ref=e623]
+          - row "03:33:15 undefined SeekingAlpha Iran offers proposal allowing ships to exit Oman side of Hormuz free of attack - Reuters — — —" [ref=e624] [cursor=pointer]:
+            - cell "03:33:15" [ref=e625]
+            - cell "undefined" [ref=e626]:
+              - generic [ref=e627]: undefined
+            - cell "SeekingAlpha" [ref=e629]:
+              - generic [ref=e630]: SeekingAlpha
+            - cell "Iran offers proposal allowing ships to exit Oman side of Hormuz free of attack - Reuters" [ref=e631]:
+              - link "Iran offers proposal allowing ships to exit Oman side of Hormuz free of attack - Reuters" [ref=e632]:
+                - /url: https://seekingalpha.com/news/4575522-iran-offers-proposal-allowing-ships-to-exit-oman-side-of-hormuz-free-of-attack-reuters?utm_source=feed_news_all&utm_medium=referral&feed_item_type=news
+            - cell "—" [ref=e633]
+            - cell "—" [ref=e634]
+            - cell "—" [ref=e635]
+          - row "03:29:08 undefined SeekingAlpha Oil shock puts U.S. on track as net crude exporter for first time since WWII — — —" [ref=e636] [cursor=pointer]:
+            - cell "03:29:08" [ref=e637]
+            - cell "undefined" [ref=e638]:
+              - generic [ref=e639]: undefined
+            - cell "SeekingAlpha" [ref=e641]:
+              - generic [ref=e642]: SeekingAlpha
+            - cell "Oil shock puts U.S. on track as net crude exporter for first time since WWII" [ref=e643]:
+              - link "Oil shock puts U.S. on track as net crude exporter for first time since WWII" [ref=e644]:
+                - /url: https://seekingalpha.com/news/4575533-oil-shock-puts-us-on-track-as-net-crude-exporter-for-first-time-since-wwii?utm_source=feed_news_all&utm_medium=referral&feed_item_type=news
+            - cell "—" [ref=e645]
+            - cell "—" [ref=e646]
+            - cell "—" [ref=e647]
+          - row "03:26:06 undefined SeekingAlpha TotalEnergies sees Q1 earnings surge on strong trading and higher oil prices despite war impact — — —" [ref=e648] [cursor=pointer]:
+            - cell "03:26:06" [ref=e649]
+            - cell "undefined" [ref=e650]:
+              - generic [ref=e651]: undefined
+            - cell "SeekingAlpha" [ref=e653]:
+              - generic [ref=e654]: SeekingAlpha
+            - cell "TotalEnergies sees Q1 earnings surge on strong trading and higher oil prices despite war impact" [ref=e655]:
+              - link "TotalEnergies sees Q1 earnings surge on strong trading and higher oil prices despite war impact" [ref=e656]:
+                - /url: https://seekingalpha.com/news/4575554-totalenergies-sees-q1-earnings-surge-on-strong-trading-and-higher-oil-prices-despite-war-impact?utm_source=feed_news_all&utm_medium=referral&feed_item_type=news
+            - cell "—" [ref=e657]
+            - cell "—" [ref=e658]
+            - cell "—" [ref=e659]
+          - 'row "03:14:08 undefined Investing_com FTSE 100 today: UK shares rise after strong GDP data; markets eye U.S.-Iran talks — — —" [ref=e660] [cursor=pointer]':
+            - cell "03:14:08" [ref=e661]
+            - cell "undefined" [ref=e662]:
+              - generic [ref=e663]: undefined
+            - cell "Investing_com" [ref=e665]:
+              - generic [ref=e666]: Investing_com
+            - 'cell "FTSE 100 today: UK shares rise after strong GDP data; markets eye U.S.-Iran talks" [ref=e667]':
+              - 'link "FTSE 100 today: UK shares rise after strong GDP data; markets eye U.S.-Iran talks" [ref=e668]':
+                - /url: https://www.investing.com/news/stock-market-news/ftse-100-today-uk-shares-rise-after-strong-gdp-data-markets-eye-usiran-talks-4617145
+            - cell "—" [ref=e669]
+            - cell "—" [ref=e670]
+            - cell "—" [ref=e671]
+          - row "03:13:55 undefined Investing_com Test_investment ideas_march rebalance — — —" [ref=e672] [cursor=pointer]:
+            - cell "03:13:55" [ref=e673]
+            - cell "undefined" [ref=e674]:
+              - generic [ref=e675]: undefined
+            - cell "Investing_com" [ref=e677]:
+              - generic [ref=e678]: Investing_com
+            - cell "Test_investment ideas_march rebalance" [ref=e679]:
+              - link "Test_investment ideas_march rebalance" [ref=e680]:
+                - /url: https://www.investing.com/news/investment-ideas/testinvestment-ideasmarch-rebalance-4617144
+            - cell "—" [ref=e681]
+            - cell "—" [ref=e682]
+            - cell "—" [ref=e683]
+          - 'row "03:12:53 undefined Investing_com Planisware Q1 2026 slides: revenue climbs 13.6% on SaaS growth — — —" [ref=e684] [cursor=pointer]':
+            - cell "03:12:53" [ref=e685]
+            - cell "undefined" [ref=e686]:
+              - generic [ref=e687]: undefined
+            - cell "Investing_com" [ref=e689]:
+              - generic [ref=e690]: Investing_com
+            - 'cell "Planisware Q1 2026 slides: revenue climbs 13.6% on SaaS growth" [ref=e691]':
+              - 'link "Planisware Q1 2026 slides: revenue climbs 13.6% on SaaS growth" [ref=e692]':
+                - /url: https://www.investing.com/news/company-news/planisware-q1-2026-slides-revenue-climbs-136-on-saas-growth-93CH-4617143
+            - cell "—" [ref=e693]
+            - cell "—" [ref=e694]
+            - cell "—" [ref=e695]
+          - row "03:06:46 undefined Investing_com Japan sees private credit as a policy pillar despite overseas market turmoil — — —" [ref=e696] [cursor=pointer]:
+            - cell "03:06:46" [ref=e697]
+            - cell "undefined" [ref=e698]:
+              - generic [ref=e699]: undefined
+            - cell "Investing_com" [ref=e701]:
+              - generic [ref=e702]: Investing_com
+            - cell "Japan sees private credit as a policy pillar despite overseas market turmoil" [ref=e703]:
+              - link "Japan sees private credit as a policy pillar despite overseas market turmoil" [ref=e704]:
+                - /url: https://www.investing.com/news/economy-news/japan-sees-private-credit-as-a-policy-pillar-despite-overseas-market-turmoil-4617139
+            - cell "—" [ref=e705]
+            - cell "—" [ref=e706]
+            - cell "—" [ref=e707]
+          - row "03:06:29 undefined Investing_com Bank of England’s Bailey says ’not going to rush’ judgements on rate rises, BBC reports — — —" [ref=e708] [cursor=pointer]:
+            - cell "03:06:29" [ref=e709]
+            - cell "undefined" [ref=e710]:
+              - generic [ref=e711]: undefined
+            - cell "Investing_com" [ref=e713]:
+              - generic [ref=e714]: Investing_com
+            - cell "Bank of England’s Bailey says ’not going to rush’ judgements on rate rises, BBC reports" [ref=e715]:
+              - link "Bank of England’s Bailey says ’not going to rush’ judgements on rate rises, BBC reports" [ref=e716]:
+                - /url: https://www.investing.com/news/economy-news/bank-of-englands-bailey-says-not-going-to-rush-judgements-on-rate-rises-bbc-reports-4617138
+            - cell "—" [ref=e717]
+            - cell "—" [ref=e718]
+            - cell "—" [ref=e719]
+          - row "03:02:08 undefined Investing_com Hays sees annual profit in line with forecasts despite weak UK, Germany markets — — —" [ref=e720] [cursor=pointer]:
+            - cell "03:02:08" [ref=e721]
+            - cell "undefined" [ref=e722]:
+              - generic [ref=e723]: undefined
+            - cell "Investing_com" [ref=e725]:
+              - generic [ref=e726]: Investing_com
+            - cell "Hays sees annual profit in line with forecasts despite weak UK, Germany markets" [ref=e727]:
+              - link "Hays sees annual profit in line with forecasts despite weak UK, Germany markets" [ref=e728]:
+                - /url: https://www.investing.com/news/earnings/hays-sees-annual-profit-in-line-with-forecasts-despite-weak-uk-germany-markets-4617135
+            - cell "—" [ref=e729]
+            - cell "—" [ref=e730]
+            - cell "—" [ref=e731]
+          - row "03:00:28 undefined Investing_com EQT restarts sale of contact lens maker Ginko in at least $1 billion deal, sources say — — —" [ref=e732] [cursor=pointer]:
+            - cell "03:00:28" [ref=e733]
+            - cell "undefined" [ref=e734]:
+              - generic [ref=e735]: undefined
+            - cell "Investing_com" [ref=e737]:
+              - generic [ref=e738]: Investing_com
+            - cell "EQT restarts sale of contact lens maker Ginko in at least $1 billion deal, sources say" [ref=e739]:
+              - link "EQT restarts sale of contact lens maker Ginko in at least $1 billion deal, sources say" [ref=e740]:
+                - /url: https://www.investing.com/news/stock-market-news/eqt-restarts-sale-of-contact-lens-maker-ginko-in-at-least-1-billion-deal-sources-say-4617133
+            - cell "—" [ref=e741]
+            - cell "—" [ref=e742]
+            - cell "—" [ref=e743]
+          - row "03:00:06 undefined Investing_com Japan stocks higher at close of trade; Nikkei 225 up 2.48% — — —" [ref=e744] [cursor=pointer]:
+            - cell "03:00:06" [ref=e745]
+            - cell "undefined" [ref=e746]:
+              - generic [ref=e747]: undefined
+            - cell "Investing_com" [ref=e749]:
+              - generic [ref=e750]: Investing_com
+            - cell "Japan stocks higher at close of trade; Nikkei 225 up 2.48%" [ref=e751]:
+              - link "Japan stocks higher at close of trade; Nikkei 225 up 2.48%" [ref=e752]:
+                - /url: https://www.investing.com/news/stock-market-news/japan-stocks-higher-at-close-of-trade-nikkei-225-up-248-4617132
+            - cell "—" [ref=e753]
+            - cell "—" [ref=e754]
+            - cell "—" [ref=e755]
+          - row "02:57:26 undefined Investing_com Schroders Q1 hit by outflows as geopolitical tensions bite — — —" [ref=e756] [cursor=pointer]:
+            - cell "02:57:26" [ref=e757]
+            - cell "undefined" [ref=e758]:
+              - generic [ref=e759]: undefined
+            - cell "Investing_com" [ref=e761]:
+              - generic [ref=e762]: Investing_com
+            - cell "Schroders Q1 hit by outflows as geopolitical tensions bite" [ref=e763]:
+              - link "Schroders Q1 hit by outflows as geopolitical tensions bite" [ref=e764]:
+                - /url: https://www.investing.com/news/earnings/schroders-q1-hit-by-outflows-as-geopolitical-tensions-bite-4617128
+            - cell "—" [ref=e765]
+            - cell "—" [ref=e766]
+            - cell "—" [ref=e767]
+          - 'row "02:55:32 undefined Investing_com Earnings call transcript: Planisware reports strong Q1 2026 growth, stock rises 2.6% — — —" [ref=e768] [cursor=pointer]':
+            - cell "02:55:32" [ref=e769]
+            - cell "undefined" [ref=e770]:
+              - generic [ref=e771]: undefined
+            - cell "Investing_com" [ref=e773]:
+              - generic [ref=e774]: Investing_com
+            - 'cell "Earnings call transcript: Planisware reports strong Q1 2026 growth, stock rises 2.6%" [ref=e775]':
+              - 'link "Earnings call transcript: Planisware reports strong Q1 2026 growth, stock rises 2.6%" [ref=e776]':
+                - /url: https://www.investing.com/news/transcripts/earnings-call-transcript-planisware-reports-strong-q1-2026-growth-stock-rises-26-93CH-4617127
+            - cell "—" [ref=e777]
+            - cell "—" [ref=e778]
+            - cell "—" [ref=e779]
+    - contentinfo [ref=e780]:
+      - generic [ref=e781]:
+        - generic [ref=e782]:
+          - text: "Last refresh:"
+          - generic [ref=e783]: 06:18:56
+        - generic [ref=e784]:
+          - text: "Rate:"
+          - generic [ref=e785]: "515.5"
+          - text: items/s
+      - generic [ref=e786]:
+        - generic [ref=e787]:
+          - link "Pricing" [ref=e788] [cursor=pointer]:
+            - /url: /pricing
+          - link "Privacy Policy" [ref=e789] [cursor=pointer]:
+            - /url: /privacy
+          - link "Terms of Service" [ref=e790] [cursor=pointer]:
+            - /url: /terms
+        - generic "Click to copy API endpoint" [ref=e791] [cursor=pointer]: /api/news
+  - generic:
+    - generic:
+      - generic:
+        - heading "// API Documentation" [level=2]
+        - button "Close":
+          - img
+      - generic:
+        - paragraph:
+          - text: "REST API for programmatic access. All responses are JSON. Base URL:"
+          - code: http://localhost:8000
+          - text: /api
+        - generic:
+          - generic:
+            - generic: GET
+            - generic: /news
+          - generic:
+            - paragraph: Returns latest news items with sentiment scoring.
+            - generic:
+              - term: limit
+              - definition: Number of items (default 50, max 500)
+              - term: source
+              - definition: Filter by source name (default "all")
+              - term: sentiment
+              - definition: "Filter: bullish, bearish, neutral (default \"all\")"
+              - term: q
+              - definition: Keyword search in title and summary
+              - term: from
+              - definition: Filter from date (ISO 8601, e.g. "2026-03-01")
+              - term: to
+              - definition: Filter to date (ISO 8601, e.g. "2026-03-02")
+            - generic:
+              - text: curl "
+              - text: /api/news?limit=10&sentiment=bullish"
+        - generic:
+          - generic:
+            - generic: GET
+            - generic: /sources
+          - generic:
+            - paragraph: Returns all active feed sources with item counts and status.
+            - generic:
+              - text: curl "
+              - text: /api/sources"
+        - generic:
+          - generic:
+            - generic: GET
+            - generic: /stats
+          - generic:
+            - paragraph: "Returns aggregated statistics: total items, by source, by sentiment, average score."
+            - generic:
+              - text: curl "
+              - text: /api/stats"
+        - generic:
+          - generic:
+            - generic: POST
+            - generic: /refresh
+          - generic:
+            - paragraph: Force refresh all feeds immediately. Returns count of new items found.
+            - generic:
+              - text: curl -X POST "
+              - text: /api/refresh"
+        - generic:
+          - generic:
+            - generic: GET
+            - generic: /docs
+          - generic:
+            - paragraph: Returns this API documentation as JSON.
+            - generic:
+              - text: curl "
+              - text: /api/docs"
+  - generic:
+    - generic:
+      - generic:
+        - heading "// Ticker Recommendation" [level=2]
+        - button "Close":
+          - img
+  - generic:
+    - generic:
+      - generic:
+        - heading "// COMPANY" [level=2]
+        - button "Close":
+          - img
+      - generic:
+        - button "Fundamentals"
+        - button "Financials"
+        - button "Competitors"
+        - button "Institutions"
+        - button "Insiders"
+  - generic [ref=e793]:
+    - img "InstNews" [ref=e794]
+    - heading "Sign in to access SIGNAL" [level=2] [ref=e795]
+    - paragraph [ref=e796]: Create a free account to access the real-time news terminal. No credit card required.
+    - button "Sign in with Google" [ref=e797] [cursor=pointer]:
+      - img [ref=e798]
+      - text: Sign in with Google
+    - link "← Back to home" [ref=e803] [cursor=pointer]:
+      - /url: /

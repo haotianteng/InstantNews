@@ -1,0 +1,21 @@
+POLYGON_API_KEY not set — market data service disabled
+=== AC2: User-Agent ===
+User-Agent: InstantNews dev@instnews.net
+Expected:   InstantNews dev@instnews.net
+AC2: PASS
+
+=== AC3: Rate limit (0.1s = 10 req/sec) ===
+_MIN_REQUEST_INTERVAL: 0.1
+AC3: PASS
+
+=== AC7: 13F cache TTL (86400 = 24h) ===
+INSTITUTIONAL_TTL: 86400
+AC7: PASS
+
+=== AC10: 13D/13G cache TTL (21600 = 6h) ===
+POSITION_CHANGE_TTL: 21600
+AC10: PASS
+
+=== AC13: Form 4 cache TTL (3600 = 1h) ===
+INSIDER_TTL: 3600
+AC13: PASS

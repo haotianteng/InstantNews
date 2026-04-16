@@ -1,0 +1,23 @@
+============================= test session starts ==============================
+platform linux -- Python 3.10.20, pytest-9.0.2, pluggy-1.6.0 -- /home/haotiant/conda/envs/instnews/bin/python
+cachedir: .pytest_cache
+rootdir: /home/haotiant/Projects/Personal/InstantNews
+configfile: pyproject.toml
+plugins: typeguard-2.13.3, anyio-4.13.0
+collecting ... collected 152 items / 139 deselected / 13 selected
+
+tests/test_edgar_client.py::TestEdgarClientBasic::test_always_enabled PASSED [  7%]
+tests/test_edgar_client.py::TestEdgarClientBasic::test_import_works PASSED [ 15%]
+tests/test_edgar_client.py::TestEdgarClientCIKLookup::test_resolve_cik_success PASSED [ 23%]
+tests/test_edgar_client.py::TestEdgarClientCIKLookup::test_resolve_cik_not_found PASSED [ 30%]
+tests/test_edgar_client.py::TestEdgarClientCIKLookup::test_resolve_cik_cached PASSED [ 38%]
+tests/test_edgar_client.py::TestEdgarClientForm4::test_insider_transactions_success PASSED [ 46%]
+tests/test_edgar_client.py::TestEdgarClientForm4::test_insider_transactions_caching PASSED [ 53%]
+tests/test_edgar_client.py::TestEdgarClientForm4::test_insider_transactions_no_cik PASSED [ 61%]
+tests/test_edgar_client.py::TestEdgarClient13DG::test_major_position_changes_success PASSED [ 69%]
+tests/test_edgar_client.py::TestEdgarClient13DG::test_major_position_changes_empty PASSED [ 76%]
+tests/test_edgar_client.py::TestEdgarClient13F::test_institutional_holders_returns_list PASSED [ 84%]
+tests/test_edgar_client.py::TestEdgarClient13F::test_institutional_holders_deduplicates PASSED [ 92%]
+tests/test_edgar_client.py::TestEdgarClient13F::test_institutional_holders_caching PASSED [100%]
+
+====================== 13 passed, 139 deselected in 0.87s ======================

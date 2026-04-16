@@ -1,0 +1,18 @@
+POLYGON_API_KEY not set — market data service disabled
+{"timestamp": "2026-04-15T13:19:20.443312+00:00", "level": "INFO", "logger": "signal", "message": "Firebase Admin SDK initialized"}
+{"timestamp": "2026-04-15T13:19:20.478802+00:00", "level": "INFO", "logger": "signal", "message": "Background scheduler started (interval=30s)"}
+{"timestamp": "2026-04-15T13:19:20.478860+00:00", "level": "INFO", "logger": "signal", "message": "Application initialized", "event": "app_start"}
+=== API Endpoints ===
+  /api/market/<symbol>
+  /api/market/<symbol>/competitors
+  /api/market/<symbol>/details
+  /api/market/<symbol>/financials
+  /api/market/<symbol>/insiders
+  /api/market/<symbol>/institutions
+AC14 /api/market/<symbol>/institutions: FOUND 
+AC15 /api/market/<symbol>/insiders: FOUND 
+{"timestamp": "2026-04-15T13:19:20.480408+00:00", "level": "INFO", "logger": "signal.requests", "message": "GET /api/market/AAPL/institutions \u2192 401 (0.2ms)", "request_id": "854ad94b4fef", "method": "GET", "path": "/api/market/AAPL/institutions", "status": 401, "latency_ms": 0.2, "tier": "anonymous", "ip": "127.0.0.1", "user_agent": "Werkzeug/3.1.7", "endpoint": "market.market_institutions"}
+GET /api/market/AAPL/institutions (no auth): 401
+{"timestamp": "2026-04-15T13:19:20.481043+00:00", "level": "INFO", "logger": "signal.requests", "message": "GET /api/market/AAPL/insiders \u2192 401 (0.1ms)", "request_id": "9cdb139fed4d", "method": "GET", "path": "/api/market/AAPL/insiders", "status": 401, "latency_ms": 0.1, "tier": "anonymous", "ip": "127.0.0.1", "user_agent": "Werkzeug/3.1.7", "endpoint": "market.market_insiders"}
+GET /api/market/AAPL/insiders (no auth): 401
+EXIT: 0

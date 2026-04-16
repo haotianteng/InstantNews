@@ -1,0 +1,341 @@
+- generic [active] [ref=e1]:
+  - navigation [ref=e2]:
+    - generic [ref=e3]:
+      - link "InstNews InstNews" [ref=e4] [cursor=pointer]:
+        - /url: /
+        - img "InstNews" [ref=e5]
+        - generic [ref=e6]: InstNews
+      - generic [ref=e7]:
+        - link "Features" [ref=e8] [cursor=pointer]:
+          - /url: "#features"
+        - link "Live Demo" [ref=e9] [cursor=pointer]:
+          - /url: "#demo"
+        - link "API" [ref=e10] [cursor=pointer]:
+          - /url: "#api"
+        - link "Pricing" [ref=e11] [cursor=pointer]:
+          - /url: "#pricing"
+        - link "Docs" [ref=e12] [cursor=pointer]:
+          - /url: /docs
+      - generic [ref=e13]:
+        - button "Account" [ref=e14] [cursor=pointer]
+        - button "Open Terminal" [ref=e15] [cursor=pointer]
+  - generic [ref=e18]:
+    - generic [ref=e19]: Powered by 15+ Financial News Sources
+    - heading "Financial News Intelligence at the Speed of Markets" [level=1] [ref=e20]:
+      - text: Financial News Intelligence
+      - text: at the Speed of Markets
+    - paragraph [ref=e21]: Real-time aggregation, AI sentiment analysis, and tradeable signal detection — all in one terminal. Stop missing market-moving headlines.
+    - button "Open Terminal" [ref=e23] [cursor=pointer]:
+      - img [ref=e24]
+      - text: Open Terminal
+    - generic [ref=e26]:
+      - generic [ref=e27]:
+        - generic [ref=e28]: "15"
+        - generic [ref=e29]: Live Sources
+      - generic [ref=e30]:
+        - generic [ref=e31]: "--"
+        - generic [ref=e32]: Articles Indexed
+  - generic [ref=e34]:
+    - generic [ref=e35]:
+      - heading "Built for Serious Market Watchers" [level=2] [ref=e36]
+      - paragraph [ref=e37]: Every feature designed to give you an edge in fast-moving markets
+    - generic [ref=e38]:
+      - generic [ref=e39]:
+        - img [ref=e41]
+        - heading "AI Sentiment Analysis" [level=3] [ref=e44]
+        - paragraph [ref=e45]: Every headline scored from -1.0 (bearish) to +1.0 (bullish) in real time. Filter your feed by market sentiment to focus on what matters.
+      - generic [ref=e46]:
+        - img "Tradeable Signal" [ref=e48]
+        - heading "Tradeable Signal Detection" [level=3] [ref=e49]
+        - paragraph [ref=e50]: Headlines marked with indicate actionable trading opportunities — earnings surprises, M&A, FDA decisions, policy shifts, and more.
+        - generic [ref=e51]:
+          - generic [ref=e52]:
+            - generic [ref=e53]: "+0.87"
+            - generic [ref=e54]: NVDA beats Q4 estimates by 22%
+          - generic [ref=e55]:
+            - generic [ref=e56]: "-0.65"
+            - generic [ref=e57]: FDA rejects Pfizer's new drug application
+          - generic [ref=e58]:
+            - generic [ref=e59]: "+0.72"
+            - generic [ref=e60]: Microsoft announces $30B acquisition of...
+      - generic [ref=e61]:
+        - img [ref=e63]
+        - heading "Smart Deduplication" [level=3] [ref=e66]
+        - paragraph [ref=e67]: ML-powered sentence embeddings detect when multiple sources report the same story. Cut through the noise — see each story once.
+      - generic [ref=e68]:
+        - img [ref=e70]
+        - heading "Real-Time Feed" [level=3] [ref=e73]
+        - paragraph [ref=e74]: Auto-refreshing from 15+ premium sources including CNBC, Reuters, Bloomberg, Yahoo Finance, and more.
+      - generic [ref=e75]:
+        - img [ref=e77]
+        - heading "REST API" [level=3] [ref=e80]
+        - paragraph [ref=e81]: Full programmatic access for trading bots, research pipelines, and custom dashboards. Python, JavaScript, Go, R, and Rust examples included.
+      - generic [ref=e82]:
+        - img [ref=e84]
+        - heading "Deep History" [level=3] [ref=e87]
+        - paragraph [ref=e88]: Up to 1 year of indexed financial headlines with Pro. Backtest your sentiment strategies against historical data.
+  - generic [ref=e90]:
+    - generic [ref=e91]:
+      - heading "See It Live" [level=2] [ref=e92]
+      - paragraph [ref=e93]: Real headlines from real sources, scored and analyzed in real time
+    - generic [ref=e94]:
+      - generic [ref=e95]:
+        - generic [ref=e96]: Time
+        - generic [ref=e97]: Signal
+        - generic [ref=e98]: Sentiment
+        - generic [ref=e99]: Source
+        - generic [ref=e100]: Headline
+      - generic [ref=e101]:
+        - generic [ref=e102]:
+          - generic [ref=e103]: 08:44
+          - generic [ref=e105]: neutral
+          - generic [ref=e106]: SeekingAlpha
+          - link "Geiger Energy launches equity offerings to raise up to C$7 million" [ref=e108] [cursor=pointer]:
+            - /url: https://seekingalpha.com/news/4575689-geiger-energy-launches-equity-offerings-to-raise-up-to-c7-million?utm_source=feed_news_all&utm_medium=referral&feed_item_type=news
+        - generic [ref=e109]:
+          - generic [ref=e110]: 08:40
+          - generic [ref=e112]: neutral
+          - generic [ref=e113]: SeekingAlpha
+          - link "Citizens Financial Group declares $0.46 dividend" [ref=e115] [cursor=pointer]:
+            - /url: https://seekingalpha.com/news/4575688-citizens-financial-group-declares-0_46-dividend?utm_source=feed_news_all&utm_medium=referral&feed_item_type=news
+        - generic [ref=e116]:
+          - generic [ref=e117]: 08:40
+          - generic [ref=e119]: neutral
+          - generic [ref=e120]: SeekingAlpha
+          - link "Wipro Hydraulics to acquire Italy’s Indeco in expansion of product portfolio" [ref=e122] [cursor=pointer]:
+            - /url: https://seekingalpha.com/news/4575683-wipro-hydraulics-to-acquire-italys-indeco-in-expansion-of-product-portfolio?utm_source=feed_news_all&utm_medium=referral&feed_item_type=news
+        - generic [ref=e123]:
+          - generic [ref=e124]: 08:38
+          - generic [ref=e126]: neutral
+          - generic [ref=e127]: SeekingAlpha
+          - link "MiMedx gains on cost reduction initiatives" [ref=e129] [cursor=pointer]:
+            - /url: https://seekingalpha.com/news/4575684-mimedx-gains-cost-reduction-initiatives?utm_source=feed_news_all&utm_medium=referral&feed_item_type=news
+        - generic [ref=e130]:
+          - generic [ref=e131]: 08:36
+          - generic [ref=e133]: neutral
+          - generic [ref=e134]: SeekingAlpha
+          - link "Myseum explodes higher as it rebrands itself with an AI label, echoing dot-com vibes" [ref=e136] [cursor=pointer]:
+            - /url: https://seekingalpha.com/news/4575674-myseum-explodes-higher-as-it-rebrands-itself-with-an-ai-label-echoing-dot-com-vibes?utm_source=feed_news_all&utm_medium=referral&feed_item_type=news
+        - generic [ref=e137]:
+          - generic [ref=e138]: 08:33
+          - img "Tradeable" [ref=e140]
+          - generic [ref=e142]: neutral
+          - generic [ref=e143]: SeekingAlpha
+          - link "Philadelphia Fed Manufacturing Index unexpectedly rises in April" [ref=e145] [cursor=pointer]:
+            - /url: https://seekingalpha.com/news/4575664-philadelphia-fed-manufacturing-index-unexpectedly-rises-in-april?utm_source=feed_news_all&utm_medium=referral&feed_item_type=news
+        - generic [ref=e146]:
+          - generic [ref=e147]: 08:33
+          - generic [ref=e149]: neutral
+          - generic [ref=e150]: SeekingAlpha
+          - link "CACI International secures $231M contract" [ref=e152] [cursor=pointer]:
+            - /url: https://seekingalpha.com/news/4575678-caci-international-secures-231m-contract?utm_source=feed_news_all&utm_medium=referral&feed_item_type=news
+        - generic [ref=e153]:
+          - generic [ref=e154]: 08:30
+          - generic [ref=e156]: neutral
+          - generic [ref=e157]: Nasdaq
+          - link "1 Vanguard ETF I'm Telling My Kids to Buy and Hold" [ref=e159] [cursor=pointer]:
+            - /url: https://www.nasdaq.com/articles/1-vanguard-etf-im-telling-my-kids-buy-and-hold
+        - generic [ref=e160]:
+          - generic [ref=e161]: 08:29
+          - img "Tradeable" [ref=e163]
+          - generic [ref=e165]: neutral
+          - generic [ref=e166]: Nasdaq
+          - link "Marsh & McLennan Earnings Up In Q1" [ref=e168] [cursor=pointer]:
+            - /url: https://www.nasdaq.com/articles/marsh-mclennan-earnings-q1
+        - generic [ref=e169]:
+          - generic [ref=e170]: 08:29
+          - generic [ref=e172]: neutral
+          - generic [ref=e173]: SeekingAlpha
+          - link "Alliant Energy declares $0.535 dividend" [ref=e175] [cursor=pointer]:
+            - /url: https://seekingalpha.com/news/4575679-alliant-energy-declares-0_535-dividend?utm_source=feed_news_all&utm_medium=referral&feed_item_type=news
+        - generic [ref=e176]:
+          - generic [ref=e177]: 08:28
+          - generic [ref=e179]: neutral
+          - generic [ref=e180]: SeekingAlpha
+          - link "U.S. Navy drone tests expose risks of heavy reliance on SpaceX’s Starlink" [ref=e182] [cursor=pointer]:
+            - /url: https://seekingalpha.com/news/4575676-u-s-navy-drone-tests-expose-risks-of-heavy-reliance-on-spacex-s-starlink?utm_source=feed_news_all&utm_medium=referral&feed_item_type=news
+        - generic [ref=e183]:
+          - generic [ref=e184]: 08:28
+          - generic [ref=e186]: neutral
+          - generic [ref=e187]: Nasdaq
+          - link "Prologis Q1 Core FFO Rises" [ref=e189] [cursor=pointer]:
+            - /url: https://www.nasdaq.com/articles/prologis-q1-core-ffo-rises
+        - generic [ref=e190]:
+          - generic [ref=e191]: 08:28
+          - generic [ref=e193]: neutral
+          - generic [ref=e194]: Nasdaq
+          - link "Is McDonald's Big Beverage Push Good or Bad for Dutch Bros?" [ref=e196] [cursor=pointer]:
+            - /url: https://www.nasdaq.com/articles/mcdonalds-big-beverage-push-good-or-bad-dutch-bros
+        - generic [ref=e197]:
+          - generic [ref=e198]: 08:27
+          - generic [ref=e200]: neutral
+          - generic [ref=e201]: SeekingAlpha
+          - link "ClearBridge Global Infrastructure Income Strategy adds and exits positions in Q1" [ref=e203] [cursor=pointer]:
+            - /url: https://seekingalpha.com/news/4575670-clearbridge-global-infrastructure-income-strategy-adds-and-exits-positions-in-q1?utm_source=feed_news_all&utm_medium=referral&feed_item_type=news
+        - generic [ref=e204]:
+          - generic [ref=e205]: 08:27
+          - generic [ref=e207]: neutral
+          - generic [ref=e208]: SeekingAlpha
+          - link "The Bank of New York Mellon Corporation NON CUM PFD SE K declares $0.3844 dividend" [ref=e210] [cursor=pointer]:
+            - /url: https://seekingalpha.com/news/4575677-the-bank-of-new-york-mellon-corporation-non-cum-pfd-se-k-declares-0_3844-dividend?utm_source=feed_news_all&utm_medium=referral&feed_item_type=news
+        - generic [ref=e211]:
+          - generic [ref=e212]: 08:27
+          - generic [ref=e214]: neutral
+          - generic [ref=e215]: SeekingAlpha
+          - link "Uranium Royalty to become Wyoming's largest landowner in tie-up with Sweetwater Royalties" [ref=e217] [cursor=pointer]:
+            - /url: https://seekingalpha.com/news/4575666-uranium-royalty-to-become-wyomings-largest-landowner-in-tie-up-with-sweetwater-royalties?utm_source=feed_news_all&utm_medium=referral&feed_item_type=news
+        - generic [ref=e218]:
+          - generic [ref=e219]: 08:25
+          - generic [ref=e221]: neutral
+          - generic [ref=e222]: SeekingAlpha
+          - link "Bank of New York Mellon declares $0.53 dividend" [ref=e224] [cursor=pointer]:
+            - /url: https://seekingalpha.com/news/4575675-bank-of-new-york-mellon-declares-0_53-dividend?utm_source=feed_news_all&utm_medium=referral&feed_item_type=news
+        - generic [ref=e225]:
+          - generic [ref=e226]: 08:25
+          - generic [ref=e228]: neutral
+          - generic [ref=e229]: Nasdaq
+          - link "Choice Properties, KingSett To Acquire First Capital In C$9.4 Bln Transaction" [ref=e231] [cursor=pointer]:
+            - /url: https://www.nasdaq.com/articles/choice-properties-kingsett-acquire-first-capital-c-94-bln-transaction
+        - generic [ref=e232]:
+          - generic [ref=e233]: 08:25
+          - generic [ref=e235]: neutral
+          - generic [ref=e236]: Nasdaq
+          - link "Want $1 Million in Retirement? This 1 AI Growth Stock Could Help Get You There From $25,000." [ref=e238] [cursor=pointer]:
+            - /url: https://www.nasdaq.com/articles/want-1-million-retirement-1-ai-growth-stock-could-help-get-you-there-25000
+        - generic [ref=e239]:
+          - generic [ref=e240]: 08:23
+          - generic [ref=e242]: neutral
+          - generic [ref=e243]: SeekingAlpha
+          - link "Snap leans into AI to boost profits—Citi Research" [ref=e245] [cursor=pointer]:
+            - /url: https://seekingalpha.com/news/4575656-snap-leans-into-ai-to-boost-profits---citi-research?utm_source=feed_news_all&utm_medium=referral&feed_item_type=news
+    - button "Open Full Terminal" [ref=e247] [cursor=pointer]
+  - generic [ref=e249]:
+    - generic [ref=e250]:
+      - heading "Developer-First API" [level=2] [ref=e251]
+      - paragraph [ref=e252]: Integrate financial news intelligence into your stack in minutes
+    - generic [ref=e253]:
+      - generic [ref=e254]:
+        - generic [ref=e255]:
+          - img [ref=e256]
+          - generic [ref=e258]: RESTful JSON API
+        - generic [ref=e259]:
+          - img [ref=e260]
+          - generic [ref=e262]: Authenticated API access (Pro)
+        - generic [ref=e263]:
+          - img [ref=e264]
+          - generic [ref=e266]: Sentiment scoring on every item (Pro)
+        - generic [ref=e267]:
+          - img [ref=e268]
+          - generic [ref=e270]: Filter by source, sentiment, keyword, date
+        - generic [ref=e271]:
+          - img [ref=e272]
+          - generic [ref=e274]: High-throughput API access (Pro & Max)
+        - link "Read Full Documentation" [ref=e275] [cursor=pointer]:
+          - /url: /docs
+      - generic [ref=e276]:
+        - generic [ref=e277]:
+          - button "cURL" [ref=e278] [cursor=pointer]
+          - button "Python" [ref=e279] [cursor=pointer]
+          - button "JavaScript" [ref=e280] [cursor=pointer]
+          - button "Go" [ref=e281] [cursor=pointer]
+          - button "R" [ref=e282] [cursor=pointer]
+          - button "Rust" [ref=e283] [cursor=pointer]
+        - generic [ref=e284]:
+          - button "Copy to clipboard" [ref=e285] [cursor=pointer]:
+            - img [ref=e286]
+          - code [ref=e290]: "# Get latest bullish headlines curl -s \"https://www.instnews.net/api/news?sentiment=bullish&limit=10\" | jq . # Search for a keyword curl -s \"https://www.instnews.net/api/news?q=nvidia&limit=5\" | jq . # Get market statistics curl -s \"https://www.instnews.net/api/stats\" | jq ."
+  - generic [ref=e292]:
+    - generic [ref=e293]:
+      - heading "Simple, Transparent Pricing" [level=2] [ref=e294]
+      - paragraph [ref=e295]: Start free. Upgrade when you need more power. Cancel any time.
+    - generic [ref=e296]:
+      - generic [ref=e297]:
+        - generic [ref=e298]: Free
+        - generic [ref=e299]: $0/mo
+        - paragraph [ref=e300]: Get started with real-time news
+        - list [ref=e301]:
+          - listitem [ref=e302]: Real-time news feed
+          - listitem [ref=e303]: 15+ sources
+          - listitem [ref=e304]: Keyword search
+          - listitem [ref=e305]: Source filtering
+          - listitem [ref=e306]: Sentiment analysis
+          - listitem [ref=e307]: Duplicate detection
+          - listitem [ref=e308]: Date range filtering
+          - listitem [ref=e309]: API access
+        - generic [ref=e310]: 50 items/req · 7-day history
+        - link "Open Terminal" [ref=e311] [cursor=pointer]:
+          - /url: /terminal
+      - generic [ref=e312]:
+        - generic [ref=e313]: Most Popular
+        - generic [ref=e314]: Pro
+        - generic [ref=e315]: $29.99/mo
+        - paragraph [ref=e316]: Full analysis for active traders
+        - paragraph [ref=e317]: 30-day free trial — cancel anytime
+        - list [ref=e318]:
+          - listitem [ref=e319]: Everything in Free
+          - listitem [ref=e320]: AI sentiment scoring
+          - listitem [ref=e321]: Duplicate detection
+          - listitem [ref=e322]: Date range filtering
+          - listitem [ref=e323]: API access
+          - listitem [ref=e324]: CSV export
+          - listitem [ref=e325]: 1-year history
+          - listitem [ref=e326]: Watchlist
+        - generic [ref=e327]: 200 items/req · 300 req/min
+        - button "Start Free Trial" [ref=e328] [cursor=pointer]
+      - generic [ref=e329]:
+        - generic [ref=e330]: Max
+        - generic [ref=e331]: $89.99/mo
+        - paragraph [ref=e332]: Maximum power for professional traders
+        - list [ref=e333]:
+          - listitem [ref=e334]: Everything in Pro
+          - listitem [ref=e335]: AI ticker recommendations
+          - listitem [ref=e336]: Price analysis
+          - listitem [ref=e337]: Advanced analytics
+          - listitem [ref=e338]: Custom alerts
+          - listitem [ref=e339]: 5-year history
+          - listitem [ref=e340]: 500 items/req
+          - listitem [ref=e341]: 1,000 req/min
+        - generic [ref=e342]: 500 items/req · 1,000 req/min
+        - button "Subscribe" [ref=e343] [cursor=pointer]
+  - generic [ref=e345]:
+    - generic [ref=e346]:
+      - heading "Trusted Sources, One Feed" [level=2] [ref=e347]
+      - paragraph [ref=e348]: Aggregating the world's top financial news providers
+    - generic [ref=e349]:
+      - generic [ref=e350]: CNBC
+      - generic [ref=e351]: Reuters
+      - generic [ref=e352]: Bloomberg
+      - generic [ref=e353]: Yahoo Finance
+      - generic [ref=e354]: MarketWatch
+      - generic [ref=e355]: Nasdaq
+      - generic [ref=e356]: SeekingAlpha
+      - generic [ref=e357]: Investing.com
+      - generic [ref=e358]: AP News
+      - generic [ref=e359]: BBC Business
+      - generic [ref=e360]: Benzinga
+      - generic [ref=e361]: Google News
+  - generic [ref=e363]:
+    - img "InstNews" [ref=e364]
+    - heading "Ready to trade on better intelligence?" [level=2] [ref=e365]
+    - paragraph [ref=e366]: Join traders who never miss a market-moving headline.
+    - generic [ref=e367]:
+      - button "Open Terminal" [ref=e368] [cursor=pointer]
+      - link "Read the Docs" [ref=e369] [cursor=pointer]:
+        - /url: /docs
+  - contentinfo [ref=e370]:
+    - generic [ref=e371]:
+      - generic [ref=e372]:
+        - img "InstNews" [ref=e373]
+        - generic [ref=e374]: InstNews
+      - generic [ref=e375]:
+        - link "Terminal" [ref=e376] [cursor=pointer]:
+          - /url: /terminal
+        - link "Pricing" [ref=e377] [cursor=pointer]:
+          - /url: /pricing
+        - link "API Docs" [ref=e378] [cursor=pointer]:
+          - /url: /docs
+        - link "Privacy" [ref=e379] [cursor=pointer]:
+          - /url: /privacy
+        - link "Terms" [ref=e380] [cursor=pointer]:
+          - /url: /terms
+      - generic [ref=e381]: © 2026 InstNews. All rights reserved.

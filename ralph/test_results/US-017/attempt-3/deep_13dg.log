@@ -1,0 +1,38 @@
+POLYGON_API_KEY not set — market data service disabled
+Total entries: 3
+
+--- Entry 1 ---
+  filer_name: BlackRock Inc.
+  filing_date: 2024-02-12
+  filing_type: SC 13G/A
+  percent_owned: 6.7
+  shares_held: 1043713019
+  change_description: Amended Schedule 13G filing
+
+--- Entry 2 ---
+  filer_name: VANGUARD GROUP INC
+  filing_date: 2024-02-13
+  filing_type: SC 13G/A
+  percent_owned: 8.47
+  shares_held: 1317966471
+  change_description: Amended Schedule 13G filing
+
+--- Entry 3 ---
+  filer_name: BERKSHIRE HATHAWAY INC
+  filing_date: 2024-02-14
+  filing_type: SC 13G/A
+  percent_owned: None
+  shares_held: None
+  change_description: Amended Schedule 13G filing
+
+=== SUMMARY ===
+Unique filer names: {'BlackRock Inc.', 'VANGUARD GROUP INC', 'BERKSHIRE HATHAWAY INC'}
+Non-null filer_name (not Unknown Filer): 3/3
+Non-null percent_owned: 2/3
+Non-null shares_held: 2/3
+Field filer_name: present=3/3, non_null=3/3
+Field filing_date: present=3/3, non_null=3/3
+Field filing_type: present=3/3, non_null=3/3
+Field percent_owned: present=3/3, non_null=2/3
+Field shares_held: present=3/3, non_null=2/3
+Field change_description: present=3/3, non_null=3/3

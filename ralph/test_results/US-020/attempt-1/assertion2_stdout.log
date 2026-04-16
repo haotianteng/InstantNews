@@ -1,0 +1,26 @@
+============================= test session starts ==============================
+platform linux -- Python 3.10.20, pytest-9.0.2, pluggy-1.6.0 -- /home/haotiant/conda/envs/instnews/bin/python
+cachedir: .pytest_cache
+rootdir: /home/haotiant/Projects/Personal/InstantNews
+configfile: pyproject.toml
+plugins: typeguard-2.13.3, anyio-4.13.0
+collecting ... collected 173 items / 157 deselected / 16 selected
+
+tests/test_exchange_registry.py::TestExchangeRegistryBasics::test_supported_exchanges PASSED [  6%]
+tests/test_exchange_registry.py::TestExchangeRegistryBasics::test_get_exchange_info PASSED [ 12%]
+tests/test_exchange_registry.py::TestExchangeRegistryBasics::test_unknown_exchange_returns_closed PASSED [ 18%]
+tests/test_exchange_registry.py::TestExchangeDetection::test_no_suffix_defaults_to_nyse PASSED [ 25%]
+tests/test_exchange_registry.py::TestExchangeDetection::test_london_suffix PASSED [ 31%]
+tests/test_exchange_registry.py::TestExchangeDetection::test_tokyo_suffix PASSED [ 37%]
+tests/test_exchange_registry.py::TestExchangeDetection::test_hong_kong_suffix PASSED [ 43%]
+tests/test_exchange_registry.py::TestExchangeDetection::test_case_insensitive PASSED [ 50%]
+tests/test_exchange_registry.py::TestMarketHoursNYSE::test_open_during_trading PASSED [ 56%]
+tests/test_exchange_registry.py::TestMarketHoursNYSE::test_closed_after_hours PASSED [ 62%]
+tests/test_exchange_registry.py::TestMarketHoursNYSE::test_closed_on_weekend PASSED [ 68%]
+tests/test_exchange_registry.py::TestMarketHoursTSE::test_open_morning_session PASSED [ 75%]
+tests/test_exchange_registry.py::TestMarketHoursTSE::test_closed_during_lunch PASSED [ 81%]
+tests/test_exchange_registry.py::TestMarketHoursTSE::test_open_afternoon_session PASSED [ 87%]
+tests/test_exchange_registry.py::TestMarketHoursHKEX::test_closed_during_lunch PASSED [ 93%]
+tests/test_exchange_registry.py::TestExtensibility::test_custom_exchange PASSED [100%]
+
+====================== 16 passed, 157 deselected in 0.06s ======================

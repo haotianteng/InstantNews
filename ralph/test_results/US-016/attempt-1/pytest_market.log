@@ -1,0 +1,42 @@
+============================= test session starts ==============================
+platform linux -- Python 3.10.20, pytest-9.0.2, pluggy-1.6.0 -- /home/haotiant/conda/envs/instnews/bin/python
+cachedir: .pytest_cache
+rootdir: /home/haotiant/Projects/Personal/InstantNews
+configfile: pyproject.toml
+plugins: typeguard-2.13.3, anyio-4.13.0
+collecting ... collected 139 items / 107 deselected / 32 selected
+
+tests/test_market_data.py::TestPolygonClientDisabled::test_disabled_when_no_api_key PASSED [  3%]
+tests/test_market_data.py::TestPolygonClientDisabled::test_snapshot_returns_none_when_disabled PASSED [  6%]
+tests/test_market_data.py::TestPolygonClientDisabled::test_details_returns_none_when_disabled PASSED [  9%]
+tests/test_market_data.py::TestPolygonClientEnabled::test_enabled_with_api_key PASSED [ 12%]
+tests/test_market_data.py::TestPolygonClientEnabled::test_snapshot_success PASSED [ 15%]
+tests/test_market_data.py::TestPolygonClientEnabled::test_snapshot_caching PASSED [ 18%]
+tests/test_market_data.py::TestPolygonClientEnabled::test_snapshot_normalizes_symbol PASSED [ 21%]
+tests/test_market_data.py::TestPolygonClientEnabled::test_snapshot_http_error PASSED [ 25%]
+tests/test_market_data.py::TestPolygonClientEnabled::test_snapshot_404 PASSED [ 28%]
+tests/test_market_data.py::TestPolygonClientEnabled::test_details_success PASSED [ 31%]
+tests/test_market_data.py::TestPolygonClientEnabled::test_details_caching PASSED [ 34%]
+tests/test_market_data.py::TestPolygonClientEnabled::test_details_not_found PASSED [ 37%]
+tests/test_market_data.py::TestPolygonClientEnabled::test_details_network_error PASSED [ 40%]
+tests/test_market_data.py::TestPolygonClientEnabled::test_get_related_companies_competitor_success PASSED [ 43%]
+tests/test_market_data.py::TestPolygonClientEnabled::test_get_related_companies_competitor_limit_5 PASSED [ 46%]
+tests/test_market_data.py::TestPolygonClientEnabled::test_get_related_companies_competitor_caching PASSED [ 50%]
+tests/test_market_data.py::TestPolygonClientEnabled::test_get_related_companies_competitor_disabled PASSED [ 53%]
+tests/test_market_data.py::TestPolygonClientEnabled::test_clear_cache PASSED [ 56%]
+tests/test_market_routes.py::TestMarketSnapshotAuth::test_unauthenticated_returns_401 PASSED [ 59%]
+tests/test_market_routes.py::TestMarketSnapshotAuth::test_authenticated_returns_200 PASSED [ 62%]
+tests/test_market_routes.py::TestMarketDetailsAuth::test_unauthenticated_returns_401 PASSED [ 65%]
+tests/test_market_routes.py::TestMarketSnapshot::test_snapshot_response_fields PASSED [ 68%]
+tests/test_market_routes.py::TestMarketSnapshot::test_snapshot_404_unknown_ticker PASSED [ 71%]
+tests/test_market_routes.py::TestMarketSnapshot::test_snapshot_503_when_disabled PASSED [ 75%]
+tests/test_market_routes.py::TestMarketDetails::test_details_response_fields PASSED [ 78%]
+tests/test_market_routes.py::TestMarketDetails::test_details_404_unknown_ticker PASSED [ 81%]
+tests/test_market_routes.py::TestMarketDetails::test_details_503_when_disabled PASSED [ 84%]
+tests/test_market_routes.py::TestMarketCompetitors::test_competitor_response_fields PASSED [ 87%]
+tests/test_market_routes.py::TestMarketCompetitors::test_competitor_404_unknown_ticker PASSED [ 90%]
+tests/test_market_routes.py::TestMarketCompetitors::test_competitor_503_when_disabled PASSED [ 93%]
+tests/test_market_routes.py::TestMarketCompetitors::test_competitor_unauthenticated_returns_401 PASSED [ 96%]
+tests/test_market_routes.py::TestMarketRateLimit::test_rate_limit_header_present PASSED [100%]
+
+====================== 32 passed, 107 deselected in 0.56s ======================

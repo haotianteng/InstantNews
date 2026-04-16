@@ -1,0 +1,2275 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - banner [ref=e3]:
+      - generic [ref=e4]:
+        - generic [ref=e5]:
+          - img [ref=e7]
+          - generic [ref=e10]: InstNews SIGNAL
+        - generic [ref=e12]: Wed, Apr 15, 2026 21:17:33
+        - generic [ref=e16]: LIVE
+      - generic [ref=e17]:
+        - generic [ref=e18]:
+          - generic [ref=e19]: Items
+          - generic [ref=e20]: "200"
+        - generic [ref=e21]:
+          - generic [ref=e22]: Feeds
+          - generic [ref=e23]: "15"
+        - generic [ref=e24]:
+          - generic [ref=e25]: Avg Sent
+          - generic [ref=e26]: "--"
+        - button "Sound" [ref=e27] [cursor=pointer]:
+          - img [ref=e28]
+          - generic [ref=e32]: Sound
+        - button "Refresh" [ref=e33] [cursor=pointer]:
+          - img [ref=e34]
+          - generic [ref=e37]: Refresh
+        - button "API Docs" [ref=e38] [cursor=pointer]:
+          - img [ref=e39]
+          - generic [ref=e42]: API Docs
+        - button "Columns" [ref=e44] [cursor=pointer]:
+          - img [ref=e45]
+          - generic [ref=e46]: Columns
+        - button "Test Max User MAX" [ref=e703] [cursor=pointer]:
+          - generic [ref=e704]: Test Max User
+          - generic [ref=e705]: MAX
+    - complementary [ref=e53]:
+      - generic [ref=e54]:
+        - generic [ref=e55]: Search
+        - generic [ref=e56]:
+          - img
+          - textbox "Filter headlines..." [ref=e57]
+          - generic: F
+      - generic [ref=e58]:
+        - generic [ref=e59]: Date Range
+        - generic [ref=e60]:
+          - generic [ref=e61]:
+            - generic [ref=e62]: From
+            - textbox "From" [ref=e63]
+          - generic [ref=e64]:
+            - generic [ref=e65]: To
+            - textbox "To" [ref=e66]
+          - button "Clear dates" [ref=e67] [cursor=pointer]:
+            - img [ref=e68]
+            - text: Clear dates
+      - generic [ref=e72] [cursor=pointer]:
+        - checkbox "Hide duplicates" [ref=e73]
+        - generic [ref=e74]: Hide duplicates
+      - generic [ref=e75]:
+        - generic [ref=e76]: Sentiment
+        - generic [ref=e77]:
+          - button "All 200 1" [ref=e706] [cursor=pointer]:
+            - text: All
+            - generic [ref=e80]: "200"
+            - generic [ref=e81]: "1"
+          - button "Bullish 45 2" [ref=e707] [cursor=pointer]:
+            - text: Bullish
+            - generic [ref=e84]: "45"
+            - generic [ref=e85]: "2"
+          - button "Bearish 13 3" [ref=e708] [cursor=pointer]:
+            - text: Bearish
+            - generic [ref=e88]: "13"
+            - generic [ref=e89]: "3"
+          - button "Neutral 142 4" [ref=e709] [cursor=pointer]:
+            - text: Neutral
+            - generic [ref=e92]: "142"
+            - generic [ref=e93]: "4"
+      - generic [ref=e94]:
+        - generic [ref=e95]: Sources
+        - generic [ref=e96]:
+          - generic [ref=e97] [cursor=pointer]:
+            - checkbox "CNBC 1022" [checked] [ref=e98]
+            - generic [ref=e99]: CNBC
+            - generic [ref=e100]: "1022"
+          - generic [ref=e101] [cursor=pointer]:
+            - checkbox "CNBC World 333" [checked] [ref=e102]
+            - generic [ref=e103]: CNBC World
+            - generic [ref=e104]: "333"
+          - generic [ref=e105] [cursor=pointer]:
+            - checkbox "Reuters Business 0" [checked] [ref=e106]
+            - generic [ref=e107]: Reuters Business
+            - generic [ref=e108]: "0"
+          - generic [ref=e109] [cursor=pointer]:
+            - checkbox "MarketWatch 695" [checked] [ref=e110]
+            - generic [ref=e111]: MarketWatch
+            - generic [ref=e112]: "695"
+          - generic [ref=e113] [cursor=pointer]:
+            - checkbox "MarketWatch Markets 32" [checked] [ref=e114]
+            - generic [ref=e115]: MarketWatch Markets
+            - generic [ref=e116]: "32"
+          - generic [ref=e117] [cursor=pointer]:
+            - checkbox "Investing com 9830" [checked] [ref=e118]
+            - generic [ref=e119]: Investing com
+            - generic [ref=e120]: "9830"
+          - generic [ref=e121] [cursor=pointer]:
+            - checkbox "Yahoo Finance 11557" [checked] [ref=e122]
+            - generic [ref=e123]: Yahoo Finance
+            - generic [ref=e124]: "11557"
+          - generic [ref=e125] [cursor=pointer]:
+            - checkbox "Nasdaq 4955" [checked] [ref=e126]
+            - generic [ref=e127]: Nasdaq
+            - generic [ref=e128]: "4955"
+          - generic [ref=e129] [cursor=pointer]:
+            - checkbox "SeekingAlpha 5959" [checked] [ref=e130]
+            - generic [ref=e131]: SeekingAlpha
+            - generic [ref=e132]: "5959"
+          - generic [ref=e133] [cursor=pointer]:
+            - checkbox "Benzinga 0" [checked] [ref=e134]
+            - generic [ref=e135]: Benzinga
+            - generic [ref=e136]: "0"
+          - generic [ref=e137] [cursor=pointer]:
+            - checkbox "AP News 0" [checked] [ref=e138]
+            - generic [ref=e139]: AP News
+            - generic [ref=e140]: "0"
+          - generic [ref=e141] [cursor=pointer]:
+            - checkbox "Bloomberg Business 0" [checked] [ref=e142]
+            - generic [ref=e143]: Bloomberg Business
+            - generic [ref=e144]: "0"
+          - generic [ref=e145] [cursor=pointer]:
+            - checkbox "Bloomberg Markets 0" [checked] [ref=e146]
+            - generic [ref=e147]: Bloomberg Markets
+            - generic [ref=e148]: "0"
+          - generic [ref=e149] [cursor=pointer]:
+            - checkbox "BBC Business 246" [checked] [ref=e150]
+            - generic [ref=e151]: BBC Business
+            - generic [ref=e152]: "246"
+          - generic [ref=e153] [cursor=pointer]:
+            - checkbox "Google News Business 2730" [checked] [ref=e154]
+            - generic [ref=e155]: Google News Business
+            - generic [ref=e156]: "2730"
+      - generic [ref=e157]:
+        - generic [ref=e158]: Refresh Interval
+        - combobox [ref=e159] [cursor=pointer]:
+          - option "3 seconds"
+          - option "5 seconds" [selected]
+          - option "10 seconds"
+          - option "15 seconds"
+          - option "30 seconds"
+          - option "60 seconds"
+      - generic [ref=e160]: R Refresh F Search 1-4 Sentiment
+    - main [ref=e161]:
+      - table [ref=e162]:
+        - rowgroup [ref=e163]:
+          - row "Time Sentiment Ticker Headline Confidence Risk Level" [ref=e710]:
+            - columnheader "Time" [ref=e711]: Time
+            - columnheader "Sentiment" [ref=e713]: Sentiment
+            - columnheader "Ticker" [ref=e715]: Ticker
+            - columnheader "Headline" [ref=e717]: Headline
+            - columnheader "Confidence" [ref=e719]: Confidence
+            - columnheader "Risk Level" [ref=e721]: Risk Level
+        - rowgroup [ref=e177]:
+          - row "20:11:00 bullish — Fair Isaac Stock Is Down 40% This Year. Is Now the Time to Buy? — —" [ref=e723] [cursor=pointer]:
+            - cell "20:11:00" [ref=e724]
+            - cell "bullish" [ref=e725]:
+              - generic [ref=e726]: bullish
+            - cell "—" [ref=e728]
+            - cell "Fair Isaac Stock Is Down 40% This Year. Is Now the Time to Buy?" [ref=e729]:
+              - link "Fair Isaac Stock Is Down 40% This Year. Is Now the Time to Buy?" [ref=e730]:
+                - /url: https://www.nasdaq.com/articles/fair-isaac-stock-down-40-year-now-time-buy
+            - cell "—" [ref=e731]
+            - cell "—" [ref=e732]
+          - row "20:03:12 bullish — Singapore Bourse May Add To Its Winnings — —" [ref=e733] [cursor=pointer]:
+            - cell "20:03:12" [ref=e734]
+            - cell "bullish" [ref=e735]:
+              - generic [ref=e736]: bullish
+            - cell "—" [ref=e738]
+            - cell "Singapore Bourse May Add To Its Winnings" [ref=e739]:
+              - link "Singapore Bourse May Add To Its Winnings" [ref=e740]:
+                - /url: https://www.nasdaq.com/articles/singapore-bourse-may-add-its-winnings
+            - cell "—" [ref=e741]
+            - cell "—" [ref=e742]
+          - row "19:55:09 neutral — TKO Group Holdings Breaks Below 200-Day Moving Average - Notable for TKO — —" [ref=e743] [cursor=pointer]:
+            - cell "19:55:09" [ref=e744]
+            - cell "neutral" [ref=e745]:
+              - generic [ref=e746]: neutral
+            - cell "—" [ref=e748]
+            - cell "TKO Group Holdings Breaks Below 200-Day Moving Average - Notable for TKO" [ref=e749]:
+              - link "TKO Group Holdings Breaks Below 200-Day Moving Average - Notable for TKO" [ref=e750]:
+                - /url: https://www.nasdaq.com/articles/tko-group-holdings-breaks-below-200-day-moving-average-notable-tko
+            - cell "—" [ref=e751]
+            - cell "—" [ref=e752]
+          - row "19:54:15 neutral — Will AI Destroy the Software Industry? — —" [ref=e753] [cursor=pointer]:
+            - cell "19:54:15" [ref=e754]
+            - cell "neutral" [ref=e755]:
+              - generic [ref=e756]: neutral
+            - cell "—" [ref=e758]
+            - cell "Will AI Destroy the Software Industry?" [ref=e759]:
+              - link "Will AI Destroy the Software Industry?" [ref=e760]:
+                - /url: https://www.nasdaq.com/articles/will-ai-destroy-software-industry
+            - cell "—" [ref=e761]
+            - cell "—" [ref=e762]
+          - row "19:53:00 bullish — The First 5 AI Stocks I'd Buy If I Started From Scratch — —" [ref=e763] [cursor=pointer]:
+            - cell "19:53:00" [ref=e764]
+            - cell "bullish" [ref=e765]:
+              - generic [ref=e766]: bullish
+            - cell "—" [ref=e768]
+            - cell "The First 5 AI Stocks I'd Buy If I Started From Scratch" [ref=e769]:
+              - link "The First 5 AI Stocks I'd Buy If I Started From Scratch" [ref=e770]:
+                - /url: https://www.nasdaq.com/articles/first-5-ai-stocks-id-buy-if-i-started-scratch
+            - cell "—" [ref=e771]
+            - cell "—" [ref=e772]
+          - row "19:50:22 neutral — See Which Recent 13F Filers Hold PG — —" [ref=e773] [cursor=pointer]:
+            - cell "19:50:22" [ref=e774]
+            - cell "neutral" [ref=e775]:
+              - generic [ref=e776]: neutral
+            - cell "—" [ref=e778]
+            - cell "See Which Recent 13F Filers Hold PG" [ref=e779]:
+              - link "See Which Recent 13F Filers Hold PG" [ref=e780]:
+                - /url: https://www.nasdaq.com/articles/see-which-recent-13f-filers-hold-pg
+            - cell "—" [ref=e781]
+            - cell "—" [ref=e782]
+          - row "19:50:19 neutral — Gabelli Equity Trust's Series K Preferred Stock Shares Cross 6% Yield Mark — —" [ref=e783] [cursor=pointer]:
+            - cell "19:50:19" [ref=e784]
+            - cell "neutral" [ref=e785]:
+              - generic [ref=e786]: neutral
+            - cell "—" [ref=e788]
+            - cell "Gabelli Equity Trust's Series K Preferred Stock Shares Cross 6% Yield Mark" [ref=e789]:
+              - link "Gabelli Equity Trust's Series K Preferred Stock Shares Cross 6% Yield Mark" [ref=e790]:
+                - /url: https://www.nasdaq.com/articles/gabelli-equity-trusts-series-k-preferred-stock-shares-cross-6-yield-mark
+            - cell "—" [ref=e791]
+            - cell "—" [ref=e792]
+          - row "19:48:47 bullish — Why Broadcom Stock Climbed Today — —" [ref=e793] [cursor=pointer]:
+            - cell "19:48:47" [ref=e794]
+            - cell "bullish" [ref=e795]:
+              - generic [ref=e796]: bullish
+            - cell "—" [ref=e798]
+            - cell "Why Broadcom Stock Climbed Today" [ref=e799]:
+              - link "Why Broadcom Stock Climbed Today" [ref=e800]:
+                - /url: https://www.nasdaq.com/articles/why-broadcom-stock-climbed-today
+            - cell "—" [ref=e801]
+            - cell "—" [ref=e802]
+          - row "19:33:12 neutral — Rebound Anticipated For Malaysia Stock Market — —" [ref=e803] [cursor=pointer]:
+            - cell "19:33:12" [ref=e804]
+            - cell "neutral" [ref=e805]:
+              - generic [ref=e806]: neutral
+            - cell "—" [ref=e808]
+            - cell "Rebound Anticipated For Malaysia Stock Market" [ref=e809]:
+              - link "Rebound Anticipated For Malaysia Stock Market" [ref=e810]:
+                - /url: https://www.nasdaq.com/articles/rebound-anticipated-malaysia-stock-market-0
+            - cell "—" [ref=e811]
+            - cell "—" [ref=e812]
+          - row "19:20:00 neutral — The Company That Makes Every AI Chip Possible Just Reported, and What It Said Should Excite Every Investor — —" [ref=e813] [cursor=pointer]:
+            - cell "19:20:00" [ref=e814]
+            - cell "neutral" [ref=e815]:
+              - generic [ref=e816]: neutral
+            - cell "—" [ref=e818]
+            - cell "The Company That Makes Every AI Chip Possible Just Reported, and What It Said Should Excite Every Investor" [ref=e819]:
+              - link "The Company That Makes Every AI Chip Possible Just Reported, and What It Said Should Excite Every Investor" [ref=e820]:
+                - /url: https://www.nasdaq.com/articles/company-makes-every-ai-chip-possible-just-reported-and-what-it-said-should-excite-every
+            - cell "—" [ref=e821]
+            - cell "—" [ref=e822]
+          - 'row "19:20:00 bullish — Toast (TOST): A Strong Contender in Restaurant Tech — —" [ref=e823] [cursor=pointer]':
+            - cell "19:20:00" [ref=e824]
+            - cell "bullish" [ref=e825]:
+              - generic [ref=e826]: bullish
+            - cell "—" [ref=e828]
+            - 'cell "Toast (TOST): A Strong Contender in Restaurant Tech" [ref=e829]':
+              - 'link "Toast (TOST): A Strong Contender in Restaurant Tech" [ref=e830]':
+                - /url: https://www.nasdaq.com/articles/toast-tost-strong-contender-restaurant-tech
+            - cell "—" [ref=e831]
+            - cell "—" [ref=e832]
+          - row "19:18:12 neutral — Additional Support Anticipated For Japan Stock Market — —" [ref=e833] [cursor=pointer]:
+            - cell "19:18:12" [ref=e834]
+            - cell "neutral" [ref=e835]:
+              - generic [ref=e836]: neutral
+            - cell "—" [ref=e838]
+            - cell "Additional Support Anticipated For Japan Stock Market" [ref=e839]:
+              - link "Additional Support Anticipated For Japan Stock Market" [ref=e840]:
+                - /url: https://www.nasdaq.com/articles/additional-support-anticipated-japan-stock-market
+            - cell "—" [ref=e841]
+            - cell "—" [ref=e842]
+          - 'row "19:11:00 bullish — Prediction: This Will Be Amazon''s Stock Price in 1 Year — —" [ref=e843] [cursor=pointer]':
+            - cell "19:11:00" [ref=e844]
+            - cell "bullish" [ref=e845]:
+              - generic [ref=e846]: bullish
+            - cell "—" [ref=e848]
+            - 'cell "Prediction: This Will Be Amazon''s Stock Price in 1 Year" [ref=e849]':
+              - 'link "Prediction: This Will Be Amazon''s Stock Price in 1 Year" [ref=e850]':
+                - /url: https://www.nasdaq.com/articles/prediction-will-be-amazons-stock-price-1-year
+            - cell "—" [ref=e851]
+            - cell "—" [ref=e852]
+          - row "19:10:51 neutral — Kimco Realty's Series D Preferred Shares Crosses Above 6% Yield Territory — —" [ref=e853] [cursor=pointer]:
+            - cell "19:10:51" [ref=e854]
+            - cell "neutral" [ref=e855]:
+              - generic [ref=e856]: neutral
+            - cell "—" [ref=e858]
+            - cell "Kimco Realty's Series D Preferred Shares Crosses Above 6% Yield Territory" [ref=e859]:
+              - link "Kimco Realty's Series D Preferred Shares Crosses Above 6% Yield Territory" [ref=e860]:
+                - /url: https://www.nasdaq.com/articles/kimco-realtys-series-d-preferred-shares-crosses-above-6-yield-territory
+            - cell "—" [ref=e861]
+            - cell "—" [ref=e862]
+          - row "19:09:44 bullish — Why Blue Owl Capital Stock Soared More Than 8% Higher Today — —" [ref=e863] [cursor=pointer]:
+            - cell "19:09:44" [ref=e864]
+            - cell "bullish" [ref=e865]:
+              - generic [ref=e866]: bullish
+            - cell "—" [ref=e868]
+            - cell "Why Blue Owl Capital Stock Soared More Than 8% Higher Today" [ref=e869]:
+              - link "Why Blue Owl Capital Stock Soared More Than 8% Higher Today" [ref=e870]:
+                - /url: https://www.nasdaq.com/articles/why-blue-owl-capital-stock-soared-more-8-higher-today
+            - cell "—" [ref=e871]
+            - cell "—" [ref=e872]
+          - row "19:01:04 bullish — MKC Trading Below Director's Recent Buy Price — —" [ref=e873] [cursor=pointer]:
+            - cell "19:01:04" [ref=e874]
+            - cell "bullish" [ref=e875]:
+              - generic [ref=e876]: bullish
+            - cell "—" [ref=e878]
+            - cell "MKC Trading Below Director's Recent Buy Price" [ref=e879]:
+              - link "MKC Trading Below Director's Recent Buy Price" [ref=e880]:
+                - /url: https://www.nasdaq.com/articles/mkc-trading-below-directors-recent-buy-price
+            - cell "—" [ref=e881]
+            - cell "—" [ref=e882]
+          - row "18:58:32 bullish — SPFF Makes Bullish Cross Above Critical Moving Average — —" [ref=e883] [cursor=pointer]:
+            - cell "18:58:32" [ref=e884]
+            - cell "bullish" [ref=e885]:
+              - generic [ref=e886]: bullish
+            - cell "—" [ref=e888]
+            - cell "SPFF Makes Bullish Cross Above Critical Moving Average" [ref=e889]:
+              - link "SPFF Makes Bullish Cross Above Critical Moving Average" [ref=e890]:
+                - /url: https://www.nasdaq.com/articles/spff-makes-bullish-cross-above-critical-moving-average
+            - cell "—" [ref=e891]
+            - cell "—" [ref=e892]
+          - 'row "18:51:31 neutral — Peter Thiel''s Billion‑Dollar Bet on Palantir: What His Roughly 4% Stake Really Means for Investors — —" [ref=e893] [cursor=pointer]':
+            - cell "18:51:31" [ref=e894]
+            - cell "neutral" [ref=e895]:
+              - generic [ref=e896]: neutral
+            - cell "—" [ref=e898]
+            - 'cell "Peter Thiel''s Billion‑Dollar Bet on Palantir: What His Roughly 4% Stake Really Means for Investors" [ref=e899]':
+              - 'link "Peter Thiel''s Billion‑Dollar Bet on Palantir: What His Roughly 4% Stake Really Means for Investors" [ref=e900]':
+                - /url: https://www.nasdaq.com/articles/peter-thiels-billion-dollar-bet-palantir-what-his-roughly-4-stake-really-means-investors
+            - cell "—" [ref=e901]
+            - cell "—" [ref=e902]
+          - row "18:50:00 neutral — This $2 Billion Nvidia Investment Signals What's Coming Next — —" [ref=e903] [cursor=pointer]:
+            - cell "18:50:00" [ref=e904]
+            - cell "neutral" [ref=e905]:
+              - generic [ref=e906]: neutral
+            - cell "—" [ref=e908]
+            - cell "This $2 Billion Nvidia Investment Signals What's Coming Next" [ref=e909]:
+              - link "This $2 Billion Nvidia Investment Signals What's Coming Next" [ref=e910]:
+                - /url: https://www.nasdaq.com/articles/2-billion-nvidia-investment-signals-whats-coming-next
+            - cell "—" [ref=e911]
+            - cell "—" [ref=e912]
+          - row "18:43:18 bullish — Why Morgan Stanley Stock Rocked the Market Today — —" [ref=e913] [cursor=pointer]:
+            - cell "18:43:18" [ref=e914]
+            - cell "bullish" [ref=e915]:
+              - generic [ref=e916]: bullish
+            - cell "—" [ref=e918]
+            - cell "Why Morgan Stanley Stock Rocked the Market Today" [ref=e919]:
+              - link "Why Morgan Stanley Stock Rocked the Market Today" [ref=e920]:
+                - /url: https://www.nasdaq.com/articles/why-morgan-stanley-stock-rocked-market-today
+            - cell "—" [ref=e921]
+            - cell "—" [ref=e922]
+          - row "18:41:28 neutral — J.B. Hunt (JBHT) Q1 2026 Earnings Call Transcript — —" [ref=e923] [cursor=pointer]:
+            - cell "18:41:28" [ref=e924]
+            - cell "neutral" [ref=e925]:
+              - generic [ref=e926]: neutral
+            - cell "—" [ref=e928]
+            - cell "J.B. Hunt (JBHT) Q1 2026 Earnings Call Transcript" [ref=e929]:
+              - link "J.B. Hunt (JBHT) Q1 2026 Earnings Call Transcript" [ref=e930]:
+                - /url: https://www.nasdaq.com/articles/jb-hunt-jbht-q1-2026-earnings-call-transcript
+            - cell "—" [ref=e931]
+            - cell "—" [ref=e932]
+          - row "18:34:50 neutral — Google Brings Gemini AI App To Apple MacOS With Native Desktop Experience — —" [ref=e933] [cursor=pointer]:
+            - cell "18:34:50" [ref=e934]
+            - cell "neutral" [ref=e935]:
+              - generic [ref=e936]: neutral
+            - cell "—" [ref=e938]
+            - cell "Google Brings Gemini AI App To Apple MacOS With Native Desktop Experience" [ref=e939]:
+              - link "Google Brings Gemini AI App To Apple MacOS With Native Desktop Experience" [ref=e940]:
+                - /url: https://www.nasdaq.com/articles/google-brings-gemini-ai-app-apple-macos-native-desktop-experience
+            - cell "—" [ref=e941]
+            - cell "—" [ref=e942]
+          - row "18:20:00 bullish — Buying the Dip on Palantir Stock? Read This First DUP — —" [ref=e943] [cursor=pointer]:
+            - cell "18:20:00" [ref=e944]
+            - cell "bullish" [ref=e945]:
+              - generic [ref=e946]: bullish
+            - cell "—" [ref=e948]
+            - cell "Buying the Dip on Palantir Stock? Read This First DUP" [ref=e949]:
+              - link "Buying the Dip on Palantir Stock? Read This First" [ref=e950]:
+                - /url: https://www.nasdaq.com/articles/buying-dip-palantir-stock-read-first
+              - generic [ref=e951]: DUP
+            - cell "—" [ref=e952]
+            - cell "—" [ref=e953]
+          - row "18:16:43 bullish — Does Trump's Record Defense Budget Make Lockheed Martin a &quot;Never Sell&quot; Stock? — —" [ref=e954] [cursor=pointer]:
+            - cell "18:16:43" [ref=e955]
+            - cell "bullish" [ref=e956]:
+              - generic [ref=e957]: bullish
+            - cell "—" [ref=e959]
+            - cell "Does Trump's Record Defense Budget Make Lockheed Martin a &quot;Never Sell&quot; Stock?" [ref=e960]:
+              - link "Does Trump's Record Defense Budget Make Lockheed Martin a &quot;Never Sell&quot; Stock?" [ref=e961]:
+                - /url: https://www.nasdaq.com/articles/does-trumps-record-defense-budget-make-lockheed-martin-never-sell-stock
+            - cell "—" [ref=e962]
+            - cell "—" [ref=e963]
+          - row "18:08:17 neutral — IMAX Insider Sells Shares in $5.11 Million Transaction — —" [ref=e964] [cursor=pointer]:
+            - cell "18:08:17" [ref=e965]
+            - cell "neutral" [ref=e966]:
+              - generic [ref=e967]: neutral
+            - cell "—" [ref=e969]
+            - cell "IMAX Insider Sells Shares in $5.11 Million Transaction" [ref=e970]:
+              - link "IMAX Insider Sells Shares in $5.11 Million Transaction" [ref=e971]:
+                - /url: https://www.nasdaq.com/articles/imax-insider-sells-shares-511-million-transaction
+            - cell "—" [ref=e972]
+            - cell "—" [ref=e973]
+          - 'row "18:06:57 bullish — Stock Market Today, April 15: Eos Energy Enterprises Jumps on AI Data Center Power Partnership — —" [ref=e974] [cursor=pointer]':
+            - cell "18:06:57" [ref=e975]
+            - cell "bullish" [ref=e976]:
+              - generic [ref=e977]: bullish
+            - cell "—" [ref=e979]
+            - 'cell "Stock Market Today, April 15: Eos Energy Enterprises Jumps on AI Data Center Power Partnership" [ref=e980]':
+              - 'link "Stock Market Today, April 15: Eos Energy Enterprises Jumps on AI Data Center Power Partnership" [ref=e981]':
+                - /url: https://www.nasdaq.com/articles/stock-market-today-april-15-eos-energy-enterprises-jumps-ai-data-center-power-partnership
+            - cell "—" [ref=e982]
+            - cell "—" [ref=e983]
+          - 'row "18:06:24 bullish — Stock Market Today, April 15: D-Wave Quantum Inc. Surges as Nvidia’s Ising Models Fuel Rally in Quantum Stocks — —" [ref=e984] [cursor=pointer]':
+            - cell "18:06:24" [ref=e985]
+            - cell "bullish" [ref=e986]:
+              - generic [ref=e987]: bullish
+            - cell "—" [ref=e989]
+            - 'cell "Stock Market Today, April 15: D-Wave Quantum Inc. Surges as Nvidia’s Ising Models Fuel Rally in Quantum Stocks" [ref=e990]':
+              - 'link "Stock Market Today, April 15: D-Wave Quantum Inc. Surges as Nvidia’s Ising Models Fuel Rally in Quantum Stocks" [ref=e991]':
+                - /url: https://www.nasdaq.com/articles/stock-market-today-april-15-d-wave-quantum-inc-surges-nvidias-ising-models-fuel-rally
+            - cell "—" [ref=e992]
+            - cell "—" [ref=e993]
+          - row "18:01:40 neutral — Starbucks Launches ChatGPT Beta App To Inspire Drink Orders DUP — —" [ref=e994] [cursor=pointer]:
+            - cell "18:01:40" [ref=e995]
+            - cell "neutral" [ref=e996]:
+              - generic [ref=e997]: neutral
+            - cell "—" [ref=e999]
+            - cell "Starbucks Launches ChatGPT Beta App To Inspire Drink Orders DUP" [ref=e1000]:
+              - link "Starbucks Launches ChatGPT Beta App To Inspire Drink Orders" [ref=e1001]:
+                - /url: https://www.nasdaq.com/articles/starbucks-launches-chatgpt-beta-app-inspire-drink-orders
+              - generic [ref=e1002]: DUP
+            - cell "—" [ref=e1003]
+            - cell "—" [ref=e1004]
+          - row "18:00:00 bullish — Google’s stake in SpaceX could be worth more than most companies on the planet — —" [ref=e1005] [cursor=pointer]:
+            - cell "18:00:00" [ref=e1006]
+            - cell "bullish" [ref=e1007]:
+              - generic [ref=e1008]: bullish
+            - cell "—" [ref=e1010]
+            - cell "Google’s stake in SpaceX could be worth more than most companies on the planet" [ref=e1011]:
+              - link "Google’s stake in SpaceX could be worth more than most companies on the planet" [ref=e1012]:
+                - /url: https://www.marketwatch.com/story/googles-stake-in-spacex-could-be-worth-more-than-most-companies-on-the-planet-9ef1a6bb?mod=mw_rss_topstories
+            - cell "—" [ref=e1013]
+            - cell "—" [ref=e1014]
+          - row "17:50:00 neutral — I've Owned Apple Stock for Years. Here's Why I'm Letting Its AI Story Play Out. — —" [ref=e1015] [cursor=pointer]:
+            - cell "17:50:00" [ref=e1016]
+            - cell "neutral" [ref=e1017]:
+              - generic [ref=e1018]: neutral
+            - cell "—" [ref=e1020]
+            - cell "I've Owned Apple Stock for Years. Here's Why I'm Letting Its AI Story Play Out." [ref=e1021]:
+              - link "I've Owned Apple Stock for Years. Here's Why I'm Letting Its AI Story Play Out." [ref=e1022]:
+                - /url: https://www.nasdaq.com/articles/ive-owned-apple-stock-years-heres-why-im-letting-its-ai-story-play-out
+            - cell "—" [ref=e1023]
+            - cell "—" [ref=e1024]
+          - 'row "17:49:06 bullish — Stock Market Today, April 15: IonQ Surges Over 20% on String of Good News — —" [ref=e1025] [cursor=pointer]':
+            - cell "17:49:06" [ref=e1026]
+            - cell "bullish" [ref=e1027]:
+              - generic [ref=e1028]: bullish
+            - cell "—" [ref=e1030]
+            - 'cell "Stock Market Today, April 15: IonQ Surges Over 20% on String of Good News" [ref=e1031]':
+              - 'link "Stock Market Today, April 15: IonQ Surges Over 20% on String of Good News" [ref=e1032]':
+                - /url: https://www.nasdaq.com/articles/stock-market-today-april-15-ionq-surges-over-20-string-good-news
+            - cell "—" [ref=e1033]
+            - cell "—" [ref=e1034]
+          - row "17:42:43 neutral — Raytheon wins $234.8M contract for AMRAAM ER production shift — —" [ref=e1035] [cursor=pointer]:
+            - cell "17:42:43" [ref=e1036]
+            - cell "neutral" [ref=e1037]:
+              - generic [ref=e1038]: neutral
+            - cell "—" [ref=e1040]
+            - cell "Raytheon wins $234.8M contract for AMRAAM ER production shift" [ref=e1041]:
+              - link "Raytheon wins $234.8M contract for AMRAAM ER production shift" [ref=e1042]:
+                - /url: https://seekingalpha.com/news/4575509-raytheon-wins-2348m-contract-for-amraam-er-production-shift?utm_source=feed_news_all&utm_medium=referral&feed_item_type=news
+            - cell "—" [ref=e1043]
+            - cell "—" [ref=e1044]
+          - row "17:40:00 neutral — The ‘ultimate contrarian trade’ is starting to pay off for investors. Why it might have more room to run. — —" [ref=e1045] [cursor=pointer]:
+            - cell "17:40:00" [ref=e1046]
+            - cell "neutral" [ref=e1047]:
+              - generic [ref=e1048]: neutral
+            - cell "—" [ref=e1050]
+            - cell "The ‘ultimate contrarian trade’ is starting to pay off for investors. Why it might have more room to run." [ref=e1051]:
+              - link "The ‘ultimate contrarian trade’ is starting to pay off for investors. Why it might have more room to run." [ref=e1052]:
+                - /url: https://www.marketwatch.com/story/the-ultimate-contrarian-trade-is-starting-to-pay-off-for-investors-why-it-might-have-more-room-to-run-58141cac?mod=mw_rss_topstories
+            - cell "—" [ref=e1053]
+            - cell "—" [ref=e1054]
+          - row "17:39:00 bullish — Hims & Hers stock jumps as U.S. moves forward with plan to reassess popular peptides — —" [ref=e1055] [cursor=pointer]:
+            - cell "17:39:00" [ref=e1056]
+            - cell "bullish" [ref=e1057]:
+              - generic [ref=e1058]: bullish
+            - cell "—" [ref=e1060]
+            - cell "Hims & Hers stock jumps as U.S. moves forward with plan to reassess popular peptides" [ref=e1061]:
+              - link "Hims & Hers stock jumps as U.S. moves forward with plan to reassess popular peptides" [ref=e1062]:
+                - /url: https://www.marketwatch.com/story/hims-hers-stock-jumps-as-u-s-moves-forward-with-plan-to-reassess-popular-peptides-4815d489?mod=mw_rss_topstories
+            - cell "—" [ref=e1063]
+            - cell "—" [ref=e1064]
+          - 'row "17:38:27 neutral — Stock Market Today, April 15: Snap Jumps After Announcing 1,000 Job Cuts and $500 Million Cost Savings Plan — —" [ref=e1065] [cursor=pointer]':
+            - cell "17:38:27" [ref=e1066]
+            - cell "neutral" [ref=e1067]:
+              - generic [ref=e1068]: neutral
+            - cell "—" [ref=e1070]
+            - 'cell "Stock Market Today, April 15: Snap Jumps After Announcing 1,000 Job Cuts and $500 Million Cost Savings Plan" [ref=e1071]':
+              - 'link "Stock Market Today, April 15: Snap Jumps After Announcing 1,000 Job Cuts and $500 Million Cost Savings Plan" [ref=e1072]':
+                - /url: https://www.nasdaq.com/articles/stock-market-today-april-15-snap-jumps-after-announcing-1000-job-cuts-and-500-million-cost
+            - cell "—" [ref=e1073]
+            - cell "—" [ref=e1074]
+          - row "17:37:27 neutral — Goldstorm Metals upsizes private placement to $7 million — —" [ref=e1075] [cursor=pointer]:
+            - cell "17:37:27" [ref=e1076]
+            - cell "neutral" [ref=e1077]:
+              - generic [ref=e1078]: neutral
+            - cell "—" [ref=e1080]
+            - cell "Goldstorm Metals upsizes private placement to $7 million" [ref=e1081]:
+              - link "Goldstorm Metals upsizes private placement to $7 million" [ref=e1082]:
+                - /url: https://seekingalpha.com/news/4575510-goldstorm-metals-upsizes-private-placement-to-7-million?utm_source=feed_news_all&utm_medium=referral&feed_item_type=news
+            - cell "—" [ref=e1083]
+            - cell "—" [ref=e1084]
+          - row "17:36:46 bearish — Silver heads for sixth straight annual deficit with drawdown raising squeeze risk — —" [ref=e1085] [cursor=pointer]:
+            - cell "17:36:46" [ref=e1086]
+            - cell "bearish" [ref=e1087]:
+              - generic [ref=e1088]: bearish
+            - cell "—" [ref=e1090]
+            - cell "Silver heads for sixth straight annual deficit with drawdown raising squeeze risk" [ref=e1091]:
+              - link "Silver heads for sixth straight annual deficit with drawdown raising squeeze risk" [ref=e1092]:
+                - /url: https://seekingalpha.com/news/4575498-silver-heads-for-sixth-straight-annual-deficit-with-drawdown-raising-squeeze-risk?utm_source=feed_news_all&utm_medium=referral&feed_item_type=news
+            - cell "—" [ref=e1093]
+            - cell "—" [ref=e1094]
+          - row "17:35:20 neutral — F.N.B. Q1 2026 Earnings Preview — —" [ref=e1095] [cursor=pointer]:
+            - cell "17:35:20" [ref=e1096]
+            - cell "neutral" [ref=e1097]:
+              - generic [ref=e1098]: neutral
+            - cell "—" [ref=e1100]
+            - cell "F.N.B. Q1 2026 Earnings Preview" [ref=e1101]:
+              - link "F.N.B. Q1 2026 Earnings Preview" [ref=e1102]:
+                - /url: https://seekingalpha.com/news/4575392-f-n-b-q1-2026-earnings-preview?utm_source=feed_news_all&utm_medium=referral&feed_item_type=news
+            - cell "—" [ref=e1103]
+            - cell "—" [ref=e1104]
+          - row "17:35:19 neutral — Alcoa Q1 2026 Earnings Preview — —" [ref=e1105] [cursor=pointer]:
+            - cell "17:35:19" [ref=e1106]
+            - cell "neutral" [ref=e1107]:
+              - generic [ref=e1108]: neutral
+            - cell "—" [ref=e1110]
+            - cell "Alcoa Q1 2026 Earnings Preview" [ref=e1111]:
+              - link "Alcoa Q1 2026 Earnings Preview" [ref=e1112]:
+                - /url: https://seekingalpha.com/news/4575295-alcoa-q1-2026-earnings-preview?utm_source=feed_news_all&utm_medium=referral&feed_item_type=news
+            - cell "—" [ref=e1113]
+            - cell "—" [ref=e1114]
+          - row "17:35:04 neutral — Lakeland Q4 2026 Earnings Preview — —" [ref=e1115] [cursor=pointer]:
+            - cell "17:35:04" [ref=e1116]
+            - cell "neutral" [ref=e1117]:
+              - generic [ref=e1118]: neutral
+            - cell "—" [ref=e1120]
+            - cell "Lakeland Q4 2026 Earnings Preview" [ref=e1121]:
+              - link "Lakeland Q4 2026 Earnings Preview" [ref=e1122]:
+                - /url: https://seekingalpha.com/news/4575393-lakeland-q4-2026-earnings-preview?utm_source=feed_news_all&utm_medium=referral&feed_item_type=news
+            - cell "—" [ref=e1123]
+            - cell "—" [ref=e1124]
+          - row "17:30:00 bullish — The oil market thinks the worst is over from the Iran war. The damage suggests otherwise. — —" [ref=e1125] [cursor=pointer]:
+            - cell "17:30:00" [ref=e1126]
+            - cell "bullish" [ref=e1127]:
+              - generic [ref=e1128]: bullish
+            - cell "—" [ref=e1130]
+            - cell "The oil market thinks the worst is over from the Iran war. The damage suggests otherwise." [ref=e1131]:
+              - link "The oil market thinks the worst is over from the Iran war. The damage suggests otherwise." [ref=e1132]:
+                - /url: https://www.marketwatch.com/story/the-oil-market-thinks-the-worst-is-over-from-the-iran-war-the-damage-suggests-otherwise-b8ddc5f9?mod=mw_rss_topstories
+            - cell "—" [ref=e1133]
+            - cell "—" [ref=e1134]
+          - 'row "17:29:14 neutral — Stocks to watch after market on Wednesday: CDNA, JBHT, SLG, QDEL — —" [ref=e1135] [cursor=pointer]':
+            - cell "17:29:14" [ref=e1136]
+            - cell "neutral" [ref=e1137]:
+              - generic [ref=e1138]: neutral
+            - cell "—" [ref=e1140]
+            - 'cell "Stocks to watch after market on Wednesday: CDNA, JBHT, SLG, QDEL" [ref=e1141]':
+              - 'link "Stocks to watch after market on Wednesday: CDNA, JBHT, SLG, QDEL" [ref=e1142]':
+                - /url: https://seekingalpha.com/news/4575508-stocks-to-watch-after-market-on-wednesday-cdna-jbht-slg-qdel?utm_source=feed_news_all&utm_medium=referral&feed_item_type=news
+            - cell "—" [ref=e1143]
+            - cell "—" [ref=e1144]
+          - row "17:28:44 neutral — Lockheed Martin Space secures $850M U.S. Navy contract modification — —" [ref=e1145] [cursor=pointer]:
+            - cell "17:28:44" [ref=e1146]
+            - cell "neutral" [ref=e1147]:
+              - generic [ref=e1148]: neutral
+            - cell "—" [ref=e1150]
+            - cell "Lockheed Martin Space secures $850M U.S. Navy contract modification" [ref=e1151]:
+              - link "Lockheed Martin Space secures $850M U.S. Navy contract modification" [ref=e1152]:
+                - /url: https://seekingalpha.com/news/4575506-lockheed-martin-space-secures-850m-us-navy-contract-modification?utm_source=feed_news_all&utm_medium=referral&feed_item_type=news
+            - cell "—" [ref=e1153]
+            - cell "—" [ref=e1154]
+          - row "17:24:53 neutral — Thinkific CEO to directly oversee product and tech teams to speed AI development — —" [ref=e1155] [cursor=pointer]:
+            - cell "17:24:53" [ref=e1156]
+            - cell "neutral" [ref=e1157]:
+              - generic [ref=e1158]: neutral
+            - cell "—" [ref=e1160]
+            - cell "Thinkific CEO to directly oversee product and tech teams to speed AI development" [ref=e1161]:
+              - link "Thinkific CEO to directly oversee product and tech teams to speed AI development" [ref=e1162]:
+                - /url: https://seekingalpha.com/news/4575507-thinkific-ceo-to-directly-oversee-product-and-tech-teams-to-speed-ai-development?utm_source=feed_news_all&utm_medium=referral&feed_item_type=news
+            - cell "—" [ref=e1163]
+            - cell "—" [ref=e1164]
+          - row "17:23:46 neutral — Google's SpaceX stake could deliver $100 billion payday post-IPO -- report DUP — —" [ref=e1165] [cursor=pointer]:
+            - cell "17:23:46" [ref=e1166]
+            - cell "neutral" [ref=e1167]:
+              - generic [ref=e1168]: neutral
+            - cell "—" [ref=e1170]
+            - cell "Google's SpaceX stake could deliver $100 billion payday post-IPO -- report DUP" [ref=e1171]:
+              - link "Google's SpaceX stake could deliver $100 billion payday post-IPO -- report" [ref=e1172]:
+                - /url: https://seekingalpha.com/news/4575489-googles-spacex-stake-could-deliver-100-billion-payday-post-ipo---report?utm_source=feed_news_all&utm_medium=referral&feed_item_type=news
+              - generic [ref=e1173]: DUP
+            - cell "—" [ref=e1174]
+            - cell "—" [ref=e1175]
+          - 'row "17:14:07 bullish — Stock Market Today, April 15: S&P 500 and Nasdaq Reach New Highs — —" [ref=e1176] [cursor=pointer]':
+            - cell "17:14:07" [ref=e1177]
+            - cell "bullish" [ref=e1178]:
+              - generic [ref=e1179]: bullish
+            - cell "—" [ref=e1181]
+            - 'cell "Stock Market Today, April 15: S&P 500 and Nasdaq Reach New Highs" [ref=e1182]':
+              - 'link "Stock Market Today, April 15: S&P 500 and Nasdaq Reach New Highs" [ref=e1183]':
+                - /url: https://www.nasdaq.com/articles/stock-market-today-april-15-sp-500-and-nasdaq-reach-new-highs
+            - cell "—" [ref=e1184]
+            - cell "—" [ref=e1185]
+          - row "17:13:29 neutral — Mineral Road Discovery appoints new CFO — —" [ref=e1186] [cursor=pointer]:
+            - cell "17:13:29" [ref=e1187]
+            - cell "neutral" [ref=e1188]:
+              - generic [ref=e1189]: neutral
+            - cell "—" [ref=e1191]
+            - cell "Mineral Road Discovery appoints new CFO" [ref=e1192]:
+              - link "Mineral Road Discovery appoints new CFO" [ref=e1193]:
+                - /url: https://seekingalpha.com/news/4575505-mineral-road-discovery-appoints-new-cfo?utm_source=feed_news_all&utm_medium=referral&feed_item_type=news
+            - cell "—" [ref=e1194]
+            - cell "—" [ref=e1195]
+          - row "17:12:47 neutral — Allegiant Travel Company, Sun Country Airlines win DOT approval for merger step — —" [ref=e1196] [cursor=pointer]:
+            - cell "17:12:47" [ref=e1197]
+            - cell "neutral" [ref=e1198]:
+              - generic [ref=e1199]: neutral
+            - cell "—" [ref=e1201]
+            - cell "Allegiant Travel Company, Sun Country Airlines win DOT approval for merger step" [ref=e1202]:
+              - link "Allegiant Travel Company, Sun Country Airlines win DOT approval for merger step" [ref=e1203]:
+                - /url: https://seekingalpha.com/news/4575503-allegiant-travel-company-sun-country-airlines-win-dot-approval-for-merger-step?utm_source=feed_news_all&utm_medium=referral&feed_item_type=news
+            - cell "—" [ref=e1204]
+            - cell "—" [ref=e1205]
+          - row "17:11:40 neutral — Nine Mile Metals launches $1M private placement for exploration — —" [ref=e1206] [cursor=pointer]:
+            - cell "17:11:40" [ref=e1207]
+            - cell "neutral" [ref=e1208]:
+              - generic [ref=e1209]: neutral
+            - cell "—" [ref=e1211]
+            - cell "Nine Mile Metals launches $1M private placement for exploration" [ref=e1212]:
+              - link "Nine Mile Metals launches $1M private placement for exploration" [ref=e1213]:
+                - /url: https://seekingalpha.com/news/4575504-nine-mile-metals-launches-1m-private-placement-for-exploration?utm_source=feed_news_all&utm_medium=referral&feed_item_type=news
+            - cell "—" [ref=e1214]
+            - cell "—" [ref=e1215]
+          - 'row "17:10:35 neutral — Stock Market Today, April 15: Robinhood Markets Surges After SEC Eases Day Trading Rules — —" [ref=e1216] [cursor=pointer]':
+            - cell "17:10:35" [ref=e1217]
+            - cell "neutral" [ref=e1218]:
+              - generic [ref=e1219]: neutral
+            - cell "—" [ref=e1221]
+            - 'cell "Stock Market Today, April 15: Robinhood Markets Surges After SEC Eases Day Trading Rules" [ref=e1222]':
+              - 'link "Stock Market Today, April 15: Robinhood Markets Surges After SEC Eases Day Trading Rules" [ref=e1223]':
+                - /url: https://www.nasdaq.com/articles/stock-market-today-april-15-robinhood-markets-surges-after-sec-eases-day-trading-rules
+            - cell "—" [ref=e1224]
+            - cell "—" [ref=e1225]
+          - row "17:10:00 bullish — 2 Billionaire Investors Own Amazon Stock. Should You Buy It Too? — —" [ref=e1226] [cursor=pointer]:
+            - cell "17:10:00" [ref=e1227]
+            - cell "bullish" [ref=e1228]:
+              - generic [ref=e1229]: bullish
+            - cell "—" [ref=e1231]
+            - cell "2 Billionaire Investors Own Amazon Stock. Should You Buy It Too?" [ref=e1232]:
+              - link "2 Billionaire Investors Own Amazon Stock. Should You Buy It Too?" [ref=e1233]:
+                - /url: https://www.nasdaq.com/articles/2-billionaire-investors-own-amazon-stock-should-you-buy-it-too
+            - cell "—" [ref=e1234]
+            - cell "—" [ref=e1235]
+          - row "17:08:29 neutral — Large-cap real estate stocks with A grade EPS revisions as earnings season begins DUP — —" [ref=e1236] [cursor=pointer]:
+            - cell "17:08:29" [ref=e1237]
+            - cell "neutral" [ref=e1238]:
+              - generic [ref=e1239]: neutral
+            - cell "—" [ref=e1241]
+            - cell "Large-cap real estate stocks with A grade EPS revisions as earnings season begins DUP" [ref=e1242]:
+              - link "Large-cap real estate stocks with A grade EPS revisions as earnings season begins" [ref=e1243]:
+                - /url: https://seekingalpha.com/news/4575502-large-cap-real-estate-stocks-with-a-grade-eps-revisions-as-earnings-season-begins?utm_source=feed_news_all&utm_medium=referral&feed_item_type=news
+              - generic [ref=e1244]: DUP
+            - cell "—" [ref=e1245]
+            - cell "—" [ref=e1246]
+          - row "17:08:28 neutral — Shares of BNKD Now Oversold — —" [ref=e1247] [cursor=pointer]:
+            - cell "17:08:28" [ref=e1248]
+            - cell "neutral" [ref=e1249]:
+              - generic [ref=e1250]: neutral
+            - cell "—" [ref=e1252]
+            - cell "Shares of BNKD Now Oversold" [ref=e1253]:
+              - link "Shares of BNKD Now Oversold" [ref=e1254]:
+                - /url: https://www.nasdaq.com/articles/shares-bnkd-now-oversold
+            - cell "—" [ref=e1255]
+            - cell "—" [ref=e1256]
+          - row "17:08:25 neutral — Shares of FNGD Now Oversold — —" [ref=e1257] [cursor=pointer]:
+            - cell "17:08:25" [ref=e1258]
+            - cell "neutral" [ref=e1259]:
+              - generic [ref=e1260]: neutral
+            - cell "—" [ref=e1262]
+            - cell "Shares of FNGD Now Oversold" [ref=e1263]:
+              - link "Shares of FNGD Now Oversold" [ref=e1264]:
+                - /url: https://www.nasdaq.com/articles/shares-fngd-now-oversold
+            - cell "—" [ref=e1265]
+            - cell "—" [ref=e1266]
+          - row "17:08:05 bullish — MetLife Breaks Above 200-Day Moving Average - Bullish for MET — —" [ref=e1267] [cursor=pointer]:
+            - cell "17:08:05" [ref=e1268]
+            - cell "bullish" [ref=e1269]:
+              - generic [ref=e1270]: bullish
+            - cell "—" [ref=e1272]
+            - cell "MetLife Breaks Above 200-Day Moving Average - Bullish for MET" [ref=e1273]:
+              - link "MetLife Breaks Above 200-Day Moving Average - Bullish for MET" [ref=e1274]:
+                - /url: https://www.nasdaq.com/articles/metlife-breaks-above-200-day-moving-average-bullish-met
+            - cell "—" [ref=e1275]
+            - cell "—" [ref=e1276]
+          - row "17:07:00 bullish — Carnival Breaks Above 200-Day Moving Average - Bullish for CCL — —" [ref=e1277] [cursor=pointer]:
+            - cell "17:07:00" [ref=e1278]
+            - cell "bullish" [ref=e1279]:
+              - generic [ref=e1280]: bullish
+            - cell "—" [ref=e1282]
+            - cell "Carnival Breaks Above 200-Day Moving Average - Bullish for CCL" [ref=e1283]:
+              - link "Carnival Breaks Above 200-Day Moving Average - Bullish for CCL" [ref=e1284]:
+                - /url: https://www.nasdaq.com/articles/carnival-breaks-above-200-day-moving-average-bullish-ccl
+            - cell "—" [ref=e1285]
+            - cell "—" [ref=e1286]
+          - row "17:06:48 neutral — FSS Crosses Below Key Moving Average Level — —" [ref=e1287] [cursor=pointer]:
+            - cell "17:06:48" [ref=e1288]
+            - cell "neutral" [ref=e1289]:
+              - generic [ref=e1290]: neutral
+            - cell "—" [ref=e1292]
+            - cell "FSS Crosses Below Key Moving Average Level" [ref=e1293]:
+              - link "FSS Crosses Below Key Moving Average Level" [ref=e1294]:
+                - /url: https://www.nasdaq.com/articles/fss-crosses-below-key-moving-average-level
+            - cell "—" [ref=e1295]
+            - cell "—" [ref=e1296]
+          - row "17:06:45 neutral — Tortoise Global Water Fund (TBLU) Shares Cross Below 200 DMA — —" [ref=e1297] [cursor=pointer]:
+            - cell "17:06:45" [ref=e1298]
+            - cell "neutral" [ref=e1299]:
+              - generic [ref=e1300]: neutral
+            - cell "—" [ref=e1302]
+            - cell "Tortoise Global Water Fund (TBLU) Shares Cross Below 200 DMA" [ref=e1303]:
+              - link "Tortoise Global Water Fund (TBLU) Shares Cross Below 200 DMA" [ref=e1304]:
+                - /url: https://www.nasdaq.com/articles/tortoise-global-water-fund-tblu-shares-cross-below-200-dma
+            - cell "—" [ref=e1305]
+            - cell "—" [ref=e1306]
+          - row "17:06:41 neutral — Williams Sonoma Breaks Below 200-Day Moving Average - Notable for WSM — —" [ref=e1307] [cursor=pointer]:
+            - cell "17:06:41" [ref=e1308]
+            - cell "neutral" [ref=e1309]:
+              - generic [ref=e1310]: neutral
+            - cell "—" [ref=e1312]
+            - cell "Williams Sonoma Breaks Below 200-Day Moving Average - Notable for WSM" [ref=e1313]:
+              - link "Williams Sonoma Breaks Below 200-Day Moving Average - Notable for WSM" [ref=e1314]:
+                - /url: https://www.nasdaq.com/articles/williams-sonoma-breaks-below-200-day-moving-average-notable-wsm
+            - cell "—" [ref=e1315]
+            - cell "—" [ref=e1316]
+          - row "17:06:04 neutral — SCO Crosses Critical Technical Indicator — —" [ref=e1317] [cursor=pointer]:
+            - cell "17:06:04" [ref=e1318]
+            - cell "neutral" [ref=e1319]:
+              - generic [ref=e1320]: neutral
+            - cell "—" [ref=e1322]
+            - cell "SCO Crosses Critical Technical Indicator" [ref=e1323]:
+              - link "SCO Crosses Critical Technical Indicator" [ref=e1324]:
+                - /url: https://www.nasdaq.com/articles/sco-crosses-critical-technical-indicator
+            - cell "—" [ref=e1325]
+            - cell "—" [ref=e1326]
+          - row "17:05:59 neutral — GQGU Crosses Critical Technical Indicator — —" [ref=e1327] [cursor=pointer]:
+            - cell "17:05:59" [ref=e1328]
+            - cell "neutral" [ref=e1329]:
+              - generic [ref=e1330]: neutral
+            - cell "—" [ref=e1332]
+            - cell "GQGU Crosses Critical Technical Indicator" [ref=e1333]:
+              - link "GQGU Crosses Critical Technical Indicator" [ref=e1334]:
+                - /url: https://www.nasdaq.com/articles/gqgu-crosses-critical-technical-indicator
+            - cell "—" [ref=e1335]
+            - cell "—" [ref=e1336]
+          - row "17:05:46 neutral — BERZ Crosses Critical Technical Indicator — —" [ref=e1337] [cursor=pointer]:
+            - cell "17:05:46" [ref=e1338]
+            - cell "neutral" [ref=e1339]:
+              - generic [ref=e1340]: neutral
+            - cell "—" [ref=e1342]
+            - cell "BERZ Crosses Critical Technical Indicator" [ref=e1343]:
+              - link "BERZ Crosses Critical Technical Indicator" [ref=e1344]:
+                - /url: https://www.nasdaq.com/articles/berz-crosses-critical-technical-indicator
+            - cell "—" [ref=e1345]
+            - cell "—" [ref=e1346]
+          - row "17:03:58 neutral — MTD Crosses Below Key Moving Average Level — —" [ref=e1347] [cursor=pointer]:
+            - cell "17:03:58" [ref=e1348]
+            - cell "neutral" [ref=e1349]:
+              - generic [ref=e1350]: neutral
+            - cell "—" [ref=e1352]
+            - cell "MTD Crosses Below Key Moving Average Level" [ref=e1353]:
+              - link "MTD Crosses Below Key Moving Average Level" [ref=e1354]:
+                - /url: https://www.nasdaq.com/articles/mtd-crosses-below-key-moving-average-level
+            - cell "—" [ref=e1355]
+            - cell "—" [ref=e1356]
+          - row "17:03:17 bullish — Bullish Two Hundred Day Moving Average Cross - MOAT — —" [ref=e1357] [cursor=pointer]:
+            - cell "17:03:17" [ref=e1358]
+            - cell "bullish" [ref=e1359]:
+              - generic [ref=e1360]: bullish
+            - cell "—" [ref=e1362]
+            - cell "Bullish Two Hundred Day Moving Average Cross - MOAT" [ref=e1363]:
+              - link "Bullish Two Hundred Day Moving Average Cross - MOAT" [ref=e1364]:
+                - /url: https://www.nasdaq.com/articles/bullish-two-hundred-day-moving-average-cross-moat
+            - cell "—" [ref=e1365]
+            - cell "—" [ref=e1366]
+          - row "17:02:42 neutral — The York Water Company announces proposed public stock offering — —" [ref=e1367] [cursor=pointer]:
+            - cell "17:02:42" [ref=e1368]
+            - cell "neutral" [ref=e1369]:
+              - generic [ref=e1370]: neutral
+            - cell "—" [ref=e1372]
+            - cell "The York Water Company announces proposed public stock offering" [ref=e1373]:
+              - link "The York Water Company announces proposed public stock offering" [ref=e1374]:
+                - /url: https://seekingalpha.com/news/4575499-the-york-water-company-announces-proposed-public-stock-offering?utm_source=feed_news_all&utm_medium=referral&feed_item_type=news
+            - cell "—" [ref=e1375]
+            - cell "—" [ref=e1376]
+          - row "17:00:28 neutral — Equity Residential agrees to pay $56M to settle suit alleging rent price-fixing — —" [ref=e1377] [cursor=pointer]:
+            - cell "17:00:28" [ref=e1378]
+            - cell "neutral" [ref=e1379]:
+              - generic [ref=e1380]: neutral
+            - cell "—" [ref=e1382]
+            - cell "Equity Residential agrees to pay $56M to settle suit alleging rent price-fixing" [ref=e1383]:
+              - link "Equity Residential agrees to pay $56M to settle suit alleging rent price-fixing" [ref=e1384]:
+                - /url: https://seekingalpha.com/news/4575494-equity-residential-agrees-to-pay-56m-to-settle-suit-alleging-rent-price-fixing?utm_source=feed_news_all&utm_medium=referral&feed_item_type=news
+            - cell "—" [ref=e1385]
+            - cell "—" [ref=e1386]
+          - row "17:00:18 neutral — Madison Air Solutions prices IPO at $27/share — —" [ref=e1387] [cursor=pointer]:
+            - cell "17:00:18" [ref=e1388]
+            - cell "neutral" [ref=e1389]:
+              - generic [ref=e1390]: neutral
+            - cell "—" [ref=e1392]
+            - cell "Madison Air Solutions prices IPO at $27/share" [ref=e1393]:
+              - link "Madison Air Solutions prices IPO at $27/share" [ref=e1394]:
+                - /url: https://seekingalpha.com/news/4575501-madison-air-solutions-prices-ipo-at-27share?utm_source=feed_news_all&utm_medium=referral&feed_item_type=news
+            - cell "—" [ref=e1395]
+            - cell "—" [ref=e1396]
+          - row "16:58:30 bullish — CareDx surges after Q1 pre-announcement, Lab Products business divestment — —" [ref=e1397] [cursor=pointer]:
+            - cell "16:58:30" [ref=e1398]
+            - cell "bullish" [ref=e1399]:
+              - generic [ref=e1400]: bullish
+            - cell "—" [ref=e1402]
+            - cell "CareDx surges after Q1 pre-announcement, Lab Products business divestment" [ref=e1403]:
+              - link "CareDx surges after Q1 pre-announcement, Lab Products business divestment" [ref=e1404]:
+                - /url: https://seekingalpha.com/news/4575497-caredx-surges-after-q1-pre-announcement-lab-products-business-divestment?utm_source=feed_news_all&utm_medium=referral&feed_item_type=news
+            - cell "—" [ref=e1405]
+            - cell "—" [ref=e1406]
+          - row "16:57:20 neutral — Mid-cap real estate stocks with A grade EPS revisions as earnings season begins DUP — —" [ref=e1407] [cursor=pointer]:
+            - cell "16:57:20" [ref=e1408]
+            - cell "neutral" [ref=e1409]:
+              - generic [ref=e1410]: neutral
+            - cell "—" [ref=e1412]
+            - cell "Mid-cap real estate stocks with A grade EPS revisions as earnings season begins DUP" [ref=e1413]:
+              - link "Mid-cap real estate stocks with A grade EPS revisions as earnings season begins" [ref=e1414]:
+                - /url: https://seekingalpha.com/news/4575496-mid-cap-real-estate-stocks-with-a-grade-eps-revisions-as-earnings-season-begins?utm_source=feed_news_all&utm_medium=referral&feed_item_type=news
+              - generic [ref=e1415]: DUP
+            - cell "—" [ref=e1416]
+            - cell "—" [ref=e1417]
+          - 'row "16:54:24 bullish — T3 Defense reports strong Q1: revenue hits $4.2M, stock jumps 53% — —" [ref=e1418] [cursor=pointer]':
+            - cell "16:54:24" [ref=e1419]
+            - cell "bullish" [ref=e1420]:
+              - generic [ref=e1421]: bullish
+            - cell "—" [ref=e1423]
+            - 'cell "T3 Defense reports strong Q1: revenue hits $4.2M, stock jumps 53%" [ref=e1424]':
+              - 'link "T3 Defense reports strong Q1: revenue hits $4.2M, stock jumps 53%" [ref=e1425]':
+                - /url: https://seekingalpha.com/news/4575472-t3-defense-reports-strong-q1-revenue-hits-42m-stock-jumps-53?utm_source=feed_news_all&utm_medium=referral&feed_item_type=news
+            - cell "—" [ref=e1426]
+            - cell "—" [ref=e1427]
+          - row "16:54:00 bullish — The S&P 500 just clinched a record high. Here are 6 charts to watch for what comes next. — —" [ref=e1428] [cursor=pointer]:
+            - cell "16:54:00" [ref=e1429]
+            - cell "bullish" [ref=e1430]:
+              - generic [ref=e1431]: bullish
+            - cell "—" [ref=e1433]
+            - cell "The S&P 500 just clinched a record high. Here are 6 charts to watch for what comes next." [ref=e1434]:
+              - link "The S&P 500 just clinched a record high. Here are 6 charts to watch for what comes next." [ref=e1435]:
+                - /url: https://www.marketwatch.com/story/the-s-p-500-just-clinched-a-record-high-here-are-6-charts-to-watch-for-what-comes-next-d7807af1?mod=mw_rss_topstories
+            - cell "—" [ref=e1436]
+            - cell "—" [ref=e1437]
+          - row "16:51:31 neutral — Johnson Controls considers $4.5B in divestitures - Bloomberg — —" [ref=e1438] [cursor=pointer]:
+            - cell "16:51:31" [ref=e1439]
+            - cell "neutral" [ref=e1440]:
+              - generic [ref=e1441]: neutral
+            - cell "—" [ref=e1443]
+            - cell "Johnson Controls considers $4.5B in divestitures - Bloomberg" [ref=e1444]:
+              - link "Johnson Controls considers $4.5B in divestitures - Bloomberg" [ref=e1445]:
+                - /url: https://seekingalpha.com/news/4575474-johnson-controls-considers-4_5b-in-divestitures-bloomberg?utm_source=feed_news_all&utm_medium=referral&feed_item_type=news
+            - cell "—" [ref=e1446]
+            - cell "—" [ref=e1447]
+          - row "16:51:22 neutral — Wintrust Financial declares $0.55 dividend — —" [ref=e1448] [cursor=pointer]:
+            - cell "16:51:22" [ref=e1449]
+            - cell "neutral" [ref=e1450]:
+              - generic [ref=e1451]: neutral
+            - cell "—" [ref=e1453]
+            - cell "Wintrust Financial declares $0.55 dividend" [ref=e1454]:
+              - link "Wintrust Financial declares $0.55 dividend" [ref=e1455]:
+                - /url: https://seekingalpha.com/news/4575495-wintrust-financial-declares-0_55-dividend?utm_source=feed_news_all&utm_medium=referral&feed_item_type=news
+            - cell "—" [ref=e1456]
+            - cell "—" [ref=e1457]
+          - row "16:48:52 bullish — Nuclear energy stocks extend gains in busy news week — —" [ref=e1458] [cursor=pointer]:
+            - cell "16:48:52" [ref=e1459]
+            - cell "bullish" [ref=e1460]:
+              - generic [ref=e1461]: bullish
+            - cell "—" [ref=e1463]
+            - cell "Nuclear energy stocks extend gains in busy news week" [ref=e1464]:
+              - link "Nuclear energy stocks extend gains in busy news week" [ref=e1465]:
+                - /url: https://seekingalpha.com/news/4575453-nuclear-energy-stocks-extend-gains-in-busy-news-week?utm_source=feed_news_all&utm_medium=referral&feed_item_type=news
+            - cell "—" [ref=e1466]
+            - cell "—" [ref=e1467]
+          - row "16:45:20 neutral — Economy remains resilient amid energy price shocks – Bespoke’s Paul Hickey — —" [ref=e1468] [cursor=pointer]:
+            - cell "16:45:20" [ref=e1469]
+            - cell "neutral" [ref=e1470]:
+              - generic [ref=e1471]: neutral
+            - cell "—" [ref=e1473]
+            - cell "Economy remains resilient amid energy price shocks – Bespoke’s Paul Hickey" [ref=e1474]:
+              - link "Economy remains resilient amid energy price shocks – Bespoke’s Paul Hickey" [ref=e1475]:
+                - /url: https://seekingalpha.com/news/4575491-economy-remains-resilient-amid-energy-price-shocks-bespoke-s-paul-hickey?utm_source=feed_news_all&utm_medium=referral&feed_item_type=news
+            - cell "—" [ref=e1476]
+            - cell "—" [ref=e1477]
+          - row "16:44:13 neutral — Regions Financial Corp Deposit Shs Repr Non-Cum Perp Pfd Shs Series C declares $0.3562 dividend — —" [ref=e1478] [cursor=pointer]:
+            - cell "16:44:13" [ref=e1479]
+            - cell "neutral" [ref=e1480]:
+              - generic [ref=e1481]: neutral
+            - cell "—" [ref=e1483]
+            - cell "Regions Financial Corp Deposit Shs Repr Non-Cum Perp Pfd Shs Series C declares $0.3562 dividend" [ref=e1484]:
+              - link "Regions Financial Corp Deposit Shs Repr Non-Cum Perp Pfd Shs Series C declares $0.3562 dividend" [ref=e1485]:
+                - /url: https://seekingalpha.com/news/4575493-regions-financial-corp-deposit-shs-repr-non-cum-perp-pfd-shs-series-c-declares-0_3562?utm_source=feed_news_all&utm_medium=referral&feed_item_type=news
+            - cell "—" [ref=e1486]
+            - cell "—" [ref=e1487]
+          - 'row "16:44:00 bearish — ‘I’m in my 30s and majored in finance’: In the age of AI, which pays off — a CFA or an executive MBA? — —" [ref=e1488] [cursor=pointer]':
+            - cell "16:44:00" [ref=e1489]
+            - cell "bearish" [ref=e1490]:
+              - generic [ref=e1491]: bearish
+            - cell "—" [ref=e1493]
+            - 'cell "‘I’m in my 30s and majored in finance’: In the age of AI, which pays off — a CFA or an executive MBA?" [ref=e1494]':
+              - 'link "‘I’m in my 30s and majored in finance’: In the age of AI, which pays off — a CFA or an executive MBA?" [ref=e1495]':
+                - /url: https://www.marketwatch.com/story/im-in-my-30s-and-majored-in-finance-in-the-age-of-ai-which-pays-off-a-cfa-or-an-executive-mba-15350461?mod=mw_rss_topstories
+            - cell "—" [ref=e1496]
+            - cell "—" [ref=e1497]
+          - row "16:43:56 neutral — Regions Financial Corporation DEPOSITARY SHS REP 1/40TH PERP PFD SER E declares $0.2781 dividend DUP — —" [ref=e1498] [cursor=pointer]:
+            - cell "16:43:56" [ref=e1499]
+            - cell "neutral" [ref=e1500]:
+              - generic [ref=e1501]: neutral
+            - cell "—" [ref=e1503]
+            - cell "Regions Financial Corporation DEPOSITARY SHS REP 1/40TH PERP PFD SER E declares $0.2781 dividend DUP" [ref=e1504]:
+              - link "Regions Financial Corporation DEPOSITARY SHS REP 1/40TH PERP PFD SER E declares $0.2781 dividend" [ref=e1505]:
+                - /url: https://seekingalpha.com/news/4575492-regions-financial-corporation-depositary-shs-rep-1-40th-perp-pfd-ser-e-declares-0_2781?utm_source=feed_news_all&utm_medium=referral&feed_item_type=news
+              - generic [ref=e1506]: DUP
+            - cell "—" [ref=e1507]
+            - cell "—" [ref=e1508]
+          - row "16:43:38 neutral — Regions Financial Corporation DEP SHS PFD SE F declares $0.4343 dividend — —" [ref=e1509] [cursor=pointer]:
+            - cell "16:43:38" [ref=e1510]
+            - cell "neutral" [ref=e1511]:
+              - generic [ref=e1512]: neutral
+            - cell "—" [ref=e1514]
+            - cell "Regions Financial Corporation DEP SHS PFD SE F declares $0.4343 dividend" [ref=e1515]:
+              - link "Regions Financial Corporation DEP SHS PFD SE F declares $0.4343 dividend" [ref=e1516]:
+                - /url: https://seekingalpha.com/news/4575490-regions-financial-corporation-dep-shs-pfd-se-f-declares-0_4343-dividend?utm_source=feed_news_all&utm_medium=referral&feed_item_type=news
+            - cell "—" [ref=e1517]
+            - cell "—" [ref=e1518]
+          - row "16:41:39 neutral — Live Nation found guilty of monopolizing ticket market, overcharging concert-goers — —" [ref=e1519] [cursor=pointer]:
+            - cell "16:41:39" [ref=e1520]
+            - cell "neutral" [ref=e1521]:
+              - generic [ref=e1522]: neutral
+            - cell "—" [ref=e1524]
+            - cell "Live Nation found guilty of monopolizing ticket market, overcharging concert-goers" [ref=e1525]:
+              - link "Live Nation found guilty of monopolizing ticket market, overcharging concert-goers" [ref=e1526]:
+                - /url: https://seekingalpha.com/news/4575433-live-nation-found-guilty-of-monopolizing-ticket-market-overcharging-concert-goers?utm_source=feed_news_all&utm_medium=referral&feed_item_type=news
+            - cell "—" [ref=e1527]
+            - cell "—" [ref=e1528]
+          - row "16:41:29 neutral — Cineverse appoints new CFO — —" [ref=e1529] [cursor=pointer]:
+            - cell "16:41:29" [ref=e1530]
+            - cell "neutral" [ref=e1531]:
+              - generic [ref=e1532]: neutral
+            - cell "—" [ref=e1534]
+            - cell "Cineverse appoints new CFO" [ref=e1535]:
+              - link "Cineverse appoints new CFO" [ref=e1536]:
+                - /url: https://seekingalpha.com/news/4575488-cineverse-appoints-new-cfo?utm_source=feed_news_all&utm_medium=referral&feed_item_type=news
+            - cell "—" [ref=e1537]
+            - cell "—" [ref=e1538]
+          - row "16:39:42 neutral — Carriage declares $0.1125 dividend — —" [ref=e1539] [cursor=pointer]:
+            - cell "16:39:42" [ref=e1540]
+            - cell "neutral" [ref=e1541]:
+              - generic [ref=e1542]: neutral
+            - cell "—" [ref=e1544]
+            - cell "Carriage declares $0.1125 dividend" [ref=e1545]:
+              - link "Carriage declares $0.1125 dividend" [ref=e1546]:
+                - /url: https://seekingalpha.com/news/4575487-carriage-declares-0_1125-dividend?utm_source=feed_news_all&utm_medium=referral&feed_item_type=news
+            - cell "—" [ref=e1547]
+            - cell "—" [ref=e1548]
+          - row "16:39:20 neutral — HIVE Digital Technologies plans $75M exchangeable notes offering — —" [ref=e1549] [cursor=pointer]:
+            - cell "16:39:20" [ref=e1550]
+            - cell "neutral" [ref=e1551]:
+              - generic [ref=e1552]: neutral
+            - cell "—" [ref=e1554]
+            - cell "HIVE Digital Technologies plans $75M exchangeable notes offering" [ref=e1555]:
+              - link "HIVE Digital Technologies plans $75M exchangeable notes offering" [ref=e1556]:
+                - /url: https://seekingalpha.com/news/4575486-hive-digital-technologies-plans-75m-exchangeable-notes-offering?utm_source=feed_news_all&utm_medium=referral&feed_item_type=news
+            - cell "—" [ref=e1557]
+            - cell "—" [ref=e1558]
+          - row "16:38:59 neutral — General American Investors Company, Inc. PFD B 5.95% declares $0.3719 dividend — —" [ref=e1559] [cursor=pointer]:
+            - cell "16:38:59" [ref=e1560]
+            - cell "neutral" [ref=e1561]:
+              - generic [ref=e1562]: neutral
+            - cell "—" [ref=e1564]
+            - cell "General American Investors Company, Inc. PFD B 5.95% declares $0.3719 dividend" [ref=e1565]:
+              - link "General American Investors Company, Inc. PFD B 5.95% declares $0.3719 dividend" [ref=e1566]:
+                - /url: https://seekingalpha.com/news/4575485-general-american-investors-company-inc-pfd-b-5_95-percent-declares-0_3719-dividend?utm_source=feed_news_all&utm_medium=referral&feed_item_type=news
+            - cell "—" [ref=e1567]
+            - cell "—" [ref=e1568]
+          - row "16:36:54 neutral — Ally Financial declares $0.30 dividend — —" [ref=e1569] [cursor=pointer]:
+            - cell "16:36:54" [ref=e1570]
+            - cell "neutral" [ref=e1571]:
+              - generic [ref=e1572]: neutral
+            - cell "—" [ref=e1574]
+            - cell "Ally Financial declares $0.30 dividend" [ref=e1575]:
+              - link "Ally Financial declares $0.30 dividend" [ref=e1576]:
+                - /url: https://seekingalpha.com/news/4575482-ally-financial-declares-0_30-dividend?utm_source=feed_news_all&utm_medium=referral&feed_item_type=news
+            - cell "—" [ref=e1577]
+            - cell "—" [ref=e1578]
+          - row "16:35:49 neutral — DuPont declares $0.20 dividend — —" [ref=e1579] [cursor=pointer]:
+            - cell "16:35:49" [ref=e1580]
+            - cell "neutral" [ref=e1581]:
+              - generic [ref=e1582]: neutral
+            - cell "—" [ref=e1584]
+            - cell "DuPont declares $0.20 dividend" [ref=e1585]:
+              - link "DuPont declares $0.20 dividend" [ref=e1586]:
+                - /url: https://seekingalpha.com/news/4575481-dupont-declares-0_20-dividend?utm_source=feed_news_all&utm_medium=referral&feed_item_type=news
+            - cell "—" [ref=e1587]
+            - cell "—" [ref=e1588]
+          - row "16:35:28 bearish — QuidelOrtho stock plunges on weak revenue guidance — —" [ref=e1589] [cursor=pointer]:
+            - cell "16:35:28" [ref=e1590]
+            - cell "bearish" [ref=e1591]:
+              - generic [ref=e1592]: bearish
+            - cell "—" [ref=e1594]
+            - cell "QuidelOrtho stock plunges on weak revenue guidance" [ref=e1595]:
+              - link "QuidelOrtho stock plunges on weak revenue guidance" [ref=e1596]:
+                - /url: https://www.investing.com/news/stock-market-news/quidelortho-stock-plunges-on-weak-revenue-guidance-93CH-4616548
+            - cell "—" [ref=e1597]
+            - cell "—" [ref=e1598]
+          - row "16:34:57 neutral — Concord Healthcare files annual report with Hong Kong Stock Exchange — —" [ref=e1599] [cursor=pointer]:
+            - cell "16:34:57" [ref=e1600]
+            - cell "neutral" [ref=e1601]:
+              - generic [ref=e1602]: neutral
+            - cell "—" [ref=e1604]
+            - cell "Concord Healthcare files annual report with Hong Kong Stock Exchange" [ref=e1605]:
+              - link "Concord Healthcare files annual report with Hong Kong Stock Exchange" [ref=e1606]:
+                - /url: https://www.investing.com/news/sec-filings/concord-healthcare-files-annual-report-with-hong-kong-stock-exchange-93CH-4616547
+            - cell "—" [ref=e1607]
+            - cell "—" [ref=e1608]
+          - row "16:34:08 neutral — Fitzgerald of StubHub sells $10k in stock — —" [ref=e1609] [cursor=pointer]:
+            - cell "16:34:08" [ref=e1610]
+            - cell "neutral" [ref=e1611]:
+              - generic [ref=e1612]: neutral
+            - cell "—" [ref=e1614]
+            - cell "Fitzgerald of StubHub sells $10k in stock" [ref=e1615]:
+              - link "Fitzgerald of StubHub sells $10k in stock" [ref=e1616]:
+                - /url: https://www.investing.com/news/insider-trading-news/fitzgerald-of-stubhub-sells-10k-in-stock-93CH-4616544
+            - cell "—" [ref=e1617]
+            - cell "—" [ref=e1618]
+          - row "16:34:08 neutral — Virtuix Holdings CEO Goetgeluk sells $66869 in VTIX stock — —" [ref=e1619] [cursor=pointer]:
+            - cell "16:34:08" [ref=e1620]
+            - cell "neutral" [ref=e1621]:
+              - generic [ref=e1622]: neutral
+            - cell "—" [ref=e1624]
+            - cell "Virtuix Holdings CEO Goetgeluk sells $66869 in VTIX stock" [ref=e1625]:
+              - link "Virtuix Holdings CEO Goetgeluk sells $66869 in VTIX stock" [ref=e1626]:
+                - /url: https://www.investing.com/news/insider-trading-news/virtuix-holdings-ceo-goetgeluk-sells-66869-in-vtix-stock-93CH-4616545
+            - cell "—" [ref=e1627]
+            - cell "—" [ref=e1628]
+          - 'row "16:33:30 bearish — Form 144 Verisk Analytics For: 15 April — —" [ref=e1629] [cursor=pointer]':
+            - cell "16:33:30" [ref=e1630]
+            - cell "bearish" [ref=e1631]:
+              - generic [ref=e1632]: bearish
+            - cell "—" [ref=e1634]
+            - 'cell "Form 144 Verisk Analytics For: 15 April" [ref=e1635]':
+              - 'link "Form 144 Verisk Analytics For: 15 April" [ref=e1636]':
+                - /url: https://www.investing.com/news/filings/form-144-verisk-analytics-for-15-april-93CH-4616541
+            - cell "—" [ref=e1637]
+            - cell "—" [ref=e1638]
+          - 'row "16:33:29 neutral — Form 144 MapLight Therapeutics For: 15 April — —" [ref=e1639] [cursor=pointer]':
+            - cell "16:33:29" [ref=e1640]
+            - cell "neutral" [ref=e1641]:
+              - generic [ref=e1642]: neutral
+            - cell "—" [ref=e1644]
+            - 'cell "Form 144 MapLight Therapeutics For: 15 April" [ref=e1645]':
+              - 'link "Form 144 MapLight Therapeutics For: 15 April" [ref=e1646]':
+                - /url: https://www.investing.com/news/filings/form-144-maplight-therapeutics-for-15-april-93CH-4616540
+            - cell "—" [ref=e1647]
+            - cell "—" [ref=e1648]
+          - 'row "16:33:21 neutral — Form 144 GOLDMAN SACHS GROUP INC For: 15 April — —" [ref=e1649] [cursor=pointer]':
+            - cell "16:33:21" [ref=e1650]
+            - cell "neutral" [ref=e1651]:
+              - generic [ref=e1652]: neutral
+            - cell "—" [ref=e1654]
+            - 'cell "Form 144 GOLDMAN SACHS GROUP INC For: 15 April" [ref=e1655]':
+              - 'link "Form 144 GOLDMAN SACHS GROUP INC For: 15 April" [ref=e1656]':
+                - /url: https://www.investing.com/news/filings/form-144-goldman-sachs-group-inc-for-15-april-93CH-4616539
+            - cell "—" [ref=e1657]
+            - cell "—" [ref=e1658]
+          - 'row "16:33:19 neutral — Form 144 Mineralys Therapeutics For: 15 April — —" [ref=e1659] [cursor=pointer]':
+            - cell "16:33:19" [ref=e1660]
+            - cell "neutral" [ref=e1661]:
+              - generic [ref=e1662]: neutral
+            - cell "—" [ref=e1664]
+            - 'cell "Form 144 Mineralys Therapeutics For: 15 April" [ref=e1665]':
+              - 'link "Form 144 Mineralys Therapeutics For: 15 April" [ref=e1666]':
+                - /url: https://www.investing.com/news/filings/form-144-mineralys-therapeutics-for-15-april-93CH-4616538
+            - cell "—" [ref=e1667]
+            - cell "—" [ref=e1668]
+          - 'row "16:33:15 neutral — Form 144 Core & Main For: 15 April — —" [ref=e1669] [cursor=pointer]':
+            - cell "16:33:15" [ref=e1670]
+            - cell "neutral" [ref=e1671]:
+              - generic [ref=e1672]: neutral
+            - cell "—" [ref=e1674]
+            - 'cell "Form 144 Core & Main For: 15 April" [ref=e1675]':
+              - 'link "Form 144 Core & Main For: 15 April" [ref=e1676]':
+                - /url: https://www.investing.com/news/filings/form-144-core--main-for-15-april-93CH-4616537
+            - cell "—" [ref=e1677]
+            - cell "—" [ref=e1678]
+          - row "16:32:57 neutral — Cineverse appoints Sean McCabe as chief financial officer — —" [ref=e1679] [cursor=pointer]:
+            - cell "16:32:57" [ref=e1680]
+            - cell "neutral" [ref=e1681]:
+              - generic [ref=e1682]: neutral
+            - cell "—" [ref=e1684]
+            - cell "Cineverse appoints Sean McCabe as chief financial officer" [ref=e1685]:
+              - link "Cineverse appoints Sean McCabe as chief financial officer" [ref=e1686]:
+                - /url: https://www.investing.com/news/company-news/cineverse-appoints-sean-mccabe-as-chief-financial-officer-93CH-4616535
+            - cell "—" [ref=e1687]
+            - cell "—" [ref=e1688]
+          - row "16:30:22 bullish — The stock market is in a stronger position now than earlier this year – Fundstrat’s Tom Lee — —" [ref=e1689] [cursor=pointer]:
+            - cell "16:30:22" [ref=e1690]
+            - cell "bullish" [ref=e1691]:
+              - generic [ref=e1692]: bullish
+            - cell "—" [ref=e1694]
+            - cell "The stock market is in a stronger position now than earlier this year – Fundstrat’s Tom Lee" [ref=e1695]:
+              - link "The stock market is in a stronger position now than earlier this year – Fundstrat’s Tom Lee" [ref=e1696]:
+                - /url: https://seekingalpha.com/news/4575473-the-stock-market-is-in-a-stronger-position-now-than-earlier-this-year-fundstrat-s-tom-lee?utm_source=feed_news_all&utm_medium=referral&feed_item_type=news
+            - cell "—" [ref=e1697]
+            - cell "—" [ref=e1698]
+          - row "16:30:10 bullish — OpenAI updates Agents SDK to improve agent safety and capability for enterprises — —" [ref=e1699] [cursor=pointer]:
+            - cell "16:30:10" [ref=e1700]
+            - cell "bullish" [ref=e1701]:
+              - generic [ref=e1702]: bullish
+            - cell "—" [ref=e1704]
+            - cell "OpenAI updates Agents SDK to improve agent safety and capability for enterprises" [ref=e1705]:
+              - link "OpenAI updates Agents SDK to improve agent safety and capability for enterprises" [ref=e1706]:
+                - /url: https://seekingalpha.com/news/4575434-openai-updates-agents-sdk-to-improve-agent-safety-and-capability-for-enterprises?utm_source=feed_news_all&utm_medium=referral&feed_item_type=news
+            - cell "—" [ref=e1707]
+            - cell "—" [ref=e1708]
+          - row "16:30:03 neutral — S&P 500 hits record highs, but analysts warn of stagflation risks — —" [ref=e1709] [cursor=pointer]:
+            - cell "16:30:03" [ref=e1710]
+            - cell "neutral" [ref=e1711]:
+              - generic [ref=e1712]: neutral
+            - cell "—" [ref=e1714]
+            - cell "S&P 500 hits record highs, but analysts warn of stagflation risks" [ref=e1715]:
+              - link "S&P 500 hits record highs, but analysts warn of stagflation risks" [ref=e1716]:
+                - /url: https://seekingalpha.com/news/4575451-s-and-p-500-hits-record-highs-but-analysts-warn-of-stagflation-risks?utm_source=feed_news_all&utm_medium=referral&feed_item_type=news
+            - cell "—" [ref=e1717]
+            - cell "—" [ref=e1718]
+          - row "16:29:32 neutral — Costco raises quarterly dividend by 13.1% to $1.47/share — —" [ref=e1719] [cursor=pointer]:
+            - cell "16:29:32" [ref=e1720]
+            - cell "neutral" [ref=e1721]:
+              - generic [ref=e1722]: neutral
+            - cell "—" [ref=e1724]
+            - cell "Costco raises quarterly dividend by 13.1% to $1.47/share" [ref=e1725]:
+              - link "Costco raises quarterly dividend by 13.1% to $1.47/share" [ref=e1726]:
+                - /url: https://seekingalpha.com/news/4575475-costco-raises-quarterly-dividend-by-131-to-147share?utm_source=feed_news_all&utm_medium=referral&feed_item_type=news
+            - cell "—" [ref=e1727]
+            - cell "—" [ref=e1728]
+          - row "16:27:56 bearish — QuidelOrtho flags weak Q1 revenue on softer respiratory season — —" [ref=e1729] [cursor=pointer]:
+            - cell "16:27:56" [ref=e1730]
+            - cell "bearish" [ref=e1731]:
+              - generic [ref=e1732]: bearish
+            - cell "—" [ref=e1734]
+            - cell "QuidelOrtho flags weak Q1 revenue on softer respiratory season" [ref=e1735]:
+              - link "QuidelOrtho flags weak Q1 revenue on softer respiratory season" [ref=e1736]:
+                - /url: https://seekingalpha.com/news/4575458-quidelortho-flags-weak-q1-revenue-on-softer-respiratory-season?utm_source=feed_news_all&utm_medium=referral&feed_item_type=news
+            - cell "—" [ref=e1737]
+            - cell "—" [ref=e1738]
+          - row "16:27:43 neutral — Ford shakes things up with restructuring, EV leader exit — —" [ref=e1739] [cursor=pointer]:
+            - cell "16:27:43" [ref=e1740]
+            - cell "neutral" [ref=e1741]:
+              - generic [ref=e1742]: neutral
+            - cell "—" [ref=e1744]
+            - cell "Ford shakes things up with restructuring, EV leader exit" [ref=e1745]:
+              - link "Ford shakes things up with restructuring, EV leader exit" [ref=e1746]:
+                - /url: https://seekingalpha.com/news/4575441-ford-shakes-things-up-with-restructuring-ev-leader-exit?utm_source=feed_news_all&utm_medium=referral&feed_item_type=news
+            - cell "—" [ref=e1747]
+            - cell "—" [ref=e1748]
+          - row "16:27:20 neutral — Antero Midstream declares $0.225 dividend — —" [ref=e1749] [cursor=pointer]:
+            - cell "16:27:20" [ref=e1750]
+            - cell "neutral" [ref=e1751]:
+              - generic [ref=e1752]: neutral
+            - cell "—" [ref=e1754]
+            - cell "Antero Midstream declares $0.225 dividend" [ref=e1755]:
+              - link "Antero Midstream declares $0.225 dividend" [ref=e1756]:
+                - /url: https://seekingalpha.com/news/4575471-antero-midstream-declares-0_225-dividend?utm_source=feed_news_all&utm_medium=referral&feed_item_type=news
+            - cell "—" [ref=e1757]
+            - cell "—" [ref=e1758]
+          - row "16:26:42 bearish — Voyager wins NASA order for VOYG-1 private astronaut mission — —" [ref=e1759] [cursor=pointer]:
+            - cell "16:26:42" [ref=e1760]
+            - cell "bearish" [ref=e1761]:
+              - generic [ref=e1762]: bearish
+            - cell "—" [ref=e1764]
+            - cell "Voyager wins NASA order for VOYG-1 private astronaut mission" [ref=e1765]:
+              - link "Voyager wins NASA order for VOYG-1 private astronaut mission" [ref=e1766]:
+                - /url: https://seekingalpha.com/news/4575444-voyager-wins-nasa-order-for-voyg-1-private-astronaut-mission?utm_source=feed_news_all&utm_medium=referral&feed_item_type=news
+            - cell "—" [ref=e1767]
+            - cell "—" [ref=e1768]
+          - row "16:26:32 neutral — SL Green Q1 earnings disappoint even as leasing volume hits quarterly record — —" [ref=e1769] [cursor=pointer]:
+            - cell "16:26:32" [ref=e1770]
+            - cell "neutral" [ref=e1771]:
+              - generic [ref=e1772]: neutral
+            - cell "—" [ref=e1774]
+            - cell "SL Green Q1 earnings disappoint even as leasing volume hits quarterly record" [ref=e1775]:
+              - link "SL Green Q1 earnings disappoint even as leasing volume hits quarterly record" [ref=e1776]:
+                - /url: https://seekingalpha.com/news/4575443-sl-green-q1-earnings-disappoint-even-as-leasing-volume-hits-quarterly-record?utm_source=feed_news_all&utm_medium=referral&feed_item_type=news
+            - cell "—" [ref=e1777]
+            - cell "—" [ref=e1778]
+          - row "16:26:31 neutral — Carrier Global declares $0.24 dividend — —" [ref=e1779] [cursor=pointer]:
+            - cell "16:26:31" [ref=e1780]
+            - cell "neutral" [ref=e1781]:
+              - generic [ref=e1782]: neutral
+            - cell "—" [ref=e1784]
+            - cell "Carrier Global declares $0.24 dividend" [ref=e1785]:
+              - link "Carrier Global declares $0.24 dividend" [ref=e1786]:
+                - /url: https://seekingalpha.com/news/4575469-carrier-global-declares-0_24-dividend?utm_source=feed_news_all&utm_medium=referral&feed_item_type=news
+            - cell "—" [ref=e1787]
+            - cell "—" [ref=e1788]
+          - row "16:25:58 neutral — Invesco Mortgage Capital declares $0.12 dividend — —" [ref=e1789] [cursor=pointer]:
+            - cell "16:25:58" [ref=e1790]
+            - cell "neutral" [ref=e1791]:
+              - generic [ref=e1792]: neutral
+            - cell "—" [ref=e1794]
+            - cell "Invesco Mortgage Capital declares $0.12 dividend" [ref=e1795]:
+              - link "Invesco Mortgage Capital declares $0.12 dividend" [ref=e1796]:
+                - /url: https://seekingalpha.com/news/4575468-invesco-mortgage-capital-declares-0_12-dividend?utm_source=feed_news_all&utm_medium=referral&feed_item_type=news
+            - cell "—" [ref=e1797]
+            - cell "—" [ref=e1798]
+          - row "16:25:40 neutral — PPG hikes prices of all products by up to 20% — —" [ref=e1799] [cursor=pointer]:
+            - cell "16:25:40" [ref=e1800]
+            - cell "neutral" [ref=e1801]:
+              - generic [ref=e1802]: neutral
+            - cell "—" [ref=e1804]
+            - cell "PPG hikes prices of all products by up to 20%" [ref=e1805]:
+              - link "PPG hikes prices of all products by up to 20%" [ref=e1806]:
+                - /url: https://seekingalpha.com/news/4575452-ppg-hikes-prices-of-all-products-by-up-to-20?utm_source=feed_news_all&utm_medium=referral&feed_item_type=news
+            - cell "—" [ref=e1807]
+            - cell "—" [ref=e1808]
+          - row "16:24:46 neutral — Celanese declares $0.03 dividend — —" [ref=e1809] [cursor=pointer]:
+            - cell "16:24:46" [ref=e1810]
+            - cell "neutral" [ref=e1811]:
+              - generic [ref=e1812]: neutral
+            - cell "—" [ref=e1814]
+            - cell "Celanese declares $0.03 dividend" [ref=e1815]:
+              - link "Celanese declares $0.03 dividend" [ref=e1816]:
+                - /url: https://seekingalpha.com/news/4575467-celanese-declares-0_03-dividend?utm_source=feed_news_all&utm_medium=referral&feed_item_type=news
+            - cell "—" [ref=e1817]
+            - cell "—" [ref=e1818]
+          - row "16:23:56 neutral — EPR Properties declares $0.31 dividend — —" [ref=e1819] [cursor=pointer]:
+            - cell "16:23:56" [ref=e1820]
+            - cell "neutral" [ref=e1821]:
+              - generic [ref=e1822]: neutral
+            - cell "—" [ref=e1824]
+            - cell "EPR Properties declares $0.31 dividend" [ref=e1825]:
+              - link "EPR Properties declares $0.31 dividend" [ref=e1826]:
+                - /url: https://seekingalpha.com/news/4575466-epr-properties-declares-0_31-dividend?utm_source=feed_news_all&utm_medium=referral&feed_item_type=news
+            - cell "—" [ref=e1827]
+            - cell "—" [ref=e1828]
+          - row "16:13:08 neutral — Riley Permian declares $0.40 quarterly dividend DUP — —" [ref=e1829] [cursor=pointer]:
+            - cell "16:13:08" [ref=e1830]
+            - cell "neutral" [ref=e1831]:
+              - generic [ref=e1832]: neutral
+            - cell "—" [ref=e1834]
+            - cell "Riley Permian declares $0.40 quarterly dividend DUP" [ref=e1835]:
+              - link "Riley Permian declares $0.40 quarterly dividend" [ref=e1836]:
+                - /url: https://www.investing.com/news/company-news/riley-permian-declares-040-quarterly-dividend-93CH-4616426
+              - generic [ref=e1837]: DUP
+            - cell "—" [ref=e1838]
+            - cell "—" [ref=e1839]
+          - row "16:13:06 neutral — T3 Defense reports Q1 revenue of $4.2M, reaffirms 2026 guidance — —" [ref=e1840] [cursor=pointer]:
+            - cell "16:13:06" [ref=e1841]
+            - cell "neutral" [ref=e1842]:
+              - generic [ref=e1843]: neutral
+            - cell "—" [ref=e1845]
+            - cell "T3 Defense reports Q1 revenue of $4.2M, reaffirms 2026 guidance" [ref=e1846]:
+              - link "T3 Defense reports Q1 revenue of $4.2M, reaffirms 2026 guidance" [ref=e1847]:
+                - /url: https://www.investing.com/news/company-news/t3-defense-reports-q1-revenue-of-42m-reaffirms-2026-guidance-93CH-4616425
+            - cell "—" [ref=e1848]
+            - cell "—" [ref=e1849]
+          - row "16:13:02 neutral — Ford restructures operations, names new leadership — —" [ref=e1850] [cursor=pointer]:
+            - cell "16:13:02" [ref=e1851]
+            - cell "neutral" [ref=e1852]:
+              - generic [ref=e1853]: neutral
+            - cell "—" [ref=e1855]
+            - cell "Ford restructures operations, names new leadership" [ref=e1856]:
+              - link "Ford restructures operations, names new leadership" [ref=e1857]:
+                - /url: https://www.investing.com/news/company-news/ford-restructures-operations-names-new-leadership-93CH-4616423
+            - cell "—" [ref=e1858]
+            - cell "—" [ref=e1859]
+          - row "16:13:02 bearish — Voyager Technologies secures NASA contract for ISS mission — —" [ref=e1860] [cursor=pointer]:
+            - cell "16:13:02" [ref=e1861]
+            - cell "bearish" [ref=e1862]:
+              - generic [ref=e1863]: bearish
+            - cell "—" [ref=e1865]
+            - cell "Voyager Technologies secures NASA contract for ISS mission" [ref=e1866]:
+              - link "Voyager Technologies secures NASA contract for ISS mission" [ref=e1867]:
+                - /url: https://www.investing.com/news/company-news/voyager-technologies-secures-nasa-contract-for-iss-mission-93CH-4616424
+            - cell "—" [ref=e1868]
+            - cell "—" [ref=e1869]
+          - row "16:13:00 neutral — Glaukos receives new J-code for keratoconus treatment Epioxa — —" [ref=e1870] [cursor=pointer]:
+            - cell "16:13:00" [ref=e1871]
+            - cell "neutral" [ref=e1872]:
+              - generic [ref=e1873]: neutral
+            - cell "—" [ref=e1875]
+            - cell "Glaukos receives new J-code for keratoconus treatment Epioxa" [ref=e1876]:
+              - link "Glaukos receives new J-code for keratoconus treatment Epioxa" [ref=e1877]:
+                - /url: https://www.investing.com/news/company-news/glaukos-receives-new-jcode-for-keratoconus-treatment-epioxa-93CH-4616422
+            - cell "—" [ref=e1878]
+            - cell "—" [ref=e1879]
+          - 'row "16:12:05 bearish — S&P 500 and Nasdaq Composite close at fresh records as traders look past Iran war fears: Live updates — —" [ref=e1880] [cursor=pointer]':
+            - cell "16:12:05" [ref=e1881]
+            - cell "bearish" [ref=e1882]:
+              - generic [ref=e1883]: bearish
+            - cell "—" [ref=e1885]
+            - 'cell "S&P 500 and Nasdaq Composite close at fresh records as traders look past Iran war fears: Live updates" [ref=e1886]':
+              - 'link "S&P 500 and Nasdaq Composite close at fresh records as traders look past Iran war fears: Live updates" [ref=e1887]':
+                - /url: https://www.cnbc.com/2026/04/14/stock-market-today-live-updates.html
+            - cell "—" [ref=e1888]
+            - cell "—" [ref=e1889]
+          - row "16:11:15 neutral — Euroseas extends charter for EM Kea at higher rate — —" [ref=e1890] [cursor=pointer]:
+            - cell "16:11:15" [ref=e1891]
+            - cell "neutral" [ref=e1892]:
+              - generic [ref=e1893]: neutral
+            - cell "—" [ref=e1895]
+            - cell "Euroseas extends charter for EM Kea at higher rate" [ref=e1896]:
+              - link "Euroseas extends charter for EM Kea at higher rate" [ref=e1897]:
+                - /url: https://seekingalpha.com/news/4575447-euroseas-extends-charter-for-em-kea-at-higher-rate?utm_source=feed_news_all&utm_medium=referral&feed_item_type=news
+            - cell "—" [ref=e1898]
+            - cell "—" [ref=e1899]
+          - row "16:09:48 neutral — Struggling shoe retailer Allbirds makes bizarre pivot to AI, adds $127 million in value — —" [ref=e1900] [cursor=pointer]:
+            - cell "16:09:48" [ref=e1901]
+            - cell "neutral" [ref=e1902]:
+              - generic [ref=e1903]: neutral
+            - cell "—" [ref=e1905]
+            - cell "Struggling shoe retailer Allbirds makes bizarre pivot to AI, adds $127 million in value" [ref=e1906]:
+              - link "Struggling shoe retailer Allbirds makes bizarre pivot to AI, adds $127 million in value" [ref=e1907]:
+                - /url: https://www.cnbc.com/2026/04/15/allbirds-bird-stock-shoes-ai.html
+            - cell "—" [ref=e1908]
+            - cell "—" [ref=e1909]
+          - row "16:09:22 neutral — Agereh Technologies announces $200K convertible debenture private placement — —" [ref=e1910] [cursor=pointer]:
+            - cell "16:09:22" [ref=e1911]
+            - cell "neutral" [ref=e1912]:
+              - generic [ref=e1913]: neutral
+            - cell "—" [ref=e1915]
+            - cell "Agereh Technologies announces $200K convertible debenture private placement" [ref=e1916]:
+              - link "Agereh Technologies announces $200K convertible debenture private placement" [ref=e1917]:
+                - /url: https://seekingalpha.com/news/4575450-agereh-technologies-announces-200k-convertible-debenture-private-placement?utm_source=feed_news_all&utm_medium=referral&feed_item_type=news
+            - cell "—" [ref=e1918]
+            - cell "—" [ref=e1919]
+          - row "16:08:31 bullish — J.B. Hunt Transport Services GAAP EPS of $1.49 beats by $0.03, revenue of $3.06B beats by $100M — —" [ref=e1920] [cursor=pointer]:
+            - cell "16:08:31" [ref=e1921]
+            - cell "bullish" [ref=e1922]:
+              - generic [ref=e1923]: bullish
+            - cell "—" [ref=e1925]
+            - cell "J.B. Hunt Transport Services GAAP EPS of $1.49 beats by $0.03, revenue of $3.06B beats by $100M" [ref=e1926]:
+              - link "J.B. Hunt Transport Services GAAP EPS of $1.49 beats by $0.03, revenue of $3.06B beats by $100M" [ref=e1927]:
+                - /url: https://seekingalpha.com/news/4575449-j-b-hunt-transport-services-gaap-eps-of-1_49-beats-by-0_03-revenue-of-3_06b-beats-by-100m?utm_source=feed_news_all&utm_medium=referral&feed_item_type=news
+            - cell "—" [ref=e1928]
+            - cell "—" [ref=e1929]
+          - row "16:08:24 neutral — U.S., Iran could resume peace talks in Pakistan next week - report — —" [ref=e1930] [cursor=pointer]:
+            - cell "16:08:24" [ref=e1931]
+            - cell "neutral" [ref=e1932]:
+              - generic [ref=e1933]: neutral
+            - cell "—" [ref=e1935]
+            - cell "U.S., Iran could resume peace talks in Pakistan next week - report" [ref=e1936]:
+              - link "U.S., Iran could resume peace talks in Pakistan next week - report" [ref=e1937]:
+                - /url: https://seekingalpha.com/news/4575432-us-iran-could-resume-peace-talks-in-pakistan-next-week---report?utm_source=feed_news_all&utm_medium=referral&feed_item_type=news
+            - cell "—" [ref=e1938]
+            - cell "—" [ref=e1939]
+          - row "16:08:09 neutral — Riley Exploration Permian declares $0.40 dividend — —" [ref=e1940] [cursor=pointer]:
+            - cell "16:08:09" [ref=e1941]
+            - cell "neutral" [ref=e1942]:
+              - generic [ref=e1943]: neutral
+            - cell "—" [ref=e1945]
+            - cell "Riley Exploration Permian declares $0.40 dividend" [ref=e1946]:
+              - link "Riley Exploration Permian declares $0.40 dividend" [ref=e1947]:
+                - /url: https://seekingalpha.com/news/4575448-riley-exploration-permian-declares-0_40-dividend?utm_source=feed_news_all&utm_medium=referral&feed_item_type=news
+            - cell "—" [ref=e1948]
+            - cell "—" [ref=e1949]
+          - row "16:07:35 bearish — SL Green Realty FFO of $0.84 misses by $0.24, revenue of $253.08M — —" [ref=e1950] [cursor=pointer]:
+            - cell "16:07:35" [ref=e1951]
+            - cell "bearish" [ref=e1952]:
+              - generic [ref=e1953]: bearish
+            - cell "—" [ref=e1955]
+            - cell "SL Green Realty FFO of $0.84 misses by $0.24, revenue of $253.08M" [ref=e1956]:
+              - link "SL Green Realty FFO of $0.84 misses by $0.24, revenue of $253.08M" [ref=e1957]:
+                - /url: https://seekingalpha.com/news/4575446-sl-green-realty-ffo-of-084-misses-by-024-revenue-of-25308m?utm_source=feed_news_all&utm_medium=referral&feed_item_type=news
+            - cell "—" [ref=e1958]
+            - cell "—" [ref=e1959]
+          - row "16:07:23 neutral — Sensata Technologies declares $0.12 dividend — —" [ref=e1960] [cursor=pointer]:
+            - cell "16:07:23" [ref=e1961]
+            - cell "neutral" [ref=e1962]:
+              - generic [ref=e1963]: neutral
+            - cell "—" [ref=e1965]
+            - cell "Sensata Technologies declares $0.12 dividend" [ref=e1966]:
+              - link "Sensata Technologies declares $0.12 dividend" [ref=e1967]:
+                - /url: https://seekingalpha.com/news/4575445-sensata-technologies-declares-0_12-dividend?utm_source=feed_news_all&utm_medium=referral&feed_item_type=news
+            - cell "—" [ref=e1968]
+            - cell "—" [ref=e1969]
+          - row "16:06:34 neutral — NY jury finds Live Nation illegally monopolized live event markets DUP — —" [ref=e1970] [cursor=pointer]:
+            - cell "16:06:34" [ref=e1971]
+            - cell "neutral" [ref=e1972]:
+              - generic [ref=e1973]: neutral
+            - cell "—" [ref=e1975]
+            - cell "NY jury finds Live Nation illegally monopolized live event markets DUP" [ref=e1976]:
+              - link "NY jury finds Live Nation illegally monopolized live event markets" [ref=e1977]:
+                - /url: https://www.investing.com/news/stock-market-news/ny-jury-finds-live-nation-illegally-monopolized-live-event-markets-4616383
+              - generic [ref=e1978]: DUP
+            - cell "—" [ref=e1979]
+            - cell "—" [ref=e1980]
+          - 'row "16:05:39 bullish — Markets News, April 15, 2026: S&P 500, Nasdaq Close at Records as Investors Downplay Iran War; Dow Slips - Investopedia — —" [ref=e1981] [cursor=pointer]':
+            - cell "16:05:39" [ref=e1982]
+            - cell "bullish" [ref=e1983]:
+              - generic [ref=e1984]: bullish
+            - cell "—" [ref=e1986]
+            - 'cell "Markets News, April 15, 2026: S&P 500, Nasdaq Close at Records as Investors Downplay Iran War; Dow Slips - Investopedia" [ref=e1987]':
+              - 'link "Markets News, April 15, 2026: S&P 500, Nasdaq Close at Records as Investors Downplay Iran War; Dow Slips - Investopedia" [ref=e1988]':
+                - /url: https://news.google.com/rss/articles/CBMikAFBVV95cUxOWnlVSF9lOFo5UmZVdmxMRnZwWDQxWk9LNTRxQndGZ1VVNTNoY08yYWRUcG53cTJld3I0SDNGczlJLVhIY3FBN09LRWZpNHhmNk1adTd1SEF5LS16MnFLdHRHWGZrbFBMV2N0NmFQSldXY1RyOXNJOEJ0bmV4N1UwTk5KNmRSRWx0YlN6ZUNYYWI?oc=5
+            - cell "—" [ref=e1989]
+            - cell "—" [ref=e1990]
+          - row "16:05:22 bullish — Cattle prices soar to record highs as grilling season heats up — —" [ref=e1991] [cursor=pointer]:
+            - cell "16:05:22" [ref=e1992]
+            - cell "bullish" [ref=e1993]:
+              - generic [ref=e1994]: bullish
+            - cell "—" [ref=e1996]
+            - cell "Cattle prices soar to record highs as grilling season heats up" [ref=e1997]:
+              - link "Cattle prices soar to record highs as grilling season heats up" [ref=e1998]:
+                - /url: https://www.cnbc.com/2026/04/15/beef-cattle-grilling-inflation.html
+            - cell "—" [ref=e1999]
+            - cell "—" [ref=e2000]
+          - row "16:05:19 neutral — Ford EV leader leaving automaker amid new restructuring efforts — —" [ref=e2001] [cursor=pointer]:
+            - cell "16:05:19" [ref=e2002]
+            - cell "neutral" [ref=e2003]:
+              - generic [ref=e2004]: neutral
+            - cell "—" [ref=e2006]
+            - cell "Ford EV leader leaving automaker amid new restructuring efforts" [ref=e2007]:
+              - link "Ford EV leader leaving automaker amid new restructuring efforts" [ref=e2008]:
+                - /url: https://www.cnbc.com/2026/04/15/ford-ev-leader-doug-field.html
+            - cell "—" [ref=e2009]
+            - cell "—" [ref=e2010]
+          - row "16:05:18 neutral — Southern First Bancshares launches public stock offering — —" [ref=e2011] [cursor=pointer]:
+            - cell "16:05:18" [ref=e2012]
+            - cell "neutral" [ref=e2013]:
+              - generic [ref=e2014]: neutral
+            - cell "—" [ref=e2016]
+            - cell "Southern First Bancshares launches public stock offering" [ref=e2017]:
+              - link "Southern First Bancshares launches public stock offering" [ref=e2018]:
+                - /url: https://www.investing.com/news/company-news/southern-first-bancshares-launches-public-stock-offering-93CH-4616374
+            - cell "—" [ref=e2019]
+            - cell "—" [ref=e2020]
+          - row "16:05:17 neutral — Algernon Health to rebrand as Grey Matters Health, consolidate shares — —" [ref=e2021] [cursor=pointer]:
+            - cell "16:05:17" [ref=e2022]
+            - cell "neutral" [ref=e2023]:
+              - generic [ref=e2024]: neutral
+            - cell "—" [ref=e2026]
+            - cell "Algernon Health to rebrand as Grey Matters Health, consolidate shares" [ref=e2027]:
+              - link "Algernon Health to rebrand as Grey Matters Health, consolidate shares" [ref=e2028]:
+                - /url: https://www.investing.com/news/company-news/algernon-health-to-rebrand-as-grey-matters-health-consolidate-shares-93CH-4616372
+            - cell "—" [ref=e2029]
+            - cell "—" [ref=e2030]
+          - row "16:05:17 neutral — Nkarta receives FDA agreement for outpatient NKX019 dosing — —" [ref=e2031] [cursor=pointer]:
+            - cell "16:05:17" [ref=e2032]
+            - cell "neutral" [ref=e2033]:
+              - generic [ref=e2034]: neutral
+            - cell "—" [ref=e2036]
+            - cell "Nkarta receives FDA agreement for outpatient NKX019 dosing" [ref=e2037]:
+              - link "Nkarta receives FDA agreement for outpatient NKX019 dosing" [ref=e2038]:
+                - /url: https://www.investing.com/news/company-news/nkarta-receives-fda-agreement-for-outpatient-nkx019-dosing-93CH-4616373
+            - cell "—" [ref=e2039]
+            - cell "—" [ref=e2040]
+          - row "16:05:16 neutral — Wave Life Sciences plans redomicile from Singapore to U.S. — —" [ref=e2041] [cursor=pointer]:
+            - cell "16:05:16" [ref=e2042]
+            - cell "neutral" [ref=e2043]:
+              - generic [ref=e2044]: neutral
+            - cell "—" [ref=e2046]
+            - cell "Wave Life Sciences plans redomicile from Singapore to U.S." [ref=e2047]:
+              - link "Wave Life Sciences plans redomicile from Singapore to U.S." [ref=e2048]:
+                - /url: https://www.investing.com/news/company-news/wave-life-sciences-plans-redomicile-from-singapore-to-us-93CH-4616371
+            - cell "—" [ref=e2049]
+            - cell "—" [ref=e2050]
+          - row "16:05:04 neutral — MetroCity Bankshares declares $0.29 quarterly dividend — —" [ref=e2051] [cursor=pointer]:
+            - cell "16:05:04" [ref=e2052]
+            - cell "neutral" [ref=e2053]:
+              - generic [ref=e2054]: neutral
+            - cell "—" [ref=e2056]
+            - cell "MetroCity Bankshares declares $0.29 quarterly dividend" [ref=e2057]:
+              - link "MetroCity Bankshares declares $0.29 quarterly dividend" [ref=e2058]:
+                - /url: https://www.investing.com/news/company-news/metrocity-bankshares-declares-029-quarterly-dividend-93CH-4616369
+            - cell "—" [ref=e2059]
+            - cell "—" [ref=e2060]
+          - 'row "16:05:00 bullish — Bargain-Hunting Alert: These 3 Blue Chip Stocks Are Trading Near Their 52-Week Lows — —" [ref=e2061] [cursor=pointer]':
+            - cell "16:05:00" [ref=e2062]
+            - cell "bullish" [ref=e2063]:
+              - generic [ref=e2064]: bullish
+            - cell "—" [ref=e2066]
+            - 'cell "Bargain-Hunting Alert: These 3 Blue Chip Stocks Are Trading Near Their 52-Week Lows" [ref=e2067]':
+              - 'link "Bargain-Hunting Alert: These 3 Blue Chip Stocks Are Trading Near Their 52-Week Lows" [ref=e2068]':
+                - /url: https://www.nasdaq.com/articles/bargain-hunting-alert-these-3-blue-chip-stocks-are-trading-near-their-52-week-lows
+            - cell "—" [ref=e2069]
+            - cell "—" [ref=e2070]
+          - row "16:03:22 neutral — Traws Pharma Non-GAAP EPS of $0.82, revenue of $2.8M — —" [ref=e2071] [cursor=pointer]:
+            - cell "16:03:22" [ref=e2072]
+            - cell "neutral" [ref=e2073]:
+              - generic [ref=e2074]: neutral
+            - cell "—" [ref=e2076]
+            - cell "Traws Pharma Non-GAAP EPS of $0.82, revenue of $2.8M" [ref=e2077]:
+              - link "Traws Pharma Non-GAAP EPS of $0.82, revenue of $2.8M" [ref=e2078]:
+                - /url: https://seekingalpha.com/news/4575438-traws-pharma-non-gaap-eps-of-0_82-revenue-of-2_8m?utm_source=feed_news_all&utm_medium=referral&feed_item_type=news
+            - cell "—" [ref=e2079]
+            - cell "—" [ref=e2080]
+          - row "16:03:03 neutral — Tradewinds Universal addresses auditor consent issue for 2025 annual report — —" [ref=e2081] [cursor=pointer]:
+            - cell "16:03:03" [ref=e2082]
+            - cell "neutral" [ref=e2083]:
+              - generic [ref=e2084]: neutral
+            - cell "—" [ref=e2086]
+            - cell "Tradewinds Universal addresses auditor consent issue for 2025 annual report" [ref=e2087]:
+              - link "Tradewinds Universal addresses auditor consent issue for 2025 annual report" [ref=e2088]:
+                - /url: https://www.investing.com/news/sec-filings/tradewinds-universal-addresses-auditor-consent-issue-for-2025-annual-report-93CH-4616366
+            - cell "—" [ref=e2089]
+            - cell "—" [ref=e2090]
+          - row "16:02:33 neutral — Equity Bancshares targets $5 per share in 2026 as Frontier deal drives record quarterly revenue — —" [ref=e2091] [cursor=pointer]:
+            - cell "16:02:33" [ref=e2092]
+            - cell "neutral" [ref=e2093]:
+              - generic [ref=e2094]: neutral
+            - cell "—" [ref=e2096]
+            - cell "Equity Bancshares targets $5 per share in 2026 as Frontier deal drives record quarterly revenue" [ref=e2097]:
+              - link "Equity Bancshares targets $5 per share in 2026 as Frontier deal drives record quarterly revenue" [ref=e2098]:
+                - /url: https://seekingalpha.com/news/4575437-equity-bancshares-targets-5-per-share-in-2026-as-frontier-deal-drives-record-quarterly?utm_source=feed_news_all&utm_medium=referral&feed_item_type=news
+            - cell "—" [ref=e2099]
+            - cell "—" [ref=e2100]
+          - row "16:01:20 neutral — Olaplex Holdings stock reaches 52-week high at $2.04 — —" [ref=e2101] [cursor=pointer]:
+            - cell "16:01:20" [ref=e2102]
+            - cell "neutral" [ref=e2103]:
+              - generic [ref=e2104]: neutral
+            - cell "—" [ref=e2106]
+            - cell "Olaplex Holdings stock reaches 52-week high at $2.04" [ref=e2107]:
+              - link "Olaplex Holdings stock reaches 52-week high at $2.04" [ref=e2108]:
+                - /url: https://www.investing.com/news/company-news/olaplex-holdings-stock-reaches-52week-high-at-204-93CH-4616361
+            - cell "—" [ref=e2109]
+            - cell "—" [ref=e2110]
+          - 'row "16:01:07 neutral — Form 8K TRADEWINDS UNIVERSAL For: 15 April — —" [ref=e2111] [cursor=pointer]':
+            - cell "16:01:07" [ref=e2112]
+            - cell "neutral" [ref=e2113]:
+              - generic [ref=e2114]: neutral
+            - cell "—" [ref=e2116]
+            - 'cell "Form 8K TRADEWINDS UNIVERSAL For: 15 April" [ref=e2117]':
+              - 'link "Form 8K TRADEWINDS UNIVERSAL For: 15 April" [ref=e2118]':
+                - /url: https://www.investing.com/news/filings/form-8k-tradewinds-universal-for-15-april-93CH-4616360
+            - cell "—" [ref=e2119]
+            - cell "—" [ref=e2120]
+          - 'row "16:01:02 neutral — Form 13F Raub Brock Capital Management LP For: 15 April — —" [ref=e2121] [cursor=pointer]':
+            - cell "16:01:02" [ref=e2122]
+            - cell "neutral" [ref=e2123]:
+              - generic [ref=e2124]: neutral
+            - cell "—" [ref=e2126]
+            - 'cell "Form 13F Raub Brock Capital Management LP For: 15 April" [ref=e2127]':
+              - 'link "Form 13F Raub Brock Capital Management LP For: 15 April" [ref=e2128]':
+                - /url: https://www.investing.com/news/filings/form-13f-raub-brock-capital-management-lp-for-15-april-93CH-4616359
+            - cell "—" [ref=e2129]
+            - cell "—" [ref=e2130]
+          - row "16:00:21 bullish — Bullish Two Hundred Day Moving Average Cross - PTLC — —" [ref=e2131] [cursor=pointer]:
+            - cell "16:00:21" [ref=e2132]
+            - cell "bullish" [ref=e2133]:
+              - generic [ref=e2134]: bullish
+            - cell "—" [ref=e2136]
+            - cell "Bullish Two Hundred Day Moving Average Cross - PTLC" [ref=e2137]:
+              - link "Bullish Two Hundred Day Moving Average Cross - PTLC" [ref=e2138]:
+                - /url: https://www.nasdaq.com/articles/bullish-two-hundred-day-moving-average-cross-ptlc
+            - cell "—" [ref=e2139]
+            - cell "—" [ref=e2140]
+          - 'row "16:00:18 neutral — Notable Wednesday Option Activity: QUBT, QBTS, RGTI — —" [ref=e2141] [cursor=pointer]':
+            - cell "16:00:18" [ref=e2142]
+            - cell "neutral" [ref=e2143]:
+              - generic [ref=e2144]: neutral
+            - cell "—" [ref=e2146]
+            - 'cell "Notable Wednesday Option Activity: QUBT, QBTS, RGTI" [ref=e2147]':
+              - 'link "Notable Wednesday Option Activity: QUBT, QBTS, RGTI" [ref=e2148]':
+                - /url: https://www.nasdaq.com/articles/notable-wednesday-option-activity-qubt-qbts-rgti
+            - cell "—" [ref=e2149]
+            - cell "—" [ref=e2150]
+          - row "16:00:11 bullish — iShares U.S. Tech Independence Focused Breaks Above 200-Day Moving Average - Bullish for IETC — —" [ref=e2151] [cursor=pointer]:
+            - cell "16:00:11" [ref=e2152]
+            - cell "bullish" [ref=e2153]:
+              - generic [ref=e2154]: bullish
+            - cell "—" [ref=e2156]
+            - cell "iShares U.S. Tech Independence Focused Breaks Above 200-Day Moving Average - Bullish for IETC" [ref=e2157]:
+              - link "iShares U.S. Tech Independence Focused Breaks Above 200-Day Moving Average - Bullish for IETC" [ref=e2158]:
+                - /url: https://www.nasdaq.com/articles/ishares-us-tech-independence-focused-breaks-above-200-day-moving-average-bullish-ietc
+            - cell "—" [ref=e2159]
+            - cell "—" [ref=e2160]
+          - row "16:00:07 neutral — AIN Makes Notable Cross Below Critical Moving Average — —" [ref=e2161] [cursor=pointer]:
+            - cell "16:00:07" [ref=e2162]
+            - cell "neutral" [ref=e2163]:
+              - generic [ref=e2164]: neutral
+            - cell "—" [ref=e2166]
+            - cell "AIN Makes Notable Cross Below Critical Moving Average" [ref=e2167]:
+              - link "AIN Makes Notable Cross Below Critical Moving Average" [ref=e2168]:
+                - /url: https://www.nasdaq.com/articles/ain-makes-notable-cross-below-critical-moving-average
+            - cell "—" [ref=e2169]
+            - cell "—" [ref=e2170]
+          - 'row "16:00:01 neutral — Notable Wednesday Option Activity: SNOW, MP, BBBY — —" [ref=e2171] [cursor=pointer]':
+            - cell "16:00:01" [ref=e2172]
+            - cell "neutral" [ref=e2173]:
+              - generic [ref=e2174]: neutral
+            - cell "—" [ref=e2176]
+            - 'cell "Notable Wednesday Option Activity: SNOW, MP, BBBY" [ref=e2177]':
+              - 'link "Notable Wednesday Option Activity: SNOW, MP, BBBY" [ref=e2178]':
+                - /url: https://www.nasdaq.com/articles/notable-wednesday-option-activity-snow-mp-bbby
+            - cell "—" [ref=e2179]
+            - cell "—" [ref=e2180]
+          - 'row "15:59:59 neutral — Notable Wednesday Option Activity: ROOT, ENPH, SNDK — —" [ref=e2181] [cursor=pointer]':
+            - cell "15:59:59" [ref=e2182]
+            - cell "neutral" [ref=e2183]:
+              - generic [ref=e2184]: neutral
+            - cell "—" [ref=e2186]
+            - 'cell "Notable Wednesday Option Activity: ROOT, ENPH, SNDK" [ref=e2187]':
+              - 'link "Notable Wednesday Option Activity: ROOT, ENPH, SNDK" [ref=e2188]':
+                - /url: https://www.nasdaq.com/articles/notable-wednesday-option-activity-root-enph-sndk
+            - cell "—" [ref=e2189]
+            - cell "—" [ref=e2190]
+          - row "15:59:57 bullish — American Eagle Outfitters Breaks Above 200-Day Moving Average - Bullish for AEO — —" [ref=e2191] [cursor=pointer]:
+            - cell "15:59:57" [ref=e2192]
+            - cell "bullish" [ref=e2193]:
+              - generic [ref=e2194]: bullish
+            - cell "—" [ref=e2196]
+            - cell "American Eagle Outfitters Breaks Above 200-Day Moving Average - Bullish for AEO" [ref=e2197]:
+              - link "American Eagle Outfitters Breaks Above 200-Day Moving Average - Bullish for AEO" [ref=e2198]:
+                - /url: https://www.nasdaq.com/articles/american-eagle-outfitters-breaks-above-200-day-moving-average-bullish-aeo
+            - cell "—" [ref=e2199]
+            - cell "—" [ref=e2200]
+          - 'row "15:59:52 neutral — Notable Wednesday Option Activity: UPST, TEM, SOFI — —" [ref=e2201] [cursor=pointer]':
+            - cell "15:59:52" [ref=e2202]
+            - cell "neutral" [ref=e2203]:
+              - generic [ref=e2204]: neutral
+            - cell "—" [ref=e2206]
+            - 'cell "Notable Wednesday Option Activity: UPST, TEM, SOFI" [ref=e2207]':
+              - 'link "Notable Wednesday Option Activity: UPST, TEM, SOFI" [ref=e2208]':
+                - /url: https://www.nasdaq.com/articles/notable-wednesday-option-activity-upst-tem-sofi
+            - cell "—" [ref=e2209]
+            - cell "—" [ref=e2210]
+          - 'row "15:59:50 neutral — Notable Wednesday Option Activity: PUBM, GOOG, UUUU — —" [ref=e2211] [cursor=pointer]':
+            - cell "15:59:50" [ref=e2212]
+            - cell "neutral" [ref=e2213]:
+              - generic [ref=e2214]: neutral
+            - cell "—" [ref=e2216]
+            - 'cell "Notable Wednesday Option Activity: PUBM, GOOG, UUUU" [ref=e2217]':
+              - 'link "Notable Wednesday Option Activity: PUBM, GOOG, UUUU" [ref=e2218]':
+                - /url: https://www.nasdaq.com/articles/notable-wednesday-option-activity-pubm-goog-uuuu
+            - cell "—" [ref=e2219]
+            - cell "—" [ref=e2220]
+          - 'row "15:58:55 neutral — Reminder: Safe Bulkers'' Series C Preferred Shares Goes Ex-Dividend Soon — —" [ref=e2221] [cursor=pointer]':
+            - cell "15:58:55" [ref=e2222]
+            - cell "neutral" [ref=e2223]:
+              - generic [ref=e2224]: neutral
+            - cell "—" [ref=e2226]
+            - 'cell "Reminder: Safe Bulkers'' Series C Preferred Shares Goes Ex-Dividend Soon" [ref=e2227]':
+              - 'link "Reminder: Safe Bulkers'' Series C Preferred Shares Goes Ex-Dividend Soon" [ref=e2228]':
+                - /url: https://www.nasdaq.com/articles/reminder-safe-bulkers-series-c-preferred-shares-goes-ex-dividend-soon
+            - cell "—" [ref=e2229]
+            - cell "—" [ref=e2230]
+          - row "15:58:37 bullish — Tether buys 951 BTC as Bitcoin rebounds to $75K monthly peak — —" [ref=e2231] [cursor=pointer]:
+            - cell "15:58:37" [ref=e2232]
+            - cell "bullish" [ref=e2233]:
+              - generic [ref=e2234]: bullish
+            - cell "—" [ref=e2236]
+            - cell "Tether buys 951 BTC as Bitcoin rebounds to $75K monthly peak" [ref=e2237]:
+              - link "Tether buys 951 BTC as Bitcoin rebounds to $75K monthly peak" [ref=e2238]:
+                - /url: https://seekingalpha.com/news/4575410-tether-buys-951-btc-as-bitcoin-rebounds-to-75k-monthly-peak?utm_source=feed_news_all&utm_medium=referral&feed_item_type=news
+            - cell "—" [ref=e2239]
+            - cell "—" [ref=e2240]
+          - row "15:57:25 neutral — What's next for Palantir as AI competition intensifies? — —" [ref=e2241] [cursor=pointer]:
+            - cell "15:57:25" [ref=e2242]
+            - cell "neutral" [ref=e2243]:
+              - generic [ref=e2244]: neutral
+            - cell "—" [ref=e2246]
+            - cell "What's next for Palantir as AI competition intensifies?" [ref=e2247]:
+              - link "What's next for Palantir as AI competition intensifies?" [ref=e2248]:
+                - /url: https://seekingalpha.com/news/4574916-whats-next-for-palantir-as-ai-competition-intensifies?utm_source=feed_news_all&utm_medium=referral&feed_item_type=news
+            - cell "—" [ref=e2249]
+            - cell "—" [ref=e2250]
+          - row "15:57:00 bullish — 5 Stocks to Buy if AI Investing Comes Back Into Style — —" [ref=e2251] [cursor=pointer]:
+            - cell "15:57:00" [ref=e2252]
+            - cell "bullish" [ref=e2253]:
+              - generic [ref=e2254]: bullish
+            - cell "—" [ref=e2256]
+            - cell "5 Stocks to Buy if AI Investing Comes Back Into Style" [ref=e2257]:
+              - link "5 Stocks to Buy if AI Investing Comes Back Into Style" [ref=e2258]:
+                - /url: https://www.nasdaq.com/articles/5-stocks-buy-if-ai-investing-comes-back-style
+            - cell "—" [ref=e2259]
+            - cell "—" [ref=e2260]
+          - row "15:53:20 bullish — Atlas Energy, ProPetro hiked to Buy at Citi on improved Permian completion market — —" [ref=e2261] [cursor=pointer]:
+            - cell "15:53:20" [ref=e2262]
+            - cell "bullish" [ref=e2263]:
+              - generic [ref=e2264]: bullish
+            - cell "—" [ref=e2266]
+            - cell "Atlas Energy, ProPetro hiked to Buy at Citi on improved Permian completion market" [ref=e2267]:
+              - link "Atlas Energy, ProPetro hiked to Buy at Citi on improved Permian completion market" [ref=e2268]:
+                - /url: https://seekingalpha.com/news/4575426-atlas-energy-propetro-hiked-to-buy-at-citi-on-improved-permian-completion-market?utm_source=feed_news_all&utm_medium=referral&feed_item_type=news
+            - cell "—" [ref=e2269]
+            - cell "—" [ref=e2270]
+          - row "15:50:40 bearish — Tesla stock pops as Elon Musk touts chip progress — —" [ref=e2271] [cursor=pointer]:
+            - cell "15:50:40" [ref=e2272]
+            - cell "bearish" [ref=e2273]:
+              - generic [ref=e2274]: bearish
+            - cell "—" [ref=e2276]
+            - cell "Tesla stock pops as Elon Musk touts chip progress" [ref=e2277]:
+              - link "Tesla stock pops as Elon Musk touts chip progress" [ref=e2278]:
+                - /url: https://www.cnbc.com/2026/04/15/tesla-tsla-stock-analyst-upgrade-software-updates.html
+            - cell "—" [ref=e2279]
+            - cell "—" [ref=e2280]
+          - row "15:49:58 bearish — IMF’s Georgieva warns central banks against rushing to hike rates amid recession fears — —" [ref=e2281] [cursor=pointer]:
+            - cell "15:49:58" [ref=e2282]
+            - cell "bearish" [ref=e2283]:
+              - generic [ref=e2284]: bearish
+            - cell "—" [ref=e2286]
+            - cell "IMF’s Georgieva warns central banks against rushing to hike rates amid recession fears" [ref=e2287]:
+              - link "IMF’s Georgieva warns central banks against rushing to hike rates amid recession fears" [ref=e2288]:
+                - /url: https://seekingalpha.com/news/4575431-imf-s-georgieva-warns-central-banks-against-rushing-to-hike-rates-amid-recession-fears?utm_source=feed_news_all&utm_medium=referral&feed_item_type=news
+            - cell "—" [ref=e2289]
+            - cell "—" [ref=e2290]
+          - row "15:44:04 bearish — Chickasaw Sells 144K Plains GP Holdings Shares — —" [ref=e2291] [cursor=pointer]:
+            - cell "15:44:04" [ref=e2292]
+            - cell "bearish" [ref=e2293]:
+              - generic [ref=e2294]: bearish
+            - cell "—" [ref=e2296]
+            - cell "Chickasaw Sells 144K Plains GP Holdings Shares" [ref=e2297]:
+              - link "Chickasaw Sells 144K Plains GP Holdings Shares" [ref=e2298]:
+                - /url: https://www.nasdaq.com/articles/chickasaw-sells-144k-plains-gp-holdings-shares
+            - cell "—" [ref=e2299]
+            - cell "—" [ref=e2300]
+          - row "15:42:57 neutral — Why Robinhood Markets Stock Is Rocketing Higher Today — —" [ref=e2301] [cursor=pointer]:
+            - cell "15:42:57" [ref=e2302]
+            - cell "neutral" [ref=e2303]:
+              - generic [ref=e2304]: neutral
+            - cell "—" [ref=e2306]
+            - cell "Why Robinhood Markets Stock Is Rocketing Higher Today" [ref=e2307]:
+              - link "Why Robinhood Markets Stock Is Rocketing Higher Today" [ref=e2308]:
+                - /url: https://www.nasdaq.com/articles/why-robinhood-markets-stock-rocketing-higher-today
+            - cell "—" [ref=e2309]
+            - cell "—" [ref=e2310]
+          - row "15:41:23 neutral — Kalshi ramps up commodities expansion amid dynamic geopolitical environment — —" [ref=e2311] [cursor=pointer]:
+            - cell "15:41:23" [ref=e2312]
+            - cell "neutral" [ref=e2313]:
+              - generic [ref=e2314]: neutral
+            - cell "—" [ref=e2316]
+            - cell "Kalshi ramps up commodities expansion amid dynamic geopolitical environment" [ref=e2317]:
+              - link "Kalshi ramps up commodities expansion amid dynamic geopolitical environment" [ref=e2318]:
+                - /url: https://seekingalpha.com/news/4575422-kalshi-ramps-up-commodities-expansion-amid-dynamic-geopolitical-environment?utm_source=feed_news_all&utm_medium=referral&feed_item_type=news
+            - cell "—" [ref=e2319]
+            - cell "—" [ref=e2320]
+          - row "15:39:56 neutral — Sonoco Products declares $0.54 dividend — —" [ref=e2321] [cursor=pointer]:
+            - cell "15:39:56" [ref=e2322]
+            - cell "neutral" [ref=e2323]:
+              - generic [ref=e2324]: neutral
+            - cell "—" [ref=e2326]
+            - cell "Sonoco Products declares $0.54 dividend" [ref=e2327]:
+              - link "Sonoco Products declares $0.54 dividend" [ref=e2328]:
+                - /url: https://seekingalpha.com/news/4575430-sonoco-products-declares-0_54-dividend?utm_source=feed_news_all&utm_medium=referral&feed_item_type=news
+            - cell "—" [ref=e2329]
+            - cell "—" [ref=e2330]
+          - row "15:39:00 bullish — Lumen Technologies' high-stakes fiber bet nearly bankrupted it. Now, it's powering its AI future — —" [ref=e2331] [cursor=pointer]:
+            - cell "15:39:00" [ref=e2332]
+            - cell "bullish" [ref=e2333]:
+              - generic [ref=e2334]: bullish
+            - cell "—" [ref=e2336]
+            - cell "Lumen Technologies' high-stakes fiber bet nearly bankrupted it. Now, it's powering its AI future" [ref=e2337]:
+              - link "Lumen Technologies' high-stakes fiber bet nearly bankrupted it. Now, it's powering its AI future" [ref=e2338]:
+                - /url: https://www.cnbc.com/2026/04/15/from-near-bankruptcy-to-ai-tailwinds-lumens-high-stakes-fiber-bet-could-pay-off.html
+            - cell "—" [ref=e2339]
+            - cell "—" [ref=e2340]
+          - row "15:38:32 neutral — Morguard Real Estate Investment Trust declares CAD 0.02 dividend DUP — —" [ref=e2341] [cursor=pointer]:
+            - cell "15:38:32" [ref=e2342]
+            - cell "neutral" [ref=e2343]:
+              - generic [ref=e2344]: neutral
+            - cell "—" [ref=e2346]
+            - cell "Morguard Real Estate Investment Trust declares CAD 0.02 dividend DUP" [ref=e2347]:
+              - link "Morguard Real Estate Investment Trust declares CAD 0.02 dividend" [ref=e2348]:
+                - /url: https://seekingalpha.com/news/4575429-morguard-real-estate-investment-trust-declares-cad-0_02-dividend?utm_source=feed_news_all&utm_medium=referral&feed_item_type=news
+              - generic [ref=e2349]: DUP
+            - cell "—" [ref=e2350]
+            - cell "—" [ref=e2351]
+          - row "15:37:33 neutral — Bessent supports IMF quota revamp, wants World Bank financing for critical minerals — —" [ref=e2352] [cursor=pointer]:
+            - cell "15:37:33" [ref=e2353]
+            - cell "neutral" [ref=e2354]:
+              - generic [ref=e2355]: neutral
+            - cell "—" [ref=e2357]
+            - cell "Bessent supports IMF quota revamp, wants World Bank financing for critical minerals" [ref=e2358]:
+              - link "Bessent supports IMF quota revamp, wants World Bank financing for critical minerals" [ref=e2359]:
+                - /url: https://www.investing.com/news/economy-news/bessent-supports-imf-quota-revamp-wants-world-bank-financing-for-critical-minerals-4616328
+            - cell "—" [ref=e2360]
+            - cell "—" [ref=e2361]
+          - row "15:37:00 neutral — Exclusive | Sazerac Offered to Buy Brown-Forman for Around $15 Billion - WSJ DUP — —" [ref=e2362] [cursor=pointer]:
+            - cell "15:37:00" [ref=e2363]
+            - cell "neutral" [ref=e2364]:
+              - generic [ref=e2365]: neutral
+            - cell "—" [ref=e2367]
+            - cell "Exclusive | Sazerac Offered to Buy Brown-Forman for Around $15 Billion - WSJ DUP" [ref=e2368]:
+              - link "Exclusive | Sazerac Offered to Buy Brown-Forman for Around $15 Billion - WSJ" [ref=e2369]:
+                - /url: https://news.google.com/rss/articles/CBMiowFBVV95cUxNeWxwNk5Wc2YwZmVNcml0RXZGM1FVNGF5ck5UWVhKRXNyNDk2a2xEV2RQaE9KODJPU1E2azF1c3BucHF4YmFZNkdkOXBUR0Flb2l6U05UNFlSTEJPb0pROWlKUjRQUmNoVkZVdmo1dnR6dVJRaEFvUGN5bDZyVlVfeXdNcGJ2ZDFQZ19NOEpsU2VrOTAwX0YzQmFldmZGZXJxM09R?oc=5
+              - generic [ref=e2370]: DUP
+            - cell "—" [ref=e2371]
+            - cell "—" [ref=e2372]
+          - row "15:35:41 neutral — Union Bankshares declares $0.36 dividend — —" [ref=e2373] [cursor=pointer]:
+            - cell "15:35:41" [ref=e2374]
+            - cell "neutral" [ref=e2375]:
+              - generic [ref=e2376]: neutral
+            - cell "—" [ref=e2378]
+            - cell "Union Bankshares declares $0.36 dividend" [ref=e2379]:
+              - link "Union Bankshares declares $0.36 dividend" [ref=e2380]:
+                - /url: https://seekingalpha.com/news/4575427-union-bankshares-declares-0_36-dividend?utm_source=feed_news_all&utm_medium=referral&feed_item_type=news
+            - cell "—" [ref=e2381]
+            - cell "—" [ref=e2382]
+          - row "15:35:00 bearish — Can Nvidia Become a $10 Trillion Company by 2030? — —" [ref=e2383] [cursor=pointer]:
+            - cell "15:35:00" [ref=e2384]
+            - cell "bearish" [ref=e2385]:
+              - generic [ref=e2386]: bearish
+            - cell "—" [ref=e2388]
+            - cell "Can Nvidia Become a $10 Trillion Company by 2030?" [ref=e2389]:
+              - link "Can Nvidia Become a $10 Trillion Company by 2030?" [ref=e2390]:
+                - /url: https://www.nasdaq.com/articles/can-nvidia-become-10-trillion-company-2030
+            - cell "—" [ref=e2391]
+            - cell "—" [ref=e2392]
+          - row "15:33:53 neutral — Grounded Lithium reports FY results — —" [ref=e2393] [cursor=pointer]:
+            - cell "15:33:53" [ref=e2394]
+            - cell "neutral" [ref=e2395]:
+              - generic [ref=e2396]: neutral
+            - cell "—" [ref=e2398]
+            - cell "Grounded Lithium reports FY results" [ref=e2399]:
+              - link "Grounded Lithium reports FY results" [ref=e2400]:
+                - /url: https://seekingalpha.com/news/4575425-grounded-lithium-reports-fy-results?utm_source=feed_news_all&utm_medium=referral&feed_item_type=news
+            - cell "—" [ref=e2401]
+            - cell "—" [ref=e2402]
+          - row "15:32:04 neutral — Trump Accounts for kids now total 5 million, and 1.2 million can get $1,000 seed money, Bessent says — —" [ref=e2403] [cursor=pointer]:
+            - cell "15:32:04" [ref=e2404]
+            - cell "neutral" [ref=e2405]:
+              - generic [ref=e2406]: neutral
+            - cell "—" [ref=e2408]
+            - cell "Trump Accounts for kids now total 5 million, and 1.2 million can get $1,000 seed money, Bessent says" [ref=e2409]:
+              - link "Trump Accounts for kids now total 5 million, and 1.2 million can get $1,000 seed money, Bessent says" [ref=e2410]:
+                - /url: https://www.cnbc.com/2026/04/15/trump-accounts.html
+            - cell "—" [ref=e2411]
+            - cell "—" [ref=e2412]
+          - 'row "15:31:31 neutral — Form 13F Independence Financial Advisors For: 15 April DUP — —" [ref=e2413] [cursor=pointer]':
+            - cell "15:31:31" [ref=e2414]
+            - cell "neutral" [ref=e2415]:
+              - generic [ref=e2416]: neutral
+            - cell "—" [ref=e2418]
+            - 'cell "Form 13F Independence Financial Advisors For: 15 April DUP" [ref=e2419]':
+              - 'link "Form 13F Independence Financial Advisors For: 15 April" [ref=e2420]':
+                - /url: https://www.investing.com/news/filings/form-13f-independence-financial-advisors-for-15-april-93CH-4616320
+              - generic [ref=e2421]: DUP
+            - cell "—" [ref=e2422]
+            - cell "—" [ref=e2423]
+          - 'row "15:31:29 neutral — Form 13F REGATTA CAPITAL GROUP For: 15 April — —" [ref=e2424] [cursor=pointer]':
+            - cell "15:31:29" [ref=e2425]
+            - cell "neutral" [ref=e2426]:
+              - generic [ref=e2427]: neutral
+            - cell "—" [ref=e2429]
+            - 'cell "Form 13F REGATTA CAPITAL GROUP For: 15 April" [ref=e2430]':
+              - 'link "Form 13F REGATTA CAPITAL GROUP For: 15 April" [ref=e2431]':
+                - /url: https://www.investing.com/news/filings/form-13f-regatta-capital-group-for-15-april-93CH-4616319
+            - cell "—" [ref=e2432]
+            - cell "—" [ref=e2433]
+          - row "15:31:27 neutral — Permian-focused EagleRock plans rare US oil and gas IPO, sources say — —" [ref=e2434] [cursor=pointer]:
+            - cell "15:31:27" [ref=e2435]
+            - cell "neutral" [ref=e2436]:
+              - generic [ref=e2437]: neutral
+            - cell "—" [ref=e2439]
+            - cell "Permian-focused EagleRock plans rare US oil and gas IPO, sources say" [ref=e2440]:
+              - link "Permian-focused EagleRock plans rare US oil and gas IPO, sources say" [ref=e2441]:
+                - /url: https://www.investing.com/news/stock-market-news/permianfocused-eaglerock-plans-rare-us-oil-and-gas-ipo-sources-say-4616317
+            - cell "—" [ref=e2442]
+            - cell "—" [ref=e2443]
+          - row "15:31:27 neutral — Mizuho reiterates Neutral on Talos Energy stock, $15 target maintained — —" [ref=e2444] [cursor=pointer]:
+            - cell "15:31:27" [ref=e2445]
+            - cell "neutral" [ref=e2446]:
+              - generic [ref=e2447]: neutral
+            - cell "—" [ref=e2449]
+            - cell "Mizuho reiterates Neutral on Talos Energy stock, $15 target maintained" [ref=e2450]:
+              - link "Mizuho reiterates Neutral on Talos Energy stock, $15 target maintained" [ref=e2451]:
+                - /url: https://www.investing.com/news/analyst-ratings/mizuho-reiterates-neutral-on-talos-energy-stock-15-target-maintained-93CH-4616318
+            - cell "—" [ref=e2452]
+            - cell "—" [ref=e2453]
+          - 'row "15:31:23 neutral — Form 13F Roberts Financial Services LLC For: 15 April — —" [ref=e2454] [cursor=pointer]':
+            - cell "15:31:23" [ref=e2455]
+            - cell "neutral" [ref=e2456]:
+              - generic [ref=e2457]: neutral
+            - cell "—" [ref=e2459]
+            - 'cell "Form 13F Roberts Financial Services LLC For: 15 April" [ref=e2460]':
+              - 'link "Form 13F Roberts Financial Services LLC For: 15 April" [ref=e2461]':
+                - /url: https://www.investing.com/news/filings/form-13f-roberts-financial-services-llc-for-15-april-93CH-4616316
+            - cell "—" [ref=e2462]
+            - cell "—" [ref=e2463]
+          - 'row "15:31:19 neutral — Form 13F NIGHTVIEW CAPITAL For: 15 April — —" [ref=e2464] [cursor=pointer]':
+            - cell "15:31:19" [ref=e2465]
+            - cell "neutral" [ref=e2466]:
+              - generic [ref=e2467]: neutral
+            - cell "—" [ref=e2469]
+            - 'cell "Form 13F NIGHTVIEW CAPITAL For: 15 April" [ref=e2470]':
+              - 'link "Form 13F NIGHTVIEW CAPITAL For: 15 April" [ref=e2471]':
+                - /url: https://www.investing.com/news/filings/form-13f-nightview-capital-for-15-april-93CH-4616315
+            - cell "—" [ref=e2472]
+            - cell "—" [ref=e2473]
+          - 'row "15:31:18 neutral — South Korea''s best-rated stocks: From financials to semiconductors, ranked by Quant scores — —" [ref=e2474] [cursor=pointer]':
+            - cell "15:31:18" [ref=e2475]
+            - cell "neutral" [ref=e2476]:
+              - generic [ref=e2477]: neutral
+            - cell "—" [ref=e2479]
+            - 'cell "South Korea''s best-rated stocks: From financials to semiconductors, ranked by Quant scores" [ref=e2480]':
+              - 'link "South Korea''s best-rated stocks: From financials to semiconductors, ranked by Quant scores" [ref=e2481]':
+                - /url: https://seekingalpha.com/news/4575418-south-koreas-best-rated-stocks-from-financials-to-semiconductors-ranked-by-quant-scores?utm_source=feed_news_all&utm_medium=referral&feed_item_type=news
+            - cell "—" [ref=e2482]
+            - cell "—" [ref=e2483]
+          - 'row "15:31:14 neutral — Form 13F Ridgeline Wealth For: 15 April — —" [ref=e2484] [cursor=pointer]':
+            - cell "15:31:14" [ref=e2485]
+            - cell "neutral" [ref=e2486]:
+              - generic [ref=e2487]: neutral
+            - cell "—" [ref=e2489]
+            - 'cell "Form 13F Ridgeline Wealth For: 15 April" [ref=e2490]':
+              - 'link "Form 13F Ridgeline Wealth For: 15 April" [ref=e2491]':
+                - /url: https://www.investing.com/news/filings/form-13f-ridgeline-wealth-for-15-april-93CH-4616314
+            - cell "—" [ref=e2492]
+            - cell "—" [ref=e2493]
+          - row "15:29:51 neutral — Mag Mile Capital, Inc. reports FY results — —" [ref=e2494] [cursor=pointer]:
+            - cell "15:29:51" [ref=e2495]
+            - cell "neutral" [ref=e2496]:
+              - generic [ref=e2497]: neutral
+            - cell "—" [ref=e2499]
+            - cell "Mag Mile Capital, Inc. reports FY results" [ref=e2500]:
+              - link "Mag Mile Capital, Inc. reports FY results" [ref=e2501]:
+                - /url: https://seekingalpha.com/news/4575424-mag-mile-capital-inc-reports-fy-results?utm_source=feed_news_all&utm_medium=referral&feed_item_type=news
+            - cell "—" [ref=e2502]
+            - cell "—" [ref=e2503]
+          - row "15:28:27 neutral — Jonestown Bank &amp; Trust GAAP EPS of $1.30 — —" [ref=e2504] [cursor=pointer]:
+            - cell "15:28:27" [ref=e2505]
+            - cell "neutral" [ref=e2506]:
+              - generic [ref=e2507]: neutral
+            - cell "—" [ref=e2509]
+            - cell "Jonestown Bank &amp; Trust GAAP EPS of $1.30" [ref=e2510]:
+              - link "Jonestown Bank &amp; Trust GAAP EPS of $1.30" [ref=e2511]:
+                - /url: https://seekingalpha.com/news/4575423-jonestown-bank-and-trust-gaap-eps-of-1_30?utm_source=feed_news_all&utm_medium=referral&feed_item_type=news
+            - cell "—" [ref=e2512]
+            - cell "—" [ref=e2513]
+          - row "15:27:53 neutral — Energy Recovery cut at Northcoast as Iran war raises odds of additional project delays — —" [ref=e2514] [cursor=pointer]:
+            - cell "15:27:53" [ref=e2515]
+            - cell "neutral" [ref=e2516]:
+              - generic [ref=e2517]: neutral
+            - cell "—" [ref=e2519]
+            - cell "Energy Recovery cut at Northcoast as Iran war raises odds of additional project delays" [ref=e2520]:
+              - link "Energy Recovery cut at Northcoast as Iran war raises odds of additional project delays" [ref=e2521]:
+                - /url: https://seekingalpha.com/news/4575409-energy-recovery-cut-at-northcoast-as-iran-war-raises-odds-of-additional-project-delays?utm_source=feed_news_all&utm_medium=referral&feed_item_type=news
+            - cell "—" [ref=e2522]
+            - cell "—" [ref=e2523]
+          - row "15:27:01 neutral — Hunting PLC reports Trading Update for Q1 2026 results — —" [ref=e2524] [cursor=pointer]:
+            - cell "15:27:01" [ref=e2525]
+            - cell "neutral" [ref=e2526]:
+              - generic [ref=e2527]: neutral
+            - cell "—" [ref=e2529]
+            - cell "Hunting PLC reports Trading Update for Q1 2026 results" [ref=e2530]:
+              - link "Hunting PLC reports Trading Update for Q1 2026 results" [ref=e2531]:
+                - /url: https://seekingalpha.com/news/4575421-hunting-plc-reports-trading-update-for-q1-2026-results?utm_source=feed_news_all&utm_medium=referral&feed_item_type=news
+            - cell "—" [ref=e2532]
+            - cell "—" [ref=e2533]
+          - row "15:23:24 neutral — One and one Green Technologies reports preliminary FY results — —" [ref=e2534] [cursor=pointer]:
+            - cell "15:23:24" [ref=e2535]
+            - cell "neutral" [ref=e2536]:
+              - generic [ref=e2537]: neutral
+            - cell "—" [ref=e2539]
+            - cell "One and one Green Technologies reports preliminary FY results" [ref=e2540]:
+              - link "One and one Green Technologies reports preliminary FY results" [ref=e2541]:
+                - /url: https://seekingalpha.com/news/4575420-one-and-one-green-technologies-reports-preliminary-fy-results?utm_source=feed_news_all&utm_medium=referral&feed_item_type=news
+            - cell "—" [ref=e2542]
+            - cell "—" [ref=e2543]
+          - row "15:23:01 bullish — Microsoft stock climbs in historic multi-day rally — —" [ref=e2544] [cursor=pointer]:
+            - cell "15:23:01" [ref=e2545]
+            - cell "bullish" [ref=e2546]:
+              - generic [ref=e2547]: bullish
+            - cell "—" [ref=e2549]
+            - cell "Microsoft stock climbs in historic multi-day rally" [ref=e2550]:
+              - link "Microsoft stock climbs in historic multi-day rally" [ref=e2551]:
+                - /url: https://seekingalpha.com/news/4575411-microsoft-stock-climbs-in-historic-multi-day-rally?utm_source=feed_news_all&utm_medium=referral&feed_item_type=news
+            - cell "—" [ref=e2552]
+            - cell "—" [ref=e2553]
+          - row "15:21:00 neutral — Hemisphere Energy Corporation GAAP EPS of $0.05, revenue of $18.99M — —" [ref=e2554] [cursor=pointer]:
+            - cell "15:21:00" [ref=e2555]
+            - cell "neutral" [ref=e2556]:
+              - generic [ref=e2557]: neutral
+            - cell "—" [ref=e2559]
+            - cell "Hemisphere Energy Corporation GAAP EPS of $0.05, revenue of $18.99M" [ref=e2560]:
+              - link "Hemisphere Energy Corporation GAAP EPS of $0.05, revenue of $18.99M" [ref=e2561]:
+                - /url: https://seekingalpha.com/news/4575419-hemisphere-energy-corporation-gaap-eps-of-0_05-revenue-of-18_99m?utm_source=feed_news_all&utm_medium=referral&feed_item_type=news
+            - cell "—" [ref=e2562]
+            - cell "—" [ref=e2563]
+          - row "15:19:47 bullish — Sazerac offered to buy out Brown-Forman for $15B - WSJ — —" [ref=e2564] [cursor=pointer]:
+            - cell "15:19:47" [ref=e2565]
+            - cell "bullish" [ref=e2566]:
+              - generic [ref=e2567]: bullish
+            - cell "—" [ref=e2569]
+            - cell "Sazerac offered to buy out Brown-Forman for $15B - WSJ" [ref=e2570]:
+              - link "Sazerac offered to buy out Brown-Forman for $15B - WSJ" [ref=e2571]:
+                - /url: https://seekingalpha.com/news/4575413-sazerac-offered-to-by-out-brown-forman-for-15b---wsj?utm_source=feed_news_all&utm_medium=referral&feed_item_type=news
+            - cell "—" [ref=e2572]
+            - cell "—" [ref=e2573]
+          - row "15:19:29 neutral — You No Longer Need $25,000 to Day Trade Freely — —" [ref=e2574] [cursor=pointer]:
+            - cell "15:19:29" [ref=e2575]
+            - cell "neutral" [ref=e2576]:
+              - generic [ref=e2577]: neutral
+            - cell "—" [ref=e2579]
+            - cell "You No Longer Need $25,000 to Day Trade Freely" [ref=e2580]:
+              - link "You No Longer Need $25,000 to Day Trade Freely" [ref=e2581]:
+                - /url: https://seekingalpha.com/news/4575415-you-no-longer-need-25000-to-day-trade-freely?utm_source=feed_news_all&utm_medium=referral&feed_item_type=news
+            - cell "—" [ref=e2582]
+            - cell "—" [ref=e2583]
+          - row "15:18:48 bullish — Plumas Bancorp GAAP EPS of $1.38 beats by $0.06, revenue of $28.13M beats by $0.29M — —" [ref=e2584] [cursor=pointer]:
+            - cell "15:18:48" [ref=e2585]
+            - cell "bullish" [ref=e2586]:
+              - generic [ref=e2587]: bullish
+            - cell "—" [ref=e2589]
+            - cell "Plumas Bancorp GAAP EPS of $1.38 beats by $0.06, revenue of $28.13M beats by $0.29M" [ref=e2590]:
+              - link "Plumas Bancorp GAAP EPS of $1.38 beats by $0.06, revenue of $28.13M beats by $0.29M" [ref=e2591]:
+                - /url: https://seekingalpha.com/news/4575417-plumas-bancorp-gaap-eps-of-138-beats-by-006-revenue-of-2813m-beats-by-029m?utm_source=feed_news_all&utm_medium=referral&feed_item_type=news
+            - cell "—" [ref=e2592]
+            - cell "—" [ref=e2593]
+          - row "15:18:43 neutral — Sovereign borrowers launch platform to amplify voice in debt talks — —" [ref=e2594] [cursor=pointer]:
+            - cell "15:18:43" [ref=e2595]
+            - cell "neutral" [ref=e2596]:
+              - generic [ref=e2597]: neutral
+            - cell "—" [ref=e2599]
+            - cell "Sovereign borrowers launch platform to amplify voice in debt talks" [ref=e2600]:
+              - link "Sovereign borrowers launch platform to amplify voice in debt talks" [ref=e2601]:
+                - /url: https://www.investing.com/news/economy-news/sovereign-borrowers-launch-platform-to-amplify-voice-in-debt-talks-4616306
+            - cell "—" [ref=e2602]
+            - cell "—" [ref=e2603]
+          - 'row "15:18:13 neutral — Form 144 Intuitive Machines For: 15 April — —" [ref=e2604] [cursor=pointer]':
+            - cell "15:18:13" [ref=e2605]
+            - cell "neutral" [ref=e2606]:
+              - generic [ref=e2607]: neutral
+            - cell "—" [ref=e2609]
+            - 'cell "Form 144 Intuitive Machines For: 15 April" [ref=e2610]':
+              - 'link "Form 144 Intuitive Machines For: 15 April" [ref=e2611]':
+                - /url: https://www.investing.com/news/filings/form-144-intuitive-machines-for-15-april-93CH-4616305
+            - cell "—" [ref=e2612]
+            - cell "—" [ref=e2613]
+          - row "15:18:03 neutral — White House budget director won't estimate cost of Iran war — —" [ref=e2614] [cursor=pointer]:
+            - cell "15:18:03" [ref=e2615]
+            - cell "neutral" [ref=e2616]:
+              - generic [ref=e2617]: neutral
+            - cell "—" [ref=e2619]
+            - cell "White House budget director won't estimate cost of Iran war" [ref=e2620]:
+              - link "White House budget director won't estimate cost of Iran war" [ref=e2621]:
+                - /url: https://seekingalpha.com/news/4575414-white-house-budget-director-wont-estimate-cost-of-iran-war?utm_source=feed_news_all&utm_medium=referral&feed_item_type=news
+            - cell "—" [ref=e2622]
+            - cell "—" [ref=e2623]
+          - 'row "15:16:37 neutral — Form 13F Myriad Asset Management US LP For: 15 April — —" [ref=e2624] [cursor=pointer]':
+            - cell "15:16:37" [ref=e2625]
+            - cell "neutral" [ref=e2626]:
+              - generic [ref=e2627]: neutral
+            - cell "—" [ref=e2629]
+            - 'cell "Form 13F Myriad Asset Management US LP For: 15 April" [ref=e2630]':
+              - 'link "Form 13F Myriad Asset Management US LP For: 15 April" [ref=e2631]':
+                - /url: https://www.investing.com/news/filings/form-13f-myriad-asset-management-us-lp-for-15-april-93CH-4616304
+            - cell "—" [ref=e2632]
+            - cell "—" [ref=e2633]
+          - 'row "15:15:46 neutral — Form 13F Rempart Asset Management Inc. For: 15 April — —" [ref=e2634] [cursor=pointer]':
+            - cell "15:15:46" [ref=e2635]
+            - cell "neutral" [ref=e2636]:
+              - generic [ref=e2637]: neutral
+            - cell "—" [ref=e2639]
+            - 'cell "Form 13F Rempart Asset Management Inc. For: 15 April" [ref=e2640]':
+              - 'link "Form 13F Rempart Asset Management Inc. For: 15 April" [ref=e2641]':
+                - /url: https://www.investing.com/news/filings/form-13f-rempart-asset-management-inc-for-15-april-93CH-4616303
+            - cell "—" [ref=e2642]
+            - cell "—" [ref=e2643]
+          - row "15:12:56 bullish — Sazerac offers to buy Jack Daniel’s maker Brown-Forman for about $15 billion, WSJ reports — —" [ref=e2644] [cursor=pointer]:
+            - cell "15:12:56" [ref=e2645]
+            - cell "bullish" [ref=e2646]:
+              - generic [ref=e2647]: bullish
+            - cell "—" [ref=e2649]
+            - cell "Sazerac offers to buy Jack Daniel’s maker Brown-Forman for about $15 billion, WSJ reports" [ref=e2650]:
+              - link "Sazerac offers to buy Jack Daniel’s maker Brown-Forman for about $15 billion, WSJ reports" [ref=e2651]:
+                - /url: https://www.investing.com/news/stock-market-news/sazerac-offers-to-buy-jack-daniels-maker-brownforman-for-about-15-billion-wsj-reports-4616290
+            - cell "—" [ref=e2652]
+            - cell "—" [ref=e2653]
+          - row "15:12:36 neutral — NY jury finds Live Nation illegally monopolized ticketing markets, Bloomberg News reports — —" [ref=e2654] [cursor=pointer]:
+            - cell "15:12:36" [ref=e2655]
+            - cell "neutral" [ref=e2656]:
+              - generic [ref=e2657]: neutral
+            - cell "—" [ref=e2659]
+            - cell "NY jury finds Live Nation illegally monopolized ticketing markets, Bloomberg News reports" [ref=e2660]:
+              - link "NY jury finds Live Nation illegally monopolized ticketing markets, Bloomberg News reports" [ref=e2661]:
+                - /url: https://www.investing.com/news/stock-market-news/ny-jury-finds-live-nation-illegally-monopolized-ticketing-markets-bloomberg-news-reports-4616297
+            - cell "—" [ref=e2662]
+            - cell "—" [ref=e2663]
+          - 'row "15:10:45 neutral — Form 8K Greene County Bancorp Inc For: 15 April — —" [ref=e2664] [cursor=pointer]':
+            - cell "15:10:45" [ref=e2665]
+            - cell "neutral" [ref=e2666]:
+              - generic [ref=e2667]: neutral
+            - cell "—" [ref=e2669]
+            - 'cell "Form 8K Greene County Bancorp Inc For: 15 April" [ref=e2670]':
+              - 'link "Form 8K Greene County Bancorp Inc For: 15 April" [ref=e2671]':
+                - /url: https://www.investing.com/news/filings/form-8k-greene-county-bancorp-inc-for-15-april-93CH-4616296
+            - cell "—" [ref=e2672]
+            - cell "—" [ref=e2673]
+          - row "15:10:30 bullish — Lind Robert R buys Virco Mfg (VIRC) shares worth $3035 — —" [ref=e2674] [cursor=pointer]:
+            - cell "15:10:30" [ref=e2675]
+            - cell "bullish" [ref=e2676]:
+              - generic [ref=e2677]: bullish
+            - cell "—" [ref=e2679]
+            - cell "Lind Robert R buys Virco Mfg (VIRC) shares worth $3035" [ref=e2680]:
+              - link "Lind Robert R buys Virco Mfg (VIRC) shares worth $3035" [ref=e2681]:
+                - /url: https://www.investing.com/news/insider-trading-news/lind-robert-r-buys-virco-mfg-virc-shares-worth-3035-93CH-4616295
+            - cell "—" [ref=e2682]
+            - cell "—" [ref=e2683]
+          - row "15:09:37 neutral — United Airlines faces Senate pushback on potential American Airlines takeover — —" [ref=e2684] [cursor=pointer]:
+            - cell "15:09:37" [ref=e2685]
+            - cell "neutral" [ref=e2686]:
+              - generic [ref=e2687]: neutral
+            - cell "—" [ref=e2689]
+            - cell "United Airlines faces Senate pushback on potential American Airlines takeover" [ref=e2690]:
+              - link "United Airlines faces Senate pushback on potential American Airlines takeover" [ref=e2691]:
+                - /url: https://www.investing.com/news/stock-market-news/united-airlines-faces-senate-pushback-on-potential-american-airlines-takeover-93CH-4616293
+            - cell "—" [ref=e2692]
+            - cell "—" [ref=e2693]
+          - row "15:08:40 neutral — US probes suspicious oil trades made before Trump Iran pivots, source says — —" [ref=e2694] [cursor=pointer]:
+            - cell "15:08:40" [ref=e2695]
+            - cell "neutral" [ref=e2696]:
+              - generic [ref=e2697]: neutral
+            - cell "—" [ref=e2699]
+            - cell "US probes suspicious oil trades made before Trump Iran pivots, source says" [ref=e2700]:
+              - link "US probes suspicious oil trades made before Trump Iran pivots, source says" [ref=e2701]:
+                - /url: https://www.investing.com/news/stock-market-news/us-probes-suspicious-oil-trades-made-before-trump-iran-pivots-source-says-4616258
+            - cell "—" [ref=e2702]
+            - cell "—" [ref=e2703]
+          - 'row "15:08:02 neutral — ’Unthinkable’: African Catholics recoil at Trump’s spat with Leo — —" [ref=e2704] [cursor=pointer]':
+            - cell "15:08:02" [ref=e2705]
+            - cell "neutral" [ref=e2706]:
+              - generic [ref=e2707]: neutral
+            - cell "—" [ref=e2709]
+            - 'cell "’Unthinkable’: African Catholics recoil at Trump’s spat with Leo" [ref=e2710]':
+              - 'link "’Unthinkable’: African Catholics recoil at Trump’s spat with Leo" [ref=e2711]':
+                - /url: https://www.investing.com/news/world-news/unthinkable-african-catholics-recoil-at-trumps-spat-with-leo-4616291
+            - cell "—" [ref=e2712]
+            - cell "—" [ref=e2713]
+          - 'row "15:07:22 neutral — Fed’s Musalem: rates on hold \"for some time,\" open to hikes — —" [ref=e2714] [cursor=pointer]':
+            - cell "15:07:22" [ref=e2715]
+            - cell "neutral" [ref=e2716]:
+              - generic [ref=e2717]: neutral
+            - cell "—" [ref=e2719]
+            - 'cell "Fed’s Musalem: rates on hold \"for some time,\" open to hikes" [ref=e2720]':
+              - 'link "Fed’s Musalem: rates on hold \"for some time,\" open to hikes" [ref=e2721]':
+                - /url: https://www.investing.com/news/economy-news/feds-musalem-rates-on-hold-for-some-time-open-to-hikes-4616289
+            - cell "—" [ref=e2722]
+            - cell "—" [ref=e2723]
+          - row "15:07:08 neutral — US targets Iran’s oil transportation infrastructure with sanctions — —" [ref=e2724] [cursor=pointer]:
+            - cell "15:07:08" [ref=e2725]
+            - cell "neutral" [ref=e2726]:
+              - generic [ref=e2727]: neutral
+            - cell "—" [ref=e2729]
+            - cell "US targets Iran’s oil transportation infrastructure with sanctions" [ref=e2730]:
+              - link "US targets Iran’s oil transportation infrastructure with sanctions" [ref=e2731]:
+                - /url: https://www.investing.com/news/commodities-news/us-targets-irans-oil-transportation-infrastructure-with-sanctions-4616287
+            - cell "—" [ref=e2732]
+            - cell "—" [ref=e2733]
+    - contentinfo [ref=e678]:
+      - generic [ref=e679]:
+        - generic [ref=e680]:
+          - text: "Last refresh:"
+          - generic [ref=e681]: 21:17:31
+        - generic [ref=e682]:
+          - text: "Rate:"
+          - generic [ref=e683]: "39.9"
+          - text: items/s
+      - generic [ref=e684]:
+        - generic [ref=e685]:
+          - link "Pricing" [ref=e686] [cursor=pointer]:
+            - /url: /pricing
+          - link "Privacy Policy" [ref=e687] [cursor=pointer]:
+            - /url: /privacy
+          - link "Terms of Service" [ref=e688] [cursor=pointer]:
+            - /url: /terms
+        - generic "Click to copy API endpoint" [ref=e689] [cursor=pointer]: /api/news
+  - generic:
+    - generic:
+      - generic:
+        - heading "// API Documentation" [level=2]
+        - button "Close":
+          - img
+      - generic:
+        - paragraph:
+          - text: "REST API for programmatic access. All responses are JSON. Base URL:"
+          - code: http://localhost:8000
+          - text: /api
+        - generic:
+          - generic:
+            - generic: GET
+            - generic: /news
+          - generic:
+            - paragraph: Returns latest news items with sentiment scoring.
+            - generic:
+              - term: limit
+              - definition: Number of items (default 50, max 500)
+              - term: source
+              - definition: Filter by source name (default "all")
+              - term: sentiment
+              - definition: "Filter: bullish, bearish, neutral (default \"all\")"
+              - term: q
+              - definition: Keyword search in title and summary
+              - term: from
+              - definition: Filter from date (ISO 8601, e.g. "2026-03-01")
+              - term: to
+              - definition: Filter to date (ISO 8601, e.g. "2026-03-02")
+            - generic:
+              - text: curl "
+              - text: /api/news?limit=10&sentiment=bullish"
+        - generic:
+          - generic:
+            - generic: GET
+            - generic: /sources
+          - generic:
+            - paragraph: Returns all active feed sources with item counts and status.
+            - generic:
+              - text: curl "
+              - text: /api/sources"
+        - generic:
+          - generic:
+            - generic: GET
+            - generic: /stats
+          - generic:
+            - paragraph: "Returns aggregated statistics: total items, by source, by sentiment, average score."
+            - generic:
+              - text: curl "
+              - text: /api/stats"
+        - generic:
+          - generic:
+            - generic: POST
+            - generic: /refresh
+          - generic:
+            - paragraph: Force refresh all feeds immediately. Returns count of new items found.
+            - generic:
+              - text: curl -X POST "
+              - text: /api/refresh"
+        - generic:
+          - generic:
+            - generic: GET
+            - generic: /docs
+          - generic:
+            - paragraph: Returns this API documentation as JSON.
+            - generic:
+              - text: curl "
+              - text: /api/docs"
+  - generic:
+    - generic:
+      - generic:
+        - heading "// Ticker Recommendation" [level=2]
+        - button "Close":
+          - img
+  - generic:
+    - generic:
+      - generic:
+        - heading "// COMPANY" [level=2]
+        - button "Close":
+          - img
+      - generic:
+        - button "Fundamentals"
+        - button "Financials"
+        - button "Competitors"
+        - button "Institutions"
+        - button "Insiders"

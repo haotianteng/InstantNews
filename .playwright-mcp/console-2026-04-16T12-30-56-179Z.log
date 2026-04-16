@@ -1,0 +1,14 @@
+[     131ms] [VERBOSE] [DOM] Password forms should have (optionally hidden) username fields for accessibility: (More info: https://goo.gl/9p2vKq) %o @ http://localhost:5173/pricing:0
+[    5512ms] [WARNING] You may test your Stripe.js integration over HTTP. However, live Stripe.js integrations must use HTTPS. @ https://js.stripe.com/basil/stripe.js:0
+[    5516ms] [ERROR] Stripe init error: IntegrationError: Invalid initCheckout() parameter: options.clientSecret is not an accepted parameter.
+    at https://js.stripe.com/basil/stripe.js:1:267548
+    at de (https://js.stripe.com/basil/stripe.js:1:268791)
+    at pe (https://js.stripe.com/basil/stripe.js:1:269038)
+    at t.A (https://js.stripe.com/basil/stripe.js:1:39013)
+    at kd (https://js.stripe.com/basil/stripe.js:1:576436)
+    at https://js.stripe.com/basil/stripe.js:1:577670
+    at Ed (https://js.stripe.com/basil/stripe.js:1:577941)
+    at e.<anonymous> (https://js.stripe.com/basil/stripe.js:1:580314)
+    at e.initCheckoutElementsSdk (https://js.stripe.com/basil/stripe.js:1:110274)
+    at http://localhost:5173/src/checkout.js?t=1776342633036:152:38 @ http://localhost:5173/src/checkout.js?t=1776342633036:203
+[   48476ms] [VERBOSE] [DOM] Password forms should have (optionally hidden) username fields for accessibility: (More info: https://goo.gl/9p2vKq) %o @ http://localhost:5173/pricing:0

@@ -1,0 +1,22 @@
+============================= test session starts ==============================
+platform linux -- Python 3.10.20, pytest-9.0.2, pluggy-1.6.0 -- /home/haotiant/conda/envs/instnews/bin/python
+cachedir: .pytest_cache
+rootdir: /home/haotiant/Projects/Personal/InstantNews
+configfile: pyproject.toml
+plugins: typeguard-2.13.3, anyio-4.13.0
+collecting ... collected 94 items / 82 deselected / 12 selected
+
+tests/test_feed_parser.py::TestStripHtml::test_removes_tags PASSED       [  8%]
+tests/test_feed_parser.py::TestStripHtml::test_handles_none PASSED       [ 16%]
+tests/test_feed_parser.py::TestStripHtml::test_handles_empty PASSED      [ 25%]
+tests/test_feed_parser.py::TestStripHtml::test_decodes_entities PASSED   [ 33%]
+tests/test_feed_parser.py::TestStripHtml::test_truncates_to_500 PASSED   [ 41%]
+tests/test_feed_parser.py::TestStripHtml::test_adds_space_for_block_tags PASSED [ 50%]
+tests/test_feed_parser.py::TestUtcIso::test_naive_datetime PASSED        [ 58%]
+tests/test_feed_parser.py::TestUtcIso::test_aware_datetime PASSED        [ 66%]
+tests/test_feed_parser.py::TestParseDate::test_rss_format PASSED         [ 75%]
+tests/test_feed_parser.py::TestParseDate::test_iso_format PASSED         [ 83%]
+tests/test_feed_parser.py::TestParseDate::test_none_returns_now PASSED   [ 91%]
+tests/test_feed_parser.py::TestParseDate::test_unparseable_returns_now PASSED [100%]
+
+====================== 12 passed, 82 deselected in 0.04s =======================

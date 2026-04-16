@@ -1,0 +1,24 @@
+POLYGON_API_KEY not set — market data service disabled
+edgar: CIK lookup failed for AAPL: 404 Client Error: Not Found for url: https://data.sec.gov/files/company_tickers.json
+edgar: CIK lookup failed for AAPL: 404 Client Error: Not Found for url: https://data.sec.gov/files/company_tickers.json
+=== INSTITUTIONAL HOLDERS ===
+Type: <class 'list'>
+Length: 20
+First entry keys: ['institution_name', 'shares_held', 'value', 'report_date', 'change_type']
+First entry: {
+  "institution_name": "Wellesley Investment Advisors  (CIK 0001533551)",
+  "shares_held": null,
+  "value": null,
+  "report_date": "2014-03-25",
+  "change_type": "held"
+}
+
+=== INSIDER TRANSACTIONS ===
+Type: <class 'list'>
+Length: 0
+WARNING: Empty list returned
+
+=== MAJOR POSITION CHANGES ===
+Type: <class 'list'>
+Length: 0
+WARNING: Empty list returned (may be expected for some tickers)

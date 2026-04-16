@@ -1,0 +1,18 @@
+============================= test session starts ==============================
+platform linux -- Python 3.10.20, pytest-9.0.2, pluggy-1.6.0 -- /home/haotiant/conda/envs/instnews/bin/python
+cachedir: .pytest_cache
+rootdir: /home/haotiant/Projects/Personal/InstantNews
+configfile: pyproject.toml
+plugins: typeguard-2.13.3, anyio-4.13.0
+collecting ... collected 139 items / 131 deselected / 8 selected
+
+tests/test_market_data.py::TestPolygonClientEnabled::test_get_related_companies_competitor_success PASSED [ 12%]
+tests/test_market_data.py::TestPolygonClientEnabled::test_get_related_companies_competitor_limit_5 PASSED [ 25%]
+tests/test_market_data.py::TestPolygonClientEnabled::test_get_related_companies_competitor_caching PASSED [ 37%]
+tests/test_market_data.py::TestPolygonClientEnabled::test_get_related_companies_competitor_disabled PASSED [ 50%]
+tests/test_market_routes.py::TestMarketCompetitors::test_competitor_response_fields PASSED [ 62%]
+tests/test_market_routes.py::TestMarketCompetitors::test_competitor_404_unknown_ticker PASSED [ 75%]
+tests/test_market_routes.py::TestMarketCompetitors::test_competitor_503_when_disabled PASSED [ 87%]
+tests/test_market_routes.py::TestMarketCompetitors::test_competitor_unauthenticated_returns_401 PASSED [100%]
+
+====================== 8 passed, 131 deselected in 0.24s =======================

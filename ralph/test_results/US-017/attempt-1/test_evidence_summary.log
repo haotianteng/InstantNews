@@ -1,0 +1,66 @@
+=== US-017 TEST EVIDENCE SUMMARY ===
+
+--- TEST ASSERTIONS (all 6 exit 0) ---
+1. PASS: import EdgarClient — exits 0, prints "import ok"
+2. PASS: get_institutional_holders('AAPL') — exits 0, returns <class 'list'>
+3. PASS: get_insider_transactions('AAPL') — exits 0, returns <class 'list'>
+4. PASS: get_major_position_changes('AAPL') — exits 0, returns <class 'list'>
+5. PASS: pytest -k edgar — 13/13 passed (exit 0)
+6. PASS: mypy edgar_client.py — "Success: no issues found in 1 source file"
+
+NOTE: All 6 test assertions technically pass because they only check exit code and
+return type. But the acceptance criteria require actual functional data.
+
+--- CRITICAL BUG 1: Wrong CIK lookup URL ---
+File: app/services/edgar_client.py, line 86
+Code:  url = f"{EDGAR_DATA_URL}/files/company_tickers.json"
+       → https://data.sec.gov/files/company_tickers.json → 404 NOT FOUND
+
+Correct URL: https://www.sec.gov/files/company_tickers.json → 200 OK
+Verified: www.sec.gov returns AAPL with CIK 320193
+
+Impact: _resolve_cik() ALWAYS returns None for every ticker.
+- get_insider_transactions('AAPL') → returns empty list []
+- get_major_position_changes('AAPL') → returns empty list []
+AAPL (Apple Inc.) definitely has Form 4 insider transactions and 13D/13G filings.
+These methods are completely non-functional.
+
+Violates:
+- AC4: "Form 4: get_insider_transactions(symbol, limit=20) — fetches recent Form 4 filings"
+- AC8: "13D/13G: get_major_position_changes(symbol, limit=10) — fetches recent 13D/13G filings"
+- AC11-12: Form 4 field requirements (no data returned at all)
+- AC9: 13D/13G field requirements (no data returned at all)
+
+--- CRITICAL BUG 2: 13F holders always return null shares_held and value ---
+File: app/services/edgar_client.py, lines 142-148
+The EFTS search-index only returns filing metadata, not actual holdings data.
+Code hardcodes: shares_held=None, value=None, change_type="held" for every entry.
+
+Sample output (all 20 entries for AAPL):
+  {"institution_name": "Wellesley Investment Advisors (CIK 0001533551)",
+   "shares_held": null, "value": null, "report_date": "2014-03-25", "change_type": "held"}
+Every single entry has null shares and null value. Report dates range from 2002-2023
+(not recent/latest). These are random filers, NOT top institutional holders of AAPL.
+
+Violates:
+- AC5: "Each holder includes: institution_name, shares_held, value, report_date, change_type"
+  (shares_held and value are always null)
+- AC4: "13F: get_institutional_holders(symbol, limit=20) — fetches latest 13F filings"
+  (data is from random years, not latest)
+
+--- ACCEPTANCE CRITERIA THAT PASS ---
+AC1:  ✓ New module app/services/edgar_client.py with EdgarClient class
+AC2:  ✓ User-Agent = "InstantNews dev@instnews.net"
+AC3:  ✓ Rate limit 0.1s between requests (_MIN_REQUEST_INTERVAL)
+AC6:  ✓ CIK lookup code EXISTS (just wrong URL)
+AC7:  ✓ 24-hour cache TTL for 13F (INSTITUTIONAL_TTL = 86400)
+AC10: ✓ 6-hour cache TTL for 13D/13G (POSITION_CHANGE_TTL = 21600)
+AC13: ✓ 1-hour cache TTL for Form 4 (INSIDER_TTL = 3600)
+AC14: ✓ GET /api/market/<symbol>/institutions endpoint registered
+AC15: ✓ GET /api/market/<symbol>/insiders endpoint registered
+AC16: ✓ mypy passes
+
+--- QUALITY CHECKS ---
+- mypy: clean (exit 0)
+- pytest edgar: 13/13 pass (exit 0)
+- pytest full: 144/152 pass, 8 pre-existing failures (test_tiers, test_rate_limit)

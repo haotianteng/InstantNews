@@ -1,0 +1,22 @@
+POLYGON_API_KEY not set — market data service disabled
+polygon details: unexpected response for MSFT: None
+polygon snapshot: unexpected response for MSFT: None
+polygon details: unexpected response for GOOG: None
+polygon snapshot: unexpected response for GOOG: None
+polygon details: unexpected response for AMZN: None
+polygon snapshot: unexpected response for AMZN: None
+polygon details: unexpected response for META: None
+polygon snapshot: unexpected response for META: None
+polygon details: unexpected response for NVDA: None
+polygon snapshot: unexpected response for NVDA: None
+polygon details: unexpected response for TSLA: None
+polygon snapshot: unexpected response for TSLA: None
+Traceback (most recent call last):
+  File "<string>", line 46, in <module>
+TypeError: '<' not supported between instances of 'NoneType' and 'NoneType'
+AC3 PASS: 5 competitors returned from 6 input tickers (top-5 limit enforced)
+  MSFT: {"symbol": "MSFT", "name": "", "market_cap": null, "price": null, "change_percent": null}
+  GOOG: {"symbol": "GOOG", "name": "", "market_cap": null, "price": null, "change_percent": null}
+  AMZN: {"symbol": "AMZN", "name": "", "market_cap": null, "price": null, "change_percent": null}
+  META: {"symbol": "META", "name": "", "market_cap": null, "price": null, "change_percent": null}
+  NVDA: {"symbol": "NVDA", "name": "", "market_cap": null, "price": null, "change_percent": null}

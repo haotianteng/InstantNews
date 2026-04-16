@@ -1,0 +1,21 @@
+POLYGON_API_KEY not set — market data service disabled
+=== AC1: get_financials return fields ===
+Type: <class 'dict'>
+Keys: ['eps', 'fiscal_period', 'fiscal_year', 'net_income', 'pe_ratio', 'revenue', 'symbol']
+PASS: revenue=119575000000, net_income=33916000000, eps=2.19, pe_ratio=26.39
+
+=== AC2: get_earnings return schema ===
+Type: <class 'dict'>
+PASS: 4 quarters, EPS values: [2.19, 2.1, 1.46, 1.26]
+  estimated_eps values: [None, None, None, None]
+
+=== AC3: Cache TTL ===
+PASS: FINANCIALS_TTL = 3600 (1 hour)
+PASS: Cache hit — 2 calls, 1 API request
+PASS: Earnings cache hit — 2 calls, 1 API request
+
+=== AC5: Graceful null/empty ===
+PASS: Empty ticker returns nulls: {'symbol': 'XYZZY', 'fiscal_period': None, 'fiscal_year': None, 'revenue': None, 'net_income': None, 'eps': None, 'pe_ratio': None}
+PASS: Empty earnings returns empty list: {'symbol': 'XYZZY', 'earnings': []}
+
+ALL AC VALIDATIONS PASSED

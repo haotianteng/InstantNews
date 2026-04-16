@@ -1,0 +1,37 @@
+=== AC1: Max-tier with ai_analyzed=True ===
+  target_asset: present=True, value=AAPL
+  asset_type: present=True, value=STOCK
+  confidence: present=True, value=0.85
+  risk_level: present=True, value=MEDIUM
+  tradeable: present=True, value=True
+  reasoning: present=True, value=Strong earnings expected
+AC1 PASS: True
+
+=== AC2: Pro/Free ticker fields stripped ===
+  free: has_ticker_fields=False, fields_present=[]
+  pro: has_ticker_fields=False, fields_present=[]
+AC2 PASS: True
+
+=== AC3: Max-tier with ai_analyzed=False ===
+  target_asset: present=True, value=None
+  asset_type: present=True, value=None
+  confidence: present=True, value=None
+  risk_level: present=True, value=None
+  tradeable: present=True, value=None
+  reasoning: present=True, value=None
+AC3 PASS: True (all present as None)
+
+=== AC4: ai_analyzed present for all tiers ===
+  free: ai_analyzed present=True, value=True
+  pro: ai_analyzed present=True, value=True
+  max: ai_analyzed present=True, value=True
+AC4 PASS: True
+
+ai_analyzed when None (default): False (should be False)
+
+=== SUMMARY ===
+AC1 (Max gets ticker fields): PASS 
+AC2 (Pro/Free stripped):       PASS
+AC3 (null not absent):         PASS
+AC4 (ai_analyzed all tiers):   PASS
+AC5 (typecheck):               PASS (mypy assertion 3)

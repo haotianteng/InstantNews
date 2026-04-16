@@ -1,0 +1,26 @@
+============================= test session starts ==============================
+platform linux -- Python 3.10.20, pytest-9.0.2, pluggy-1.6.0 -- /home/haotiant/conda/envs/instnews/bin/python
+cachedir: .pytest_cache
+rootdir: /home/haotiant/Projects/Personal/InstantNews
+configfile: pyproject.toml
+plugins: typeguard-2.13.3, anyio-4.13.0
+collecting ... collected 94 items / 78 deselected / 16 selected
+
+tests/test_models.py::TestNewsModel::test_create_and_query PASSED        [  6%]
+tests/test_models.py::TestNewsModel::test_link_unique_constraint PASSED  [ 12%]
+tests/test_models.py::TestNewsModel::test_title_source_unique_constraint PASSED [ 18%]
+tests/test_models.py::TestNewsModel::test_to_dict PASSED                 [ 25%]
+tests/test_routes.py::TestNewsRoute::test_get_news PASSED                [ 31%]
+tests/test_routes.py::TestNewsRoute::test_filter_by_source PASSED        [ 37%]
+tests/test_routes.py::TestNewsRoute::test_filter_by_sentiment PASSED     [ 43%]
+tests/test_routes.py::TestNewsRoute::test_keyword_search PASSED          [ 50%]
+tests/test_routes.py::TestNewsRoute::test_limit PASSED                   [ 56%]
+tests/test_routes.py::TestNewsRoute::test_free_tier_limit_capped_at_50 PASSED [ 62%]
+tests/test_routes.py::TestNewsRoute::test_items_have_base_fields PASSED  [ 68%]
+tests/test_tiers.py::TestNewsEndpointTierGating::test_free_user_capped_at_50_items PASSED [ 75%]
+tests/test_tiers.py::TestNewsEndpointTierGating::test_free_user_no_sentiment_fields PASSED [ 81%]
+tests/test_tiers.py::TestNewsEndpointTierGating::test_free_user_no_duplicate_field PASSED [ 87%]
+tests/test_tiers.py::TestNewsEndpointTierGating::test_free_user_date_range_ignored PASSED [ 93%]
+tests/test_tiers.py::TestNewsEndpointTierGating::test_pro_user_gets_sentiment PASSED [100%]
+
+====================== 16 passed, 78 deselected in 0.57s =======================

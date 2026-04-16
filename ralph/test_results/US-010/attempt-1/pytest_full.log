@@ -1,0 +1,192 @@
+============================= test session starts ==============================
+platform linux -- Python 3.10.20, pytest-9.0.2, pluggy-1.6.0 -- /home/haotiant/conda/envs/instnews/bin/python
+cachedir: .pytest_cache
+rootdir: /home/haotiant/Projects/Personal/InstantNews
+configfile: pyproject.toml
+plugins: typeguard-2.13.3, anyio-4.13.0
+collecting ... collected 118 items
+
+tests/test_auth.py::TestAuthMiddleware::test_anonymous_access PASSED     [  0%]
+tests/test_auth.py::TestAuthMiddleware::test_authenticated_creates_user PASSED [  1%]
+tests/test_auth.py::TestAuthMiddleware::test_authenticated_updates_profile PASSED [  2%]
+tests/test_auth.py::TestAuthMiddleware::test_invalid_token_treated_as_anonymous PASSED [  3%]
+tests/test_auth.py::TestAuthMiddleware::test_missing_bearer_prefix PASSED [  4%]
+tests/test_auth.py::TestAuthRoutes::test_me_requires_auth PASSED         [  5%]
+tests/test_auth.py::TestAuthRoutes::test_tier_anonymous PASSED           [  5%]
+tests/test_auth.py::TestAuthRoutes::test_tier_authenticated_free PASSED  [  6%]
+tests/test_auth.py::TestAuthRoutes::test_tier_plus_user PASSED           [  7%]
+tests/test_billing.py::TestCheckoutEndpoint::test_checkout_requires_auth PASSED [  8%]
+tests/test_billing.py::TestCheckoutEndpoint::test_checkout_invalid_tier PASSED [  9%]
+tests/test_billing.py::TestCheckoutEndpoint::test_checkout_stripe_not_configured PASSED [ 10%]
+tests/test_billing.py::TestPortalEndpoint::test_portal_no_subscription PASSED [ 11%]
+tests/test_billing.py::TestBillingStatus::test_status_no_subscription PASSED [ 11%]
+tests/test_billing.py::TestBillingStatus::test_status_with_subscription PASSED [ 12%]
+tests/test_billing.py::TestWebhook::test_webhook_missing_signature PASSED [ 13%]
+tests/test_billing.py::TestWebhook::test_webhook_idempotency PASSED      [ 14%]
+tests/test_billing.py::TestPricingPage::test_pricing_page_serves PASSED  [ 15%]
+tests/test_billing.py::TestSubscriptionModel::test_create_subscription PASSED [ 16%]
+tests/test_billing.py::TestSubscriptionModel::test_subscription_to_dict PASSED [ 16%]
+tests/test_feed_parser.py::TestStripHtml::test_removes_tags PASSED       [ 17%]
+tests/test_feed_parser.py::TestStripHtml::test_handles_none PASSED       [ 18%]
+tests/test_feed_parser.py::TestStripHtml::test_handles_empty PASSED      [ 19%]
+tests/test_feed_parser.py::TestStripHtml::test_decodes_entities PASSED   [ 20%]
+tests/test_feed_parser.py::TestStripHtml::test_truncates_to_500 PASSED   [ 21%]
+tests/test_feed_parser.py::TestStripHtml::test_adds_space_for_block_tags PASSED [ 22%]
+tests/test_feed_parser.py::TestUtcIso::test_naive_datetime PASSED        [ 22%]
+tests/test_feed_parser.py::TestUtcIso::test_aware_datetime PASSED        [ 23%]
+tests/test_feed_parser.py::TestParseDate::test_rss_format PASSED         [ 24%]
+tests/test_feed_parser.py::TestParseDate::test_iso_format PASSED         [ 25%]
+tests/test_feed_parser.py::TestParseDate::test_none_returns_now PASSED   [ 26%]
+tests/test_feed_parser.py::TestParseDate::test_unparseable_returns_now PASSED [ 27%]
+tests/test_market_data.py::TestPolygonClientDisabled::test_disabled_when_no_api_key PASSED [ 27%]
+tests/test_market_data.py::TestPolygonClientDisabled::test_snapshot_returns_none_when_disabled PASSED [ 28%]
+tests/test_market_data.py::TestPolygonClientDisabled::test_details_returns_none_when_disabled PASSED [ 29%]
+tests/test_market_data.py::TestPolygonClientEnabled::test_enabled_with_api_key PASSED [ 30%]
+tests/test_market_data.py::TestPolygonClientEnabled::test_snapshot_success PASSED [ 31%]
+tests/test_market_data.py::TestPolygonClientEnabled::test_snapshot_caching PASSED [ 32%]
+tests/test_market_data.py::TestPolygonClientEnabled::test_snapshot_normalizes_symbol PASSED [ 33%]
+tests/test_market_data.py::TestPolygonClientEnabled::test_snapshot_http_error PASSED [ 33%]
+tests/test_market_data.py::TestPolygonClientEnabled::test_snapshot_404 PASSED [ 34%]
+tests/test_market_data.py::TestPolygonClientEnabled::test_details_success PASSED [ 35%]
+tests/test_market_data.py::TestPolygonClientEnabled::test_details_caching PASSED [ 36%]
+tests/test_market_data.py::TestPolygonClientEnabled::test_details_not_found PASSED [ 37%]
+tests/test_market_data.py::TestPolygonClientEnabled::test_details_network_error PASSED [ 38%]
+tests/test_market_data.py::TestPolygonClientEnabled::test_clear_cache PASSED [ 38%]
+tests/test_market_routes.py::TestMarketSnapshotAuth::test_unauthenticated_returns_401 PASSED [ 39%]
+tests/test_market_routes.py::TestMarketSnapshotAuth::test_authenticated_returns_200 PASSED [ 40%]
+tests/test_market_routes.py::TestMarketDetailsAuth::test_unauthenticated_returns_401 PASSED [ 41%]
+tests/test_market_routes.py::TestMarketSnapshot::test_snapshot_response_fields PASSED [ 42%]
+tests/test_market_routes.py::TestMarketSnapshot::test_snapshot_404_unknown_ticker PASSED [ 43%]
+tests/test_market_routes.py::TestMarketSnapshot::test_snapshot_503_when_disabled PASSED [ 44%]
+tests/test_market_routes.py::TestMarketDetails::test_details_response_fields PASSED [ 44%]
+tests/test_market_routes.py::TestMarketDetails::test_details_404_unknown_ticker PASSED [ 45%]
+tests/test_market_routes.py::TestMarketDetails::test_details_503_when_disabled PASSED [ 46%]
+tests/test_market_routes.py::TestMarketRateLimit::test_rate_limit_header_present PASSED [ 47%]
+tests/test_models.py::TestNewsModel::test_create_and_query PASSED        [ 48%]
+tests/test_models.py::TestNewsModel::test_link_unique_constraint PASSED  [ 49%]
+tests/test_models.py::TestNewsModel::test_title_source_unique_constraint PASSED [ 50%]
+tests/test_models.py::TestNewsModel::test_to_dict PASSED                 [ 50%]
+tests/test_models.py::TestMetaModel::test_crud PASSED                    [ 51%]
+tests/test_rate_limit.py::TestRateLimitConfig::test_free_tier_rate_limit FAILED [ 52%]
+tests/test_rate_limit.py::TestRateLimitConfig::test_pro_tier_rate_limit FAILED [ 53%]
+tests/test_rate_limit.py::TestRateLimitConfig::test_max_tier_rate_limit FAILED [ 54%]
+tests/test_rate_limit.py::TestRateLimitHeaders::test_api_response_includes_rate_limit_headers PASSED [ 55%]
+tests/test_rate_limit.py::TestRateLimitEnforcement::test_anonymous_rate_limit_exceeded PASSED [ 55%]
+tests/test_rate_limit.py::TestRateLimitEnforcement::test_static_pages_not_rate_limited PASSED [ 56%]
+tests/test_rate_limit.py::TestRateLimitByTier::test_pro_user_higher_limit PASSED [ 57%]
+tests/test_routes.py::TestNewsRoute::test_get_news PASSED                [ 58%]
+tests/test_routes.py::TestNewsRoute::test_filter_by_source PASSED        [ 59%]
+tests/test_routes.py::TestNewsRoute::test_filter_by_sentiment PASSED     [ 60%]
+tests/test_routes.py::TestNewsRoute::test_keyword_search PASSED          [ 61%]
+tests/test_routes.py::TestNewsRoute::test_limit PASSED                   [ 61%]
+tests/test_routes.py::TestNewsRoute::test_free_tier_limit_capped_at_50 PASSED [ 62%]
+tests/test_routes.py::TestNewsRoute::test_items_have_base_fields PASSED  [ 63%]
+tests/test_routes.py::TestSourcesRoute::test_get_sources PASSED          [ 64%]
+tests/test_routes.py::TestSourcesRoute::test_source_fields PASSED        [ 65%]
+tests/test_routes.py::TestStatsRoute::test_get_stats PASSED              [ 66%]
+tests/test_routes.py::TestStatsRoute::test_stats_cache_returns_same_data PASSED [ 66%]
+tests/test_routes.py::TestStatsRoute::test_sources_cache_returns_same_data PASSED [ 67%]
+tests/test_routes.py::TestRefreshRoute::test_refresh_unauthenticated PASSED [ 68%]
+tests/test_routes.py::TestRefreshRoute::test_refresh_authenticated PASSED [ 69%]
+tests/test_routes.py::TestDocsRoute::test_get_docs PASSED                [ 70%]
+tests/test_routes.py::TestStaticRoute::test_index PASSED                 [ 71%]
+tests/test_sentiment.py::TestScoreSentiment::test_empty_input PASSED     [ 72%]
+tests/test_sentiment.py::TestScoreSentiment::test_none_input PASSED      [ 72%]
+tests/test_sentiment.py::TestScoreSentiment::test_bullish_text PASSED    [ 73%]
+tests/test_sentiment.py::TestScoreSentiment::test_bearish_text PASSED    [ 74%]
+tests/test_sentiment.py::TestScoreSentiment::test_neutral_text PASSED    [ 75%]
+tests/test_sentiment.py::TestScoreSentiment::test_mixed_text PASSED      [ 76%]
+tests/test_sentiment.py::TestScoreSentiment::test_score_clamped PASSED   [ 77%]
+tests/test_sentiment.py::TestScoreSentiment::test_score_rounded PASSED   [ 77%]
+tests/test_tiers.py::TestTierConfig::test_all_tiers_exist PASSED         [ 78%]
+tests/test_tiers.py::TestTierConfig::test_free_has_basic_features PASSED [ 79%]
+tests/test_tiers.py::TestTierConfig::test_free_lacks_premium_features PASSED [ 80%]
+tests/test_tiers.py::TestTierConfig::test_pro_has_analysis_features PASSED [ 81%]
+tests/test_tiers.py::TestTierConfig::test_plus_alias_works PASSED        [ 82%]
+tests/test_tiers.py::TestTierConfig::test_max_has_all_features PASSED    [ 83%]
+tests/test_tiers.py::TestTierConfig::test_max_is_hidden FAILED           [ 83%]
+tests/test_tiers.py::TestTierConfig::test_pro_is_visible PASSED          [ 84%]
+tests/test_tiers.py::TestTierConfig::test_limits_differ_by_tier PASSED   [ 85%]
+tests/test_tiers.py::TestTierConfig::test_unknown_tier_defaults_to_free PASSED [ 86%]
+tests/test_tiers.py::TestTierConfig::test_get_all_tiers_summary_excludes_hidden FAILED [ 87%]
+tests/test_tiers.py::TestTierConfig::test_pro_has_trial PASSED           [ 88%]
+tests/test_tiers.py::TestTierConfig::test_history_days_limit PASSED      [ 88%]
+tests/test_tiers.py::TestNewsEndpointTierGating::test_free_user_capped_at_50_items PASSED [ 89%]
+tests/test_tiers.py::TestNewsEndpointTierGating::test_free_user_no_sentiment_fields PASSED [ 90%]
+tests/test_tiers.py::TestNewsEndpointTierGating::test_free_user_no_duplicate_field PASSED [ 91%]
+tests/test_tiers.py::TestNewsEndpointTierGating::test_free_user_date_range_ignored PASSED [ 92%]
+tests/test_tiers.py::TestNewsEndpointTierGating::test_pro_user_gets_sentiment PASSED [ 93%]
+tests/test_tiers.py::TestTierGatingDecorator::test_require_feature_blocks_free PASSED [ 94%]
+tests/test_tiers.py::TestTerminalAccessGating::test_anonymous_user_redirected_from_terminal FAILED [ 94%]
+tests/test_tiers.py::TestTerminalAccessGating::test_free_user_redirected_from_terminal FAILED [ 95%]
+tests/test_tiers.py::TestTerminalAccessGating::test_pro_user_can_access_terminal PASSED [ 96%]
+tests/test_tiers.py::TestTerminalAccessGating::test_free_tier_lacks_terminal_access_feature PASSED [ 97%]
+tests/test_tiers.py::TestTerminalAccessGating::test_pro_tier_has_terminal_access_feature PASSED [ 98%]
+tests/test_tiers.py::TestTerminalAccessGating::test_tier_endpoint_includes_terminal_access PASSED [ 99%]
+tests/test_tiers.py::TestPricingEndpoint::test_pricing_returns_visible_tiers_only FAILED [100%]
+
+=================================== FAILURES ===================================
+________________ TestRateLimitConfig.test_free_tier_rate_limit _________________
+tests/test_rate_limit.py:21: in test_free_tier_rate_limit
+    assert rate == 10
+E   assert 30 == 10
+_________________ TestRateLimitConfig.test_pro_tier_rate_limit _________________
+tests/test_rate_limit.py:25: in test_pro_tier_rate_limit
+    assert rate == 60
+E   assert 300 == 60
+_________________ TestRateLimitConfig.test_max_tier_rate_limit _________________
+tests/test_rate_limit.py:29: in test_max_tier_rate_limit
+    assert rate == 120
+E   assert 1000 == 120
+______________________ TestTierConfig.test_max_is_hidden _______________________
+tests/test_tiers.py:61: in test_max_is_hidden
+    assert TIERS["max"]["visible"] is False
+E   assert True is False
+__________ TestTierConfig.test_get_all_tiers_summary_excludes_hidden ___________
+tests/test_tiers.py:77: in test_get_all_tiers_summary_excludes_hidden
+    assert "free" in summary
+E   AssertionError: assert 'free' in [{'key': 'free', 'name': 'Free', 'price_monthly_cents': 0, 'trial_period_days': 0, 'features': {'terminal_access': False, 'news_feed': True, 'keyword_search': True, 'source_filter': True, 'sentiment_filter': False, 'deduplication': False, 'date_range_filter': False, 'extended_sources': False, 'ai_ticker_recommendations': False, 'price_analysis': False, 'advanced_analytics': False, 'api_access': False, 'export_csv': False, 'custom_alerts': False, 'watchlist': False}, 'limits': {'max_items_per_request': 50, 'api_rate_per_minute': 30, 'refresh_interval_min_ms': 30000, 'max_saved_searches': 0, 'history_days': 7}, 'display': {'price': '$0', 'price_period': '/mo', 'description': 'Get started with real-time news', 'trial_text': None, 'featured': False, 'cta_label': 'Open Terminal', 'cta_style': 'outline', 'cta_action': 'link', 'cta_href': '/terminal', 'feature_list': [{'included': True, 'text': 'Real-time news feed'}, {'included': True, 'text': '15+ sources'}, {'included': True, 'text': 'Keyword search'}, {'included': True, 'text': 'Source filtering'}, {'included': False, 'text': 'Sentiment analysis'}, {'included': False, 'text': 'Duplicate detection'}, {'included': False, 'text': 'Date range filtering'}, {'included': False, 'text': 'API access'}], 'limits_summary': '50 items/req \xb7 7-day history'}}, {'key': 'pro', 'name': 'Pro', 'price_monthly_cents': 2999, 'trial_period_days': 30, 'features': {'terminal_access': True, 'news_feed': True, 'keyword_search': True, 'source_filter': True, 'sentiment_filter': True, 'deduplication': True, 'date_range_filter': True, 'extended_sources': True, 'ai_ticker_recommendations': False, 'price_analysis': False, 'advanced_analytics': False, 'api_access': True, 'export_csv': True, 'custom_alerts': False, 'watchlist': True}, 'limits': {'max_items_per_request': 200, 'api_rate_per_minute': 300, 'refresh_interval_min_ms': 5000, 'max_saved_searches': 10, 'history_days': 365}, 'display': {'price': '$29.99', 'price_period': '/mo', 'description': 'Full analysis for active traders', 'trial_text': '30-day free trial \u2014 cancel anytime', 'featured': True, 'cta_label': 'Start Free Trial', 'cta_style': 'primary', 'cta_action': 'checkout', 'cta_href': None, 'feature_list': [{'included': True, 'text': 'Everything in Free'}, {'included': True, 'text': 'AI sentiment scoring'}, {'included': True, 'text': 'Duplicate detection'}, {'included': True, 'text': 'Date range filtering'}, {'included': True, 'text': 'API access'}, {'included': True, 'text': 'CSV export'}, {'included': True, 'text': '1-year history'}, {'included': True, 'text': 'Watchlist'}], 'limits_summary': '200 items/req \xb7 300 req/min'}}, {'key': 'max', 'name': 'Max', 'price_monthly_cents': 8999, 'trial_period_days': 0, 'features': {'terminal_access': True, 'news_feed': True, 'keyword_search': True, 'source_filter': True, 'sentiment_filter': True, 'deduplication': True, 'date_range_filter': True, 'extended_sources': True, 'ai_ticker_recommendations': True, 'price_analysis': True, 'advanced_analytics': True, 'api_access': True, 'export_csv': True, 'custom_alerts': True, 'watchlist': True}, 'limits': {'max_items_per_request': 500, 'api_rate_per_minute': 1000, 'refresh_interval_min_ms': 3000, 'max_saved_searches': 50, 'history_days': 1825}, 'display': {'price': '$89.99', 'price_period': '/mo', 'description': 'Maximum power for professional traders', 'trial_text': None, 'featured': False, 'cta_label': 'Subscribe', 'cta_style': 'outline', 'cta_action': 'checkout', 'cta_href': None, 'feature_list': [{'included': True, 'text': 'Everything in Pro'}, {'included': True, 'text': 'AI ticker recommendations'}, {'included': True, 'text': 'Price analysis'}, {'included': True, 'text': 'Advanced analytics'}, {'included': True, 'text': 'Custom alerts'}, {'included': True, 'text': '5-year history'}, {'included': True, 'text': '500 items/req'}, {'included': True, 'text': '1,000 req/min'}], 'limits_summary': '500 items/req \xb7 1,000 req/min'}}]
+____ TestTerminalAccessGating.test_anonymous_user_redirected_from_terminal _____
+tests/test_tiers.py:189: in test_anonymous_user_redirected_from_terminal
+    assert resp.status_code == 302
+E   assert 200 == 302
+E    +  where 200 = <WrapperTestResponse streamed [200 OK]>.status_code
+---------------------------- Captured stdout setup -----------------------------
+{"timestamp": "2026-04-13T23:55:07.527462+00:00", "level": "INFO", "logger": "signal", "message": "Application initialized", "event": "app_start"}
+----------------------------- Captured stdout call -----------------------------
+{"timestamp": "2026-04-13T23:55:07.528661+00:00", "level": "INFO", "logger": "signal.requests", "message": "GET /terminal \u2192 200 (0.4ms)", "request_id": "135301f6b511", "method": "GET", "path": "/terminal", "status": 200, "latency_ms": 0.4, "tier": "anonymous", "ip": "127.0.0.1", "user_agent": "Werkzeug/3.1.7", "endpoint": "static_pages.terminal"}
+------------------------------ Captured log call -------------------------------
+INFO     signal.requests:request_logger.py:40 GET /terminal → 200 (0.4ms)
+_______ TestTerminalAccessGating.test_free_user_redirected_from_terminal _______
+tests/test_tiers.py:210: in test_free_user_redirected_from_terminal
+    assert resp.status_code == 302
+E   assert 200 == 302
+E    +  where 200 = <WrapperTestResponse streamed [200 OK]>.status_code
+---------------------------- Captured stdout setup -----------------------------
+{"timestamp": "2026-04-13T23:55:07.555111+00:00", "level": "INFO", "logger": "signal", "message": "Application initialized", "event": "app_start"}
+----------------------------- Captured stdout call -----------------------------
+{"timestamp": "2026-04-13T23:55:07.561262+00:00", "level": "INFO", "logger": "signal.requests", "message": "GET /terminal \u2192 200 (0.4ms)", "request_id": "22a833e6235b", "method": "GET", "path": "/terminal", "status": 200, "latency_ms": 0.4, "user_id": 1, "tier": "free", "ip": "127.0.0.1", "user_agent": "Werkzeug/3.1.7", "endpoint": "static_pages.terminal"}
+------------------------------ Captured log call -------------------------------
+INFO     signal.requests:request_logger.py:40 GET /terminal → 200 (0.4ms)
+_________ TestPricingEndpoint.test_pricing_returns_visible_tiers_only __________
+tests/test_tiers.py:255: in test_pricing_returns_visible_tiers_only
+    assert "free" in data["tiers"]
+E   AssertionError: assert 'free' in [{'display': {'cta_action': 'link', 'cta_href': '/terminal', 'cta_label': 'Open Terminal', 'cta_style': 'outline', 'description': 'Get started with real-time news', 'feature_list': [{'included': True, 'text': 'Real-time news feed'}, {'included': True, 'text': '15+ sources'}, {'included': True, 'text': 'Keyword search'}, {'included': True, 'text': 'Source filtering'}, {'included': False, 'text': 'Sentiment analysis'}, {'included': False, 'text': 'Duplicate detection'}, {'included': False, 'text': 'Date range filtering'}, {'included': False, 'text': 'API access'}], 'featured': False, 'limits_summary': '50 items/req \xb7 7-day history', 'price': '$0', 'price_period': '/mo', 'trial_text': None}, 'features': {'advanced_analytics': False, 'ai_ticker_recommendations': False, 'api_access': False, 'custom_alerts': False, 'date_range_filter': False, 'deduplication': False, 'export_csv': False, 'extended_sources': False, 'keyword_search': True, 'news_feed': True, 'price_analysis': False, 'sentiment_filter': False, 'source_filter': True, 'terminal_access': False, 'watchlist': False}, 'key': 'free', 'limits': {'api_rate_per_minute': 30, 'history_days': 7, 'max_items_per_request': 50, 'max_saved_searches': 0, 'refresh_interval_min_ms': 30000}, 'name': 'Free', 'price_monthly_cents': 0, 'trial_period_days': 0}, {'display': {'cta_action': 'checkout', 'cta_href': None, 'cta_label': 'Start Free Trial', 'cta_style': 'primary', 'description': 'Full analysis for active traders', 'feature_list': [{'included': True, 'text': 'Everything in Free'}, {'included': True, 'text': 'AI sentiment scoring'}, {'included': True, 'text': 'Duplicate detection'}, {'included': True, 'text': 'Date range filtering'}, {'included': True, 'text': 'API access'}, {'included': True, 'text': 'CSV export'}, {'included': True, 'text': '1-year history'}, {'included': True, 'text': 'Watchlist'}], 'featured': True, 'limits_summary': '200 items/req \xb7 300 req/min', 'price': '$29.99', 'price_period': '/mo', 'trial_text': '30-day free trial \u2014 cancel anytime'}, 'features': {'advanced_analytics': False, 'ai_ticker_recommendations': False, 'api_access': True, 'custom_alerts': False, 'date_range_filter': True, 'deduplication': True, 'export_csv': True, 'extended_sources': True, 'keyword_search': True, 'news_feed': True, 'price_analysis': False, 'sentiment_filter': True, 'source_filter': True, 'terminal_access': True, 'watchlist': True}, 'key': 'pro', 'limits': {'api_rate_per_minute': 300, 'history_days': 365, 'max_items_per_request': 200, 'max_saved_searches': 10, 'refresh_interval_min_ms': 5000}, 'name': 'Pro', 'price_monthly_cents': 2999, 'trial_period_days': 30}, {'display': {'cta_action': 'checkout', 'cta_href': None, 'cta_label': 'Subscribe', 'cta_style': 'outline', 'description': 'Maximum power for professional traders', 'feature_list': [{'included': True, 'text': 'Everything in Pro'}, {'included': True, 'text': 'AI ticker recommendations'}, {'included': True, 'text': 'Price analysis'}, {'included': True, 'text': 'Advanced analytics'}, {'included': True, 'text': 'Custom alerts'}, {'included': True, 'text': '5-year history'}, {'included': True, 'text': '500 items/req'}, {'included': True, 'text': '1,000 req/min'}], 'featured': False, 'limits_summary': '500 items/req \xb7 1,000 req/min', 'price': '$89.99', 'price_period': '/mo', 'trial_text': None}, 'features': {'advanced_analytics': True, 'ai_ticker_recommendations': True, 'api_access': True, 'custom_alerts': True, 'date_range_filter': True, 'deduplication': True, 'export_csv': True, 'extended_sources': True, 'keyword_search': True, 'news_feed': True, 'price_analysis': True, 'sentiment_filter': True, 'source_filter': True, 'terminal_access': True, 'watchlist': True}, 'key': 'max', 'limits': {'api_rate_per_minute': 1000, 'history_days': 1825, 'max_items_per_request': 500, 'max_saved_searches': 50, 'refresh_interval_min_ms': 3000}, 'name': 'Max', 'price_monthly_cents': 8999, 'trial_period_days': 0}]
+---------------------------- Captured stdout setup -----------------------------
+{"timestamp": "2026-04-13T23:55:07.688614+00:00", "level": "INFO", "logger": "signal", "message": "Application initialized", "event": "app_start"}
+----------------------------- Captured stdout call -----------------------------
+{"timestamp": "2026-04-13T23:55:07.689880+00:00", "level": "INFO", "logger": "signal.requests", "message": "GET /api/pricing \u2192 200 (0.5ms)", "request_id": "a542147fb2bf", "method": "GET", "path": "/api/pricing", "status": 200, "latency_ms": 0.5, "tier": "anonymous", "ip": "127.0.0.1", "user_agent": "Werkzeug/3.1.7", "endpoint": "auth.get_pricing"}
+------------------------------ Captured log call -------------------------------
+INFO     signal.requests:request_logger.py:40 GET /api/pricing → 200 (0.5ms)
+=========================== short test summary info ============================
+FAILED tests/test_rate_limit.py::TestRateLimitConfig::test_free_tier_rate_limit - assert 30 == 10
+FAILED tests/test_rate_limit.py::TestRateLimitConfig::test_pro_tier_rate_limit - assert 300 == 60
+FAILED tests/test_rate_limit.py::TestRateLimitConfig::test_max_tier_rate_limit - assert 1000 == 120
+FAILED tests/test_tiers.py::TestTierConfig::test_max_is_hidden - assert True is False
+FAILED tests/test_tiers.py::TestTierConfig::test_get_all_tiers_summary_excludes_hidden - AssertionError: assert 'free' in [{'key': 'free', 'name': 'Free', 'price_monthly_cents': 0, 'trial_period_days': 0, 'features': {'terminal_access': False, 'news_feed': True, 'keyword_search': True, 'source_filter': True, 'sentiment_filter': False, 'deduplication': False, 'date_range_filter': False, 'extended_sources': False, 'ai_ticker_recommendations': False, 'price_analysis': False, 'advanced_analytics': False, 'api_access': False, 'export_csv': False, 'custom_alerts': False, 'watchlist': False}, 'limits': {'max_items_per_request': 50, 'api_rate_per_minute': 30, 'refresh_interval_min_ms': 30000, 'max_saved_searches': 0, 'history_days': 7}, 'display': {'price': '$0', 'price_period': '/mo', 'description': 'Get started with real-time news', 'trial_text': None, 'featured': False, 'cta_label': 'Open Terminal', 'cta_style': 'outline', 'cta_action': 'link', 'cta_href': '/terminal', 'feature_list': [{'included': True, 'text': 'Real-time news feed'}, {'included': True, 'text': '15+ sources'}, {'included': True, 'text': 'Keyword search'}, {'included': True, 'text': 'Source filtering'}, {'included': False, 'text': 'Sentiment analysis'}, {'included': False, 'text': 'Duplicate detection'}, {'included': False, 'text': 'Date range filtering'}, {'included': False, 'text': 'API access'}], 'limits_summary': '50 items/req \xb7 7-day history'}}, {'key': 'pro', 'name': 'Pro', 'price_monthly_cents': 2999, 'trial_period_days': 30, 'features': {'terminal_access': True, 'news_feed': True, 'keyword_search': True, 'source_filter': True, 'sentiment_filter': True, 'deduplication': True, 'date_range_filter': True, 'extended_sources': True, 'ai_ticker_recommendations': False, 'price_analysis': False, 'advanced_analytics': False, 'api_access': True, 'export_csv': True, 'custom_alerts': False, 'watchlist': True}, 'limits': {'max_items_per_request': 200, 'api_rate_per_minute': 300, 'refresh_interval_min_ms': 5000, 'max_saved_searches': 10, 'history_days': 365}, 'display': {'price': '$29.99', 'price_period': '/mo', 'description': 'Full analysis for active traders', 'trial_text': '30-day free trial \u2014 cancel anytime', 'featured': True, 'cta_label': 'Start Free Trial', 'cta_style': 'primary', 'cta_action': 'checkout', 'cta_href': None, 'feature_list': [{'included': True, 'text': 'Everything in Free'}, {'included': True, 'text': 'AI sentiment scoring'}, {'included': True, 'text': 'Duplicate detection'}, {'included': True, 'text': 'Date range filtering'}, {'included': True, 'text': 'API access'}, {'included': True, 'text': 'CSV export'}, {'included': True, 'text': '1-year history'}, {'included': True, 'text': 'Watchlist'}], 'limits_summary': '200 items/req \xb7 300 req/min'}}, {'key': 'max', 'name': 'Max', 'price_monthly_cents': 8999, 'trial_period_days': 0, 'features': {'terminal_access': True, 'news_feed': True, 'keyword_search': True, 'source_filter': True, 'sentiment_filter': True, 'deduplication': True, 'date_range_filter': True, 'extended_sources': True, 'ai_ticker_recommendations': True, 'price_analysis': True, 'advanced_analytics': True, 'api_access': True, 'export_csv': True, 'custom_alerts': True, 'watchlist': True}, 'limits': {'max_items_per_request': 500, 'api_rate_per_minute': 1000, 'refresh_interval_min_ms': 3000, 'max_saved_searches': 50, 'history_days': 1825}, 'display': {'price': '$89.99', 'price_period': '/mo', 'description': 'Maximum power for professional traders', 'trial_text': None, 'featured': False, 'cta_label': 'Subscribe', 'cta_style': 'outline', 'cta_action': 'checkout', 'cta_href': None, 'feature_list': [{'included': True, 'text': 'Everything in Pro'}, {'included': True, 'text': 'AI ticker recommendations'}, {'included': True, 'text': 'Price analysis'}, {'included': True, 'text': 'Advanced analytics'}, {'included': True, 'text': 'Custom alerts'}, {'included': True, 'text': '5-year history'}, {'included': True, 'text': '500 items/req'}, {'included': True, 'text': '1,000 req/min'}], 'limits_summary': '500 items/req \xb7 1,000 req/min'}}]
+FAILED tests/test_tiers.py::TestTerminalAccessGating::test_anonymous_user_redirected_from_terminal - assert 200 == 302
+ +  where 200 = <WrapperTestResponse streamed [200 OK]>.status_code
+FAILED tests/test_tiers.py::TestTerminalAccessGating::test_free_user_redirected_from_terminal - assert 200 == 302
+ +  where 200 = <WrapperTestResponse streamed [200 OK]>.status_code
+FAILED tests/test_tiers.py::TestPricingEndpoint::test_pricing_returns_visible_tiers_only - AssertionError: assert 'free' in [{'display': {'cta_action': 'link', 'cta_href': '/terminal', 'cta_label': 'Open Terminal', 'cta_style': 'outline', 'description': 'Get started with real-time news', 'feature_list': [{'included': True, 'text': 'Real-time news feed'}, {'included': True, 'text': '15+ sources'}, {'included': True, 'text': 'Keyword search'}, {'included': True, 'text': 'Source filtering'}, {'included': False, 'text': 'Sentiment analysis'}, {'included': False, 'text': 'Duplicate detection'}, {'included': False, 'text': 'Date range filtering'}, {'included': False, 'text': 'API access'}], 'featured': False, 'limits_summary': '50 items/req \xb7 7-day history', 'price': '$0', 'price_period': '/mo', 'trial_text': None}, 'features': {'advanced_analytics': False, 'ai_ticker_recommendations': False, 'api_access': False, 'custom_alerts': False, 'date_range_filter': False, 'deduplication': False, 'export_csv': False, 'extended_sources': False, 'keyword_search': True, 'news_feed': True, 'price_analysis': False, 'sentiment_filter': False, 'source_filter': True, 'terminal_access': False, 'watchlist': False}, 'key': 'free', 'limits': {'api_rate_per_minute': 30, 'history_days': 7, 'max_items_per_request': 50, 'max_saved_searches': 0, 'refresh_interval_min_ms': 30000}, 'name': 'Free', 'price_monthly_cents': 0, 'trial_period_days': 0}, {'display': {'cta_action': 'checkout', 'cta_href': None, 'cta_label': 'Start Free Trial', 'cta_style': 'primary', 'description': 'Full analysis for active traders', 'feature_list': [{'included': True, 'text': 'Everything in Free'}, {'included': True, 'text': 'AI sentiment scoring'}, {'included': True, 'text': 'Duplicate detection'}, {'included': True, 'text': 'Date range filtering'}, {'included': True, 'text': 'API access'}, {'included': True, 'text': 'CSV export'}, {'included': True, 'text': '1-year history'}, {'included': True, 'text': 'Watchlist'}], 'featured': True, 'limits_summary': '200 items/req \xb7 300 req/min', 'price': '$29.99', 'price_period': '/mo', 'trial_text': '30-day free trial \u2014 cancel anytime'}, 'features': {'advanced_analytics': False, 'ai_ticker_recommendations': False, 'api_access': True, 'custom_alerts': False, 'date_range_filter': True, 'deduplication': True, 'export_csv': True, 'extended_sources': True, 'keyword_search': True, 'news_feed': True, 'price_analysis': False, 'sentiment_filter': True, 'source_filter': True, 'terminal_access': True, 'watchlist': True}, 'key': 'pro', 'limits': {'api_rate_per_minute': 300, 'history_days': 365, 'max_items_per_request': 200, 'max_saved_searches': 10, 'refresh_interval_min_ms': 5000}, 'name': 'Pro', 'price_monthly_cents': 2999, 'trial_period_days': 30}, {'display': {'cta_action': 'checkout', 'cta_href': None, 'cta_label': 'Subscribe', 'cta_style': 'outline', 'description': 'Maximum power for professional traders', 'feature_list': [{'included': True, 'text': 'Everything in Pro'}, {'included': True, 'text': 'AI ticker recommendations'}, {'included': True, 'text': 'Price analysis'}, {'included': True, 'text': 'Advanced analytics'}, {'included': True, 'text': 'Custom alerts'}, {'included': True, 'text': '5-year history'}, {'included': True, 'text': '500 items/req'}, {'included': True, 'text': '1,000 req/min'}], 'featured': False, 'limits_summary': '500 items/req \xb7 1,000 req/min', 'price': '$89.99', 'price_period': '/mo', 'trial_text': None}, 'features': {'advanced_analytics': True, 'ai_ticker_recommendations': True, 'api_access': True, 'custom_alerts': True, 'date_range_filter': True, 'deduplication': True, 'export_csv': True, 'extended_sources': True, 'keyword_search': True, 'news_feed': True, 'price_analysis': True, 'sentiment_filter': True, 'source_filter': True, 'terminal_access': True, 'watchlist': True}, 'key': 'max', 'limits': {'api_rate_per_minute': 1000, 'history_days': 1825, 'max_items_per_request': 500, 'max_saved_searches': 50, 'refresh_interval_min_ms': 3000}, 'name': 'Max', 'price_monthly_cents': 8999, 'trial_period_days': 0}]
+======================== 8 failed, 110 passed in 2.42s =========================

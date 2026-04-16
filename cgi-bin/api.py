@@ -21,6 +21,7 @@ import xml.etree.ElementTree as ET
 from datetime import datetime, timezone, timedelta
 from urllib.parse import parse_qs
 import threading
+import numpy as np
 
 # ---------------------------------------------------------------------------
 # Configuration
@@ -29,6 +30,8 @@ import threading
 DB_PATH = "news_terminal.db"
 STALE_SECONDS = 30
 FETCH_TIMEOUT = 3  # Reduced for faster initial load
+MAX_AGE_DAYS = int(os.environ.get("MAX_AGE_DAYS", str(5 * 365)))  # 5 years
+DEDUP_THRESHOLD = float(os.environ.get("DEDUP_THRESHOLD", "0.85"))
 
 FEEDS = {
     "CNBC": "https://search.cnbc.com/rs/search/combinedcms/view.xml?partnerId=wrss01&id=100003114",
@@ -42,6 +45,8 @@ FEEDS = {
     "SeekingAlpha": "https://seekingalpha.com/market_currents.xml",
     "Benzinga": "https://www.benzinga.com/feeds/all",
     "AP_News": "https://rsshub.app/apnews/topics/business",
+    "Bloomberg_Business": "https://rsshub.app/bloomberg/bbiz",
+    "Bloomberg_Markets": "https://rsshub.app/bloomberg/markets",
     "BBC_Business": "http://feeds.bbci.co.uk/news/business/rss.xml",
     "Google_News_Business": "https://news.google.com/rss/topics/CAAqJggKIiBDQkFTRWdvSUwyMHZNRGx6TVdZU0FtVnVHZ0pWVXlnQVAB",
 }
@@ -78,16 +83,26 @@ def get_db():
             link TEXT UNIQUE,
             source TEXT,
             published TEXT,
-            fetched_at TEXT DEFAULT CURRENT_TIMESTAMP,
+            fetched_at TEXT,
             summary TEXT,
             sentiment_score REAL DEFAULT 0,
             sentiment_label TEXT DEFAULT 'neutral',
             tags TEXT DEFAULT ''
         )
     """)
+    db.execute("CREATE INDEX IF NOT EXISTS idx_published ON news(published DESC)")
     db.execute("CREATE INDEX IF NOT EXISTS idx_fetched ON news(fetched_at DESC)")
     db.execute("CREATE INDEX IF NOT EXISTS idx_source ON news(source)")
     db.execute("CREATE INDEX IF NOT EXISTS idx_sentiment ON news(sentiment_label)")
+    db.execute("CREATE UNIQUE INDEX IF NOT EXISTS idx_dedup_title_source ON news(title, source)")
+    try:
+        db.execute("ALTER TABLE news ADD COLUMN duplicate INTEGER DEFAULT 0")
+    except sqlite3.OperationalError:
+        pass
+    try:
+        db.execute("ALTER TABLE news ADD COLUMN embedding BLOB")
+    except sqlite3.OperationalError:
+        pass
     db.execute("""
         CREATE TABLE IF NOT EXISTS meta (
             key TEXT PRIMARY KEY,
@@ -136,24 +151,34 @@ def strip_html(text):
     text = re.sub(r'\s+', ' ', text)
     return text.strip()[:500]
 
+def utc_iso(dt):
+    """Format a datetime as UTC ISO 8601 with T separator and +00:00."""
+    if dt.tzinfo is None:
+        dt = dt.replace(tzinfo=timezone.utc)
+    else:
+        dt = dt.astimezone(timezone.utc)
+    return dt.strftime("%Y-%m-%dT%H:%M:%S+00:00")
+
 def parse_date(date_str):
     if not date_str:
-        return datetime.now(timezone.utc).isoformat()
+        return utc_iso(datetime.now(timezone.utc))
+    cleaned = date_str.strip()
     formats = [
         "%a, %d %b %Y %H:%M:%S %z",
-        "%a, %d %b %Y %H:%M:%S %Z",
         "%Y-%m-%dT%H:%M:%S%z",
         "%Y-%m-%dT%H:%M:%SZ",
         "%Y-%m-%d %H:%M:%S",
         "%a, %d %b %Y %H:%M:%S",
+        "%a, %d %b %Y %H:%M:%S GMT",
+        "%d %b %Y %H:%M:%S %z",
     ]
     for fmt in formats:
         try:
-            dt = datetime.strptime(date_str.strip(), fmt)
-            return dt.isoformat()
+            dt = datetime.strptime(cleaned, fmt)
+            return utc_iso(dt)
         except ValueError:
             continue
-    return date_str.strip()
+    return utc_iso(datetime.now(timezone.utc))
 
 def fetch_feed(source_name, url):
     """Fetch and parse a single RSS feed. Returns list of item dicts."""
@@ -213,15 +238,16 @@ def fetch_single_feed_to_db(source_name, url, db_path):
         db = sqlite3.connect(db_path, timeout=10)
         db.execute("PRAGMA journal_mode=WAL")
         db.execute("PRAGMA busy_timeout=5000")
+        now_utc = utc_iso(datetime.now(timezone.utc))
         count = 0
         for item in items:
             try:
                 db.execute("""
-                    INSERT OR IGNORE INTO news (title, link, source, published, summary, sentiment_score, sentiment_label)
-                    VALUES (?, ?, ?, ?, ?, ?, ?)
+                    INSERT OR IGNORE INTO news (title, link, source, published, fetched_at, summary, sentiment_score, sentiment_label)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
                 """, (
                     item["title"], item["link"], item["source"],
-                    item["published"], item["summary"],
+                    item["published"], now_utc, item["summary"],
                     item["sentiment_score"], item["sentiment_label"]
                 ))
                 if db.execute("SELECT changes()").fetchone()[0] > 0:
@@ -233,6 +259,74 @@ def fetch_single_feed_to_db(source_name, url, db_path):
         return source_name, count
     except Exception:
         return source_name, 0
+
+def cleanup_old_entries(db):
+    """Remove entries older than MAX_AGE_DAYS."""
+    cutoff = utc_iso(datetime.now(timezone.utc) - timedelta(days=MAX_AGE_DAYS))
+    db.execute("DELETE FROM news WHERE published < ?", (cutoff,))
+    db.commit()
+
+# ---------------------------------------------------------------------------
+# Semantic Deduplication
+# ---------------------------------------------------------------------------
+
+_embedding_model = None
+_embedding_lock = threading.Lock()
+
+def get_embedding_model():
+    global _embedding_model
+    if _embedding_model is None:
+        with _embedding_lock:
+            if _embedding_model is None:
+                from sentence_transformers import SentenceTransformer
+                _embedding_model = SentenceTransformer("all-MiniLM-L6-v2")
+    return _embedding_model
+
+def mark_new_duplicates(db):
+    """Compute embeddings for new items and mark semantic duplicates."""
+    new_rows = db.execute(
+        "SELECT id, title FROM news WHERE embedding IS NULL"
+    ).fetchall()
+    if not new_rows:
+        return
+
+    model = get_embedding_model()
+    new_titles = [r["title"] for r in new_rows]
+    new_ids = [r["id"] for r in new_rows]
+    new_embeddings = model.encode(new_titles, normalize_embeddings=True)
+
+    cutoff = utc_iso(datetime.now(timezone.utc) - timedelta(hours=48))
+    existing_rows = db.execute(
+        "SELECT id, embedding FROM news WHERE embedding IS NOT NULL AND fetched_at >= ?",
+        (cutoff,)
+    ).fetchall()
+
+    existing_embeddings = None
+    if existing_rows:
+        existing_embeddings = np.array([
+            np.frombuffer(r["embedding"], dtype=np.float32) for r in existing_rows
+        ])
+
+    for i in range(len(new_ids)):
+        emb = new_embeddings[i]
+        is_dup = False
+
+        if existing_embeddings is not None and len(existing_embeddings) > 0:
+            sims = existing_embeddings @ emb
+            if float(np.max(sims)) >= DEDUP_THRESHOLD:
+                is_dup = True
+
+        if not is_dup and i > 0:
+            batch_sims = new_embeddings[:i] @ emb
+            if float(np.max(batch_sims)) >= DEDUP_THRESHOLD:
+                is_dup = True
+
+        db.execute(
+            "UPDATE news SET embedding = ?, duplicate = ? WHERE id = ?",
+            (emb.tobytes(), 1 if is_dup else 0, new_ids[i])
+        )
+
+    db.commit()
 
 def refresh_feeds_parallel(db):
     """Fetch all feeds in parallel using threads for speed."""
@@ -259,10 +353,16 @@ def refresh_feeds_parallel(db):
 
     total_new = sum(results.values())
     db.execute("INSERT OR REPLACE INTO meta (key, value) VALUES (?, ?)",
-               ("last_refresh", datetime.now(timezone.utc).isoformat()))
+               ("last_refresh", utc_iso(datetime.now(timezone.utc))))
     db.execute("INSERT OR REPLACE INTO meta (key, value) VALUES (?, ?)",
                ("source_status", json.dumps(results)))
     db.commit()
+    cleanup_old_entries(db)
+    if total_new > 0:
+        try:
+            mark_new_duplicates(db)
+        except Exception:
+            pass
     return total_new, results
 
 def maybe_refresh(db):
@@ -289,9 +389,11 @@ def route_news(db, params):
     source = params.get("source", ["all"])[0]
     sentiment = params.get("sentiment", ["all"])[0]
     query = params.get("q", [""])[0]
+    date_from = params.get("from", [""])[0]
+    date_to = params.get("to", [""])[0]
     limit = max(1, min(limit, 500))
 
-    sql = "SELECT * FROM news WHERE 1=1"
+    sql = "SELECT id, title, link, source, published, fetched_at, summary, sentiment_score, sentiment_label, tags, duplicate FROM news WHERE 1=1"
     bind = []
     if source and source != "all":
         sql += " AND source = ?"
@@ -302,7 +404,14 @@ def route_news(db, params):
     if query:
         sql += " AND (title LIKE ? OR summary LIKE ?)"
         bind.extend([f"%{query}%", f"%{query}%"])
-    sql += " ORDER BY fetched_at DESC, id DESC LIMIT ?"
+    if date_from:
+        sql += " AND published >= ?"
+        bind.append(date_from)
+    if date_to:
+        to_val = date_to + "T23:59:59+00:00" if len(date_to) == 10 else date_to
+        sql += " AND published <= ?"
+        bind.append(to_val)
+    sql += " ORDER BY published DESC, id DESC LIMIT ?"
     bind.append(limit)
 
     rows = db.execute(sql, bind).fetchall()
@@ -350,7 +459,7 @@ def route_refresh(db):
         "refreshed": True,
         "new_items": new_count,
         "source_status": status,
-        "timestamp": datetime.now(timezone.utc).isoformat()
+        "timestamp": utc_iso(datetime.now(timezone.utc))
     }
 
 def route_docs():
@@ -365,7 +474,9 @@ def route_docs():
                     "limit": "Number of items (default 50, max 500)",
                     "source": "Filter by source name (default 'all')",
                     "sentiment": "Filter by sentiment: bullish, bearish, neutral (default 'all')",
-                    "q": "Keyword search in title and summary"
+                    "q": "Keyword search in title and summary",
+                    "from": "Filter from date (ISO 8601, e.g. '2026-03-01')",
+                    "to": "Filter to date (ISO 8601, e.g. '2026-03-02')"
                 }
             },
             {"method": "GET", "path": "/sources", "description": "List all active feed sources with item counts"},

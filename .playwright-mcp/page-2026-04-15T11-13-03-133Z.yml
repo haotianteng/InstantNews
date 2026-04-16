@@ -1,0 +1,350 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - banner [ref=e3]:
+      - generic [ref=e4]:
+        - generic [ref=e5]:
+          - img [ref=e7]
+          - generic [ref=e10]: InstNews SIGNAL
+        - generic [ref=e12]: Wed, Apr 15, 2026 07:13:03
+        - generic [ref=e16]: CONNECTING
+      - generic [ref=e17]:
+        - generic [ref=e18]:
+          - generic [ref=e19]: Items
+          - generic [ref=e20]: "--"
+        - generic [ref=e21]:
+          - generic [ref=e22]: Feeds
+          - generic [ref=e23]: "--"
+        - generic [ref=e24]:
+          - generic [ref=e25]: Avg Sent
+          - generic [ref=e26]: "--"
+        - button "Sound" [ref=e27] [cursor=pointer]:
+          - img [ref=e28]
+          - generic [ref=e32]: Sound
+        - button "Refresh" [ref=e33] [cursor=pointer]:
+          - img [ref=e34]
+          - generic [ref=e37]: Refresh
+        - button "API Docs" [ref=e38] [cursor=pointer]:
+          - img [ref=e39]
+          - generic [ref=e42]: API Docs
+        - button "Columns" [ref=e44] [cursor=pointer]:
+          - img [ref=e45]
+          - generic [ref=e46]: Columns
+        - button "Sign In" [ref=e48] [cursor=pointer]:
+          - img [ref=e49]
+          - generic [ref=e52]: Sign In
+    - complementary [ref=e53]:
+      - generic [ref=e54]:
+        - generic [ref=e55]: Search
+        - generic [ref=e56]:
+          - img
+          - textbox "Filter headlines..." [ref=e57]
+          - generic: F
+      - generic [ref=e58]:
+        - generic [ref=e59]: Date Range
+        - generic [ref=e60]:
+          - generic [ref=e61]:
+            - generic [ref=e62]: From
+            - textbox "From" [ref=e63]
+          - generic [ref=e64]:
+            - generic [ref=e65]: To
+            - textbox "To" [ref=e66]
+          - button "Clear dates" [ref=e67] [cursor=pointer]:
+            - img [ref=e68]
+            - text: Clear dates
+      - generic [ref=e72] [cursor=pointer]:
+        - checkbox "Hide duplicates" [ref=e73]
+        - generic [ref=e74]: Hide duplicates
+      - generic [ref=e75]:
+        - generic [ref=e76]: Sentiment
+        - generic [ref=e77]:
+          - button "All -- 1" [ref=e78] [cursor=pointer]:
+            - text: All
+            - generic [ref=e80]: "--"
+            - generic [ref=e81]: "1"
+          - button "Bullish -- 2" [ref=e82] [cursor=pointer]:
+            - text: Bullish
+            - generic [ref=e84]: "--"
+            - generic [ref=e85]: "2"
+          - button "Bearish -- 3" [ref=e86] [cursor=pointer]:
+            - text: Bearish
+            - generic [ref=e88]: "--"
+            - generic [ref=e89]: "3"
+          - button "Neutral -- 4" [ref=e90] [cursor=pointer]:
+            - text: Neutral
+            - generic [ref=e92]: "--"
+            - generic [ref=e93]: "4"
+      - generic [ref=e94]:
+        - generic [ref=e95]: Sources
+        - generic [ref=e96]:
+          - generic [ref=e97] [cursor=pointer]:
+            - checkbox "CNBC --" [checked] [ref=e98]
+            - generic [ref=e99]: CNBC
+            - generic [ref=e100]: "--"
+          - generic [ref=e101] [cursor=pointer]:
+            - checkbox "CNBC World --" [checked] [ref=e102]
+            - generic [ref=e103]: CNBC World
+            - generic [ref=e104]: "--"
+          - generic [ref=e105] [cursor=pointer]:
+            - checkbox "Reuters Business --" [checked] [ref=e106]
+            - generic [ref=e107]: Reuters Business
+            - generic [ref=e108]: "--"
+          - generic [ref=e109] [cursor=pointer]:
+            - checkbox "MarketWatch --" [checked] [ref=e110]
+            - generic [ref=e111]: MarketWatch
+            - generic [ref=e112]: "--"
+          - generic [ref=e113] [cursor=pointer]:
+            - checkbox "MarketWatch Markets --" [checked] [ref=e114]
+            - generic [ref=e115]: MarketWatch Markets
+            - generic [ref=e116]: "--"
+          - generic [ref=e117] [cursor=pointer]:
+            - checkbox "Investing com --" [checked] [ref=e118]
+            - generic [ref=e119]: Investing com
+            - generic [ref=e120]: "--"
+          - generic [ref=e121] [cursor=pointer]:
+            - checkbox "Yahoo Finance --" [checked] [ref=e122]
+            - generic [ref=e123]: Yahoo Finance
+            - generic [ref=e124]: "--"
+          - generic [ref=e125] [cursor=pointer]:
+            - checkbox "Nasdaq --" [checked] [ref=e126]
+            - generic [ref=e127]: Nasdaq
+            - generic [ref=e128]: "--"
+          - generic [ref=e129] [cursor=pointer]:
+            - checkbox "SeekingAlpha --" [checked] [ref=e130]
+            - generic [ref=e131]: SeekingAlpha
+            - generic [ref=e132]: "--"
+          - generic [ref=e133] [cursor=pointer]:
+            - checkbox "Benzinga --" [checked] [ref=e134]
+            - generic [ref=e135]: Benzinga
+            - generic [ref=e136]: "--"
+          - generic [ref=e137] [cursor=pointer]:
+            - checkbox "AP News --" [checked] [ref=e138]
+            - generic [ref=e139]: AP News
+            - generic [ref=e140]: "--"
+          - generic [ref=e141] [cursor=pointer]:
+            - checkbox "Bloomberg Business --" [checked] [ref=e142]
+            - generic [ref=e143]: Bloomberg Business
+            - generic [ref=e144]: "--"
+          - generic [ref=e145] [cursor=pointer]:
+            - checkbox "Bloomberg Markets --" [checked] [ref=e146]
+            - generic [ref=e147]: Bloomberg Markets
+            - generic [ref=e148]: "--"
+          - generic [ref=e149] [cursor=pointer]:
+            - checkbox "BBC Business --" [checked] [ref=e150]
+            - generic [ref=e151]: BBC Business
+            - generic [ref=e152]: "--"
+          - generic [ref=e153] [cursor=pointer]:
+            - checkbox "Google News Business --" [checked] [ref=e154]
+            - generic [ref=e155]: Google News Business
+            - generic [ref=e156]: "--"
+      - generic [ref=e157]:
+        - generic [ref=e158]: Refresh Interval
+        - combobox [ref=e159] [cursor=pointer]:
+          - option "3 seconds"
+          - option "5 seconds" [selected]
+          - option "10 seconds"
+          - option "15 seconds"
+          - option "30 seconds"
+          - option "60 seconds"
+      - generic [ref=e160]: R Refresh F Search 1-4 Sentiment
+    - main [ref=e161]:
+      - table [ref=e162]:
+        - rowgroup [ref=e163]:
+          - row "Ticker Source Sentiment Time Headline" [ref=e164]:
+            - columnheader "Ticker" [ref=e165]: Ticker
+            - columnheader "Source" [ref=e167]: Source
+            - columnheader "Sentiment" [ref=e169]: Sentiment
+            - columnheader "Time" [ref=e171]: Time
+            - columnheader "Headline" [ref=e173]: Headline
+        - rowgroup [ref=e175]:
+          - row [ref=e176]:
+            - cell [ref=e177]
+            - cell [ref=e179]
+            - cell [ref=e181]
+            - cell [ref=e183]
+            - cell [ref=e185]
+          - row [ref=e187]:
+            - cell [ref=e188]
+            - cell [ref=e190]
+            - cell [ref=e192]
+            - cell [ref=e194]
+            - cell [ref=e196]
+          - row [ref=e198]:
+            - cell [ref=e199]
+            - cell [ref=e201]
+            - cell [ref=e203]
+            - cell [ref=e205]
+            - cell [ref=e207]
+          - row [ref=e209]:
+            - cell [ref=e210]
+            - cell [ref=e212]
+            - cell [ref=e214]
+            - cell [ref=e216]
+            - cell [ref=e218]
+          - row [ref=e220]:
+            - cell [ref=e221]
+            - cell [ref=e223]
+            - cell [ref=e225]
+            - cell [ref=e227]
+            - cell [ref=e229]
+          - row [ref=e231]:
+            - cell [ref=e232]
+            - cell [ref=e234]
+            - cell [ref=e236]
+            - cell [ref=e238]
+            - cell [ref=e240]
+          - row [ref=e242]:
+            - cell [ref=e243]
+            - cell [ref=e245]
+            - cell [ref=e247]
+            - cell [ref=e249]
+            - cell [ref=e251]
+          - row [ref=e253]:
+            - cell [ref=e254]
+            - cell [ref=e256]
+            - cell [ref=e258]
+            - cell [ref=e260]
+            - cell [ref=e262]
+          - row [ref=e264]:
+            - cell [ref=e265]
+            - cell [ref=e267]
+            - cell [ref=e269]
+            - cell [ref=e271]
+            - cell [ref=e273]
+          - row [ref=e275]:
+            - cell [ref=e276]
+            - cell [ref=e278]
+            - cell [ref=e280]
+            - cell [ref=e282]
+            - cell [ref=e284]
+          - row [ref=e286]:
+            - cell [ref=e287]
+            - cell [ref=e289]
+            - cell [ref=e291]
+            - cell [ref=e293]
+            - cell [ref=e295]
+          - row [ref=e297]:
+            - cell [ref=e298]
+            - cell [ref=e300]
+            - cell [ref=e302]
+            - cell [ref=e304]
+            - cell [ref=e306]
+          - row [ref=e308]:
+            - cell [ref=e309]
+            - cell [ref=e311]
+            - cell [ref=e313]
+            - cell [ref=e315]
+            - cell [ref=e317]
+          - row [ref=e319]:
+            - cell [ref=e320]
+            - cell [ref=e322]
+            - cell [ref=e324]
+            - cell [ref=e326]
+            - cell [ref=e328]
+          - row [ref=e330]:
+            - cell [ref=e331]
+            - cell [ref=e333]
+            - cell [ref=e335]
+            - cell [ref=e337]
+            - cell [ref=e339]
+    - contentinfo [ref=e341]:
+      - generic [ref=e342]:
+        - generic [ref=e343]:
+          - text: "Last refresh:"
+          - generic [ref=e344]: "--:--:--"
+        - generic [ref=e345]:
+          - text: "Rate:"
+          - generic [ref=e346]: "0"
+          - text: items/s
+      - generic [ref=e347]:
+        - generic [ref=e348]:
+          - link "Pricing" [ref=e349] [cursor=pointer]:
+            - /url: /pricing
+          - link "Privacy Policy" [ref=e350] [cursor=pointer]:
+            - /url: /privacy
+          - link "Terms of Service" [ref=e351] [cursor=pointer]:
+            - /url: /terms
+        - generic "Click to copy API endpoint" [ref=e352] [cursor=pointer]: /api/news
+  - generic:
+    - generic:
+      - generic:
+        - heading "// API Documentation" [level=2]
+        - button "Close":
+          - img
+      - generic:
+        - paragraph:
+          - text: "REST API for programmatic access. All responses are JSON. Base URL:"
+          - code: http://localhost:8000
+          - text: /api
+        - generic:
+          - generic:
+            - generic: GET
+            - generic: /news
+          - generic:
+            - paragraph: Returns latest news items with sentiment scoring.
+            - generic:
+              - term: limit
+              - definition: Number of items (default 50, max 500)
+              - term: source
+              - definition: Filter by source name (default "all")
+              - term: sentiment
+              - definition: "Filter: bullish, bearish, neutral (default \"all\")"
+              - term: q
+              - definition: Keyword search in title and summary
+              - term: from
+              - definition: Filter from date (ISO 8601, e.g. "2026-03-01")
+              - term: to
+              - definition: Filter to date (ISO 8601, e.g. "2026-03-02")
+            - generic:
+              - text: curl "
+              - text: /api/news?limit=10&sentiment=bullish"
+        - generic:
+          - generic:
+            - generic: GET
+            - generic: /sources
+          - generic:
+            - paragraph: Returns all active feed sources with item counts and status.
+            - generic:
+              - text: curl "
+              - text: /api/sources"
+        - generic:
+          - generic:
+            - generic: GET
+            - generic: /stats
+          - generic:
+            - paragraph: "Returns aggregated statistics: total items, by source, by sentiment, average score."
+            - generic:
+              - text: curl "
+              - text: /api/stats"
+        - generic:
+          - generic:
+            - generic: POST
+            - generic: /refresh
+          - generic:
+            - paragraph: Force refresh all feeds immediately. Returns count of new items found.
+            - generic:
+              - text: curl -X POST "
+              - text: /api/refresh"
+        - generic:
+          - generic:
+            - generic: GET
+            - generic: /docs
+          - generic:
+            - paragraph: Returns this API documentation as JSON.
+            - generic:
+              - text: curl "
+              - text: /api/docs"
+  - generic:
+    - generic:
+      - generic:
+        - heading "// Ticker Recommendation" [level=2]
+        - button "Close":
+          - img
+  - generic [ref=e354]:
+    - img "InstNews" [ref=e355]
+    - heading "Sign in to access SIGNAL" [level=2] [ref=e356]
+    - paragraph [ref=e357]: Create a free account to access the real-time news terminal. No credit card required.
+    - button "Sign in with Google" [ref=e358] [cursor=pointer]:
+      - img [ref=e359]
+      - text: Sign in with Google
+    - link "← Back to home" [ref=e364] [cursor=pointer]:
+      - /url: /

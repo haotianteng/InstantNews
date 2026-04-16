@@ -1,0 +1,26 @@
+POLYGON_API_KEY not set — market data service disabled
+POLYGON_API_KEY not set — market data service disabled
+=== AC1: Module structure ===
+PolygonClient has all required methods: get_ticker_snapshot, get_ticker_details, clear_cache, enabled
+
+=== AC2: get_ticker_snapshot return fields ===
+Returned keys: ['change', 'change_percent', 'price', 'symbol', 'volume', 'vwap']
+Values: price=150.25, change=1.75, change_percent=1.1785, volume=50000000, vwap=149.75
+
+=== AC3: get_ticker_details return fields ===
+Returned keys: ['description', 'homepage_url', 'logo_url', 'market_cap', 'name', 'sector', 'symbol']
+Values: name=Apple Inc., sector=Electronic Computers, market_cap=3000000000000
+logo_url contains apiKey: True
+
+=== AC4: Caching TTLs ===
+SNAPSHOT_TTL=5s (5s), DETAILS_TTL=3600s (1hr) — CORRECT
+Cache expiration verified: entry valid when fresh, invalid after TTL
+
+=== AC5: Error handling — disabled state ===
+Disabled client returns None for both methods
+
+=== AC6: POLYGON_API_KEY env var ===
+With key: enabled=True, Without key: enabled=False
+
+ALL ACCEPTANCE CRITERIA VERIFIED
+EXIT: 0

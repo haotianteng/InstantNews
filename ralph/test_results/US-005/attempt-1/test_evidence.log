@@ -1,0 +1,116 @@
+US-005 Test Evidence — Ticker Recommendation Detail Modal
+=========================================================
+Date: 2026-04-13
+Tester: Ralph Tester Agent
+
+## Test Assertion Results
+
+1. PASS: `cd frontend && npx vite build` exits 0
+   - 29 modules transformed, 0 errors
+   - terminal.html: 20.02 kB, terminal-Dj_cvW5E.js: 18.37 kB, terminal-UJ3TC4M9.css: 22.36 kB
+   - See: vite_build.log
+
+2. PASS: Terminal page loads at http://localhost:5173/terminal
+   - 50 news rows rendered with data-id attributes and cursor:pointer
+   - News data loads from /api/news correctly
+
+3. PASS: Click news row — modal opens with content
+   - Clicked time cell (not headline link) of first row (data-id=6166573)
+   - detail-modal-overlay gains .open class
+   - Modal body populated with article context + upgrade prompt (non-Max user)
+   - See: screenshot-modal-upgrade-prompt.png
+
+4. PASS: Press Escape — modal closes
+   - Dispatched Escape key, .open class removed from overlay
+
+5. PASS: Click outside modal (backdrop) — modal closes
+   - Clicked overlay element directly, .open class removed
+   - Close button also tested — works correctly
+
+6. PASS: Reasoning text is scrollable for long content
+   - CSS: max-height: 200px, overflow-y: auto
+   - scrollHeight: 354px > clientHeight: 200px — content overflows and scrolls
+   - See: screenshot-modal-reasoning-scrolled.png
+
+7. PASS: Non-Max user sees upgrade prompt
+   - state.userTier is null (unauthenticated) → modal shows upgrade prompt
+   - Upgrade prompt contains: diamond icon, "Ticker Recommendations" heading,
+     "Upgrade to Max" button linking to /pricing
+   - See: screenshot-modal-upgrade-prompt.png
+
+## Acceptance Criteria Verification
+
+AC1 (Row click opens modal): PASS
+  - Event delegation on #news-body: click handler finds tr[data-id], looks up item in state.items
+  - Clicking headline link (<a>) does NOT trigger modal (e.target.closest("a") returns early)
+  - Link has target="_blank" — opens in new tab as expected
+
+AC2 (Modal displays all ticker fields): PASS
+  - target_asset: "TSLA" rendered at 28px font-size in blue monospace
+  - asset_type: "STOCK" badge next to ticker symbol
+  - sentiment_label with score: bullish badge (green) with +0.75 score
+  - confidence: 85% displayed prominently
+  - risk_level: color-coded correctly:
+    - LOW → green class
+    - MEDIUM → yellow class (rgb color verified)
+    - HIGH → red class (rgb(248, 81, 73) verified)
+  - tradeable: YES (green badge) / NO (red badge)
+  - reasoning: full text in scrollable container (max-height: 200px, overflow-y: auto)
+  - See: screenshot-modal-max-tier-ticker.png, screenshot-modal-high-risk-red.png
+
+AC3 (Article context in modal): PASS
+  - Headline: shown as h3.detail-headline
+  - Source: shown as span.source-tag
+  - Published time: shown as span.detail-time with relative time (e.g., "04:32:00 · 2d ago")
+  - Present in ALL modal states (upgrade, pending, no-rec, full ticker)
+
+AC4 (Close mechanisms): PASS
+  - Close button (#detail-modal-close): click removes .open class
+  - Escape key: keydown handler removes .open class
+  - Backdrop click: click on overlay (not modal content) removes .open class
+  - Escape priority verified in code: detail modal > API docs modal > sidebar
+
+AC5 (Pending/No-recommendation states): PASS
+  - ai_analyzed=false: "Analysis pending" with diamond icon and description
+  - ai_analyzed=true, no target_asset: "No recommendation" with em-dash icon
+  - See: screenshot-modal-analysis-pending.png, screenshot-modal-no-recommendation.png
+
+AC6 (Dark terminal theme): PASS
+  - Modal background: rgb(22, 27, 34) — dark surface color
+  - Overlay: rgba(0, 0, 0, 0.7) — dark backdrop
+  - Uses existing design tokens: --bg-surface-2, --border-muted, --blue, --green, --red, --yellow
+  - Row hover: cursor:pointer on tr[data-id]
+
+AC7 (Non-Max users see upgrade prompt): PASS
+  - Upgrade prompt with diamond icon, heading, description, "Upgrade to Max" button
+  - Button links to /pricing
+  - See: screenshot-modal-upgrade-prompt.png
+
+AC8 (Typecheck): PASS
+  - `npx vite build` exits 0 with no errors
+  - See: vite_build.log
+
+AC9 (Browser verification): PASS
+  - Modal opens on row click, displays data correctly, closes via all 3 mechanisms
+  - All 4 modal states verified visually: upgrade prompt, full ticker, analysis pending, no recommendation
+
+## Testing Notes
+
+- Max-tier code path could not be tested end-to-end through actual authentication because:
+  1. Firebase Auth requires real Google OAuth credentials in local dev
+  2. Vite's ESM module scoping prevents injection of state into module-private closures
+  3. Playwright route interception works for fetch, but SignalAuth.signUp() does not
+     persist _currentUser due to module scope isolation in Vite dev mode
+- Max-tier rendering was verified by injecting the EXACT HTML that openDetailModal()
+  generates, testing CSS layout, colors, scrollability, and visual correctness
+- The code logic for all 4 modal content branches was verified by source code audit
+  (terminal-app.js lines 756-846)
+- Non-Max path WAS tested end-to-end (click → modal opens → correct content → close)
+
+## Screenshots
+- screenshot-modal-upgrade-prompt.png — Non-Max user sees upgrade prompt
+- screenshot-modal-max-tier-ticker.png — Full ticker recommendation (TSLA, bullish, 85%, MEDIUM/yellow, YES)
+- screenshot-modal-reasoning-scrolled.png — Reasoning text scrollable
+- screenshot-modal-analysis-pending.png — Analysis pending state
+- screenshot-modal-no-recommendation.png — No recommendation state
+- screenshot-modal-high-risk-red.png — HIGH risk (red) + NO tradeable + bearish

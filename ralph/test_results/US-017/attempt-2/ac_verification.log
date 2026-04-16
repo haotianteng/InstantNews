@@ -1,0 +1,16 @@
+POLYGON_API_KEY not set — market data service disabled
+=== AC2: User-Agent ===
+User-Agent: InstantNews dev@instnews.net
+
+=== AC3: Rate limiting ===
+First _throttle: 0.000s
+Second _throttle: 0.100s (should be >= 0.1s)
+
+=== Cache TTL constants ===
+  EDGAR_BASE_URL = https://efts.sec.gov/LATEST
+  EDGAR_DATA_URL = https://data.sec.gov
+  EDGAR_SEC_URL = https://www.sec.gov
+  INSIDER_TTL = 3600
+  INSTITUTIONAL_TTL = 86400
+  POSITION_CHANGE_TTL = 21600
+EXIT: 0

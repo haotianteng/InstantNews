@@ -1,0 +1,98 @@
+# US-012 Test Evidence — Company Profile Modal — Fundamentals Tab
+# Tester: Ralph v2 Tester Agent
+# Date: 2026-04-15
+
+## Test Assertion Results
+
+### Assertion 1: `cd frontend && npx vite build exits 0`
+PASS — Vite build succeeded (exit code 0)
+  - 29 modules transformed, built in 371ms
+  - terminal-CzxHapO3.js: 33.51 kB, terminal-Dp33Z5wy.css: 30.05 kB
+  - Log: ralph/test_results/US-012/attempt-1/vite_build.log
+
+### Assertion 2: Click 'AAPL' ticker badge — company profile modal opens
+**FAIL** — Clicking the AAPL ticker badge does NOTHING. No modal opens.
+
+Root cause: The company profile modal HTML markup (`#company-profile-overlay` and its children) was NEVER added to `frontend/terminal.html`.
+
+Evidence:
+  - `grep -r "company-profile" frontend/terminal.html` → No matches found
+  - `grep -r "company-profile" static/terminal.html` → No matches found
+  - `grep -r "company-profile" --include="*.html"` across entire project → No matches found
+  - In-browser check: `document.getElementById('company-profile-overlay')` → null
+  - In-browser check: `document.getElementById('company-profile-close')` → null
+  - In-browser check: `document.getElementById('company-profile-title')` → null
+  - In-browser check: `document.getElementById('company-profile-body')` → null
+
+The JS code at terminal-app.js:1455-1456 does:
+  ```js
+  const overlay = $("#company-profile-overlay");
+  if (!overlay) return;  // ← silently returns here because element doesn't exist
+  ```
+
+The existing detail-modal-overlay (at frontend/terminal.html line 395-410) shows the required pattern:
+  ```html
+  <div class="modal-overlay" id="detail-modal-overlay">
+    <div class="modal detail-modal">
+      <div class="modal-header">...</div>
+      <div class="modal-body detail-modal-body"><!-- Populated by JS --></div>
+    </div>
+  </div>
+  ```
+
+A matching HTML block is needed for the company profile modal, but was never created.
+
+### Assertion 3: Fundamentals tab shows: Apple Inc., Technology sector, market cap, logo
+**FAIL** — Cannot verify; modal never opens (blocked by Assertion 2 failure).
+
+### Assertion 4: Close modal — terminal is still functional
+**FAIL** — Cannot verify; modal never opens (blocked by Assertion 2 failure).
+
+## Acceptance Criteria Verification
+
+### AC1: Clicking a ticker badge opens a company profile modal
+FAIL — Badge click handler exists (terminal-app.js:1185-1189), calls openCompanyProfile().
+  openCompanyProfile() early-returns at line 1456 because #company-profile-overlay is null.
+  The overlay HTML element was never added to the template.
+
+### AC2: 'Fundamentals' tab displays: company name, sector, market cap, description, logo, homepage link
+FAIL — Cannot verify (modal doesn't open). JS rendering code exists at renderCompanyFundamentals()
+  (terminal-app.js:1502-1541) but is never reached.
+
+### AC3: Data fetched from /api/market/:symbol/details
+FAIL — The fetch at terminal-app.js:1480 is never reached due to the early return at line 1456.
+  The endpoint exists and responds (returns 401 without auth).
+
+### AC4: Loading state shown while fetching
+FAIL — Loading skeleton HTML is built at lines 1465-1473 but never shown (overlay is null).
+
+### AC5: Modal matches dark terminal theme
+PARTIAL — CSS styles exist at terminal.css lines 1868-2063 (.company-profile-modal, .cp-* classes).
+  Cannot verify visual rendering since the modal doesn't open.
+
+### AC6: Typecheck passes
+PASS — Vite build exits 0.
+
+### AC7: Verify in browser — click ticker then modal opens with fundamentals data
+FAIL — See Assertion 2.
+
+## What exists vs what's missing
+
+PRESENT:
+  - JS click handler: terminal-app.js:1185-1189 (badge click → openCompanyProfile)
+  - JS modal logic: terminal-app.js:1449-1550 (openCompanyProfile, renderCompanyFundamentals, closeCompanyProfile)
+  - JS close handlers: terminal-app.js:1212-1221 (X button, overlay click)
+  - JS escape handler: terminal-app.js:1287 (Escape key priority)
+  - CSS styles: terminal.css:1868-2063 (full modal styling)
+  - State fields: terminal-app.js:81-84 (companyProfileOpen, companyProfileSymbol, etc.)
+
+MISSING:
+  - HTML template markup in frontend/terminal.html — no `#company-profile-overlay` element
+  - The modal overlay, modal container, header, title, close button, tab bar, body — ALL absent from HTML
+
+## Test Environment
+- Backend: Flask server on port 8000
+- Frontend: Vite dev server on port 5173
+- Auth: Mocked via browser_evaluate (SignalAuth mock, Max tier)
+- Ticker badges: 45 badges visible with live market data, AAPL at $258.90 +0.03%
+- Screenshots: 3 screenshots in ralph/test_results/US-012/attempt-1/

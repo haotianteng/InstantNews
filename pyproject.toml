@@ -1,0 +1,15 @@
+[project]
+name = "instantnews"
+version = "1.0.0"
+description = "SIGNAL — Real-time financial news aggregation terminal"
+requires-python = ">=3.11"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = "test_*.py"
+python_classes = "Test*"
+python_functions = "test_*"
+addopts = "--strict-markers -v"
+
+[tool.mypy]
+ignore_missing_imports = true

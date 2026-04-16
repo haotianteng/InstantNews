@@ -1,0 +1,70 @@
+POLYGON_API_KEY not set — market data service disabled
+{"timestamp": "2026-04-13T23:54:36.729430+00:00", "level": "INFO", "logger": "signal", "message": "Firebase Admin SDK initialized"}
+{"timestamp": "2026-04-13T23:54:36.764223+00:00", "level": "INFO", "logger": "signal", "message": "Background scheduler started (interval=30s)"}
+{"timestamp": "2026-04-13T23:54:36.764289+00:00", "level": "INFO", "logger": "signal", "message": "Application initialized", "event": "app_start"}
+Route /api/market/<symbol> registered: True
+Route /api/market/<symbol>/details registered: True
+{"timestamp": "2026-04-13T23:54:36.765895+00:00", "level": "INFO", "logger": "signal.requests", "message": "GET /api/market/AAPL \u2192 401 (0.3ms)", "request_id": "c73b3720c021", "method": "GET", "path": "/api/market/AAPL", "status": 401, "latency_ms": 0.3, "tier": "anonymous", "ip": "127.0.0.1", "user_agent": "Werkzeug/3.1.7", "endpoint": "market.market_snapshot"}
+
+AC3 - Unauthenticated /api/market/AAPL: status=401
+{"timestamp": "2026-04-13T23:54:36.766540+00:00", "level": "INFO", "logger": "signal.requests", "message": "GET /api/market/AAPL/details \u2192 401 (0.1ms)", "request_id": "2e1059cdc4e6", "method": "GET", "path": "/api/market/AAPL/details", "status": 401, "latency_ms": 0.1, "tier": "anonymous", "ip": "127.0.0.1", "user_agent": "Werkzeug/3.1.7", "endpoint": "market.market_details"}
+Traceback (most recent call last):
+  File "/home/haotiant/conda/envs/instnews/lib/python3.10/site-packages/sqlalchemy/engine/base.py", line 1967, in _exec_single_context
+    self.dialect.do_execute(
+  File "/home/haotiant/conda/envs/instnews/lib/python3.10/site-packages/sqlalchemy/engine/default.py", line 952, in do_execute
+    cursor.execute(statement, parameters)
+sqlite3.OperationalError: no such table: users
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "<string>", line 44, in <module>
+  File "/home/haotiant/conda/envs/instnews/lib/python3.10/site-packages/sqlalchemy/orm/session.py", line 2030, in commit
+    trans.commit(_to_root=True)
+  File "<string>", line 2, in commit
+  File "/home/haotiant/conda/envs/instnews/lib/python3.10/site-packages/sqlalchemy/orm/state_changes.py", line 137, in _go
+    ret_value = fn(self, *arg, **kw)
+  File "/home/haotiant/conda/envs/instnews/lib/python3.10/site-packages/sqlalchemy/orm/session.py", line 1311, in commit
+    self._prepare_impl()
+  File "<string>", line 2, in _prepare_impl
+  File "/home/haotiant/conda/envs/instnews/lib/python3.10/site-packages/sqlalchemy/orm/state_changes.py", line 137, in _go
+    ret_value = fn(self, *arg, **kw)
+  File "/home/haotiant/conda/envs/instnews/lib/python3.10/site-packages/sqlalchemy/orm/session.py", line 1286, in _prepare_impl
+    self.session.flush()
+  File "/home/haotiant/conda/envs/instnews/lib/python3.10/site-packages/sqlalchemy/orm/session.py", line 4331, in flush
+    self._flush(objects)
+  File "/home/haotiant/conda/envs/instnews/lib/python3.10/site-packages/sqlalchemy/orm/session.py", line 4466, in _flush
+    with util.safe_reraise():
+  File "/home/haotiant/conda/envs/instnews/lib/python3.10/site-packages/sqlalchemy/util/langhelpers.py", line 121, in __exit__
+    raise exc_value.with_traceback(exc_tb)
+  File "/home/haotiant/conda/envs/instnews/lib/python3.10/site-packages/sqlalchemy/orm/session.py", line 4427, in _flush
+    flush_context.execute()
+  File "/home/haotiant/conda/envs/instnews/lib/python3.10/site-packages/sqlalchemy/orm/unitofwork.py", line 466, in execute
+    rec.execute(self)
+  File "/home/haotiant/conda/envs/instnews/lib/python3.10/site-packages/sqlalchemy/orm/unitofwork.py", line 642, in execute
+    util.preloaded.orm_persistence.save_obj(
+  File "/home/haotiant/conda/envs/instnews/lib/python3.10/site-packages/sqlalchemy/orm/persistence.py", line 93, in save_obj
+    _emit_insert_statements(
+  File "/home/haotiant/conda/envs/instnews/lib/python3.10/site-packages/sqlalchemy/orm/persistence.py", line 1233, in _emit_insert_statements
+    result = connection.execute(
+  File "/home/haotiant/conda/envs/instnews/lib/python3.10/site-packages/sqlalchemy/engine/base.py", line 1419, in execute
+    return meth(
+  File "/home/haotiant/conda/envs/instnews/lib/python3.10/site-packages/sqlalchemy/sql/elements.py", line 527, in _execute_on_connection
+    return connection._execute_clauseelement(
+  File "/home/haotiant/conda/envs/instnews/lib/python3.10/site-packages/sqlalchemy/engine/base.py", line 1641, in _execute_clauseelement
+    ret = self._execute_context(
+  File "/home/haotiant/conda/envs/instnews/lib/python3.10/site-packages/sqlalchemy/engine/base.py", line 1846, in _execute_context
+    return self._exec_single_context(
+  File "/home/haotiant/conda/envs/instnews/lib/python3.10/site-packages/sqlalchemy/engine/base.py", line 1986, in _exec_single_context
+    self._handle_dbapi_exception(
+  File "/home/haotiant/conda/envs/instnews/lib/python3.10/site-packages/sqlalchemy/engine/base.py", line 2363, in _handle_dbapi_exception
+    raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
+  File "/home/haotiant/conda/envs/instnews/lib/python3.10/site-packages/sqlalchemy/engine/base.py", line 1967, in _exec_single_context
+    self.dialect.do_execute(
+  File "/home/haotiant/conda/envs/instnews/lib/python3.10/site-packages/sqlalchemy/engine/default.py", line 952, in do_execute
+    cursor.execute(statement, parameters)
+sqlalchemy.exc.OperationalError: (sqlite3.OperationalError) no such table: users
+[SQL: INSERT INTO users (firebase_uid, email, display_name, photo_url, tier, role, auth_method, password_hash, email_verified, wechat_openid, wechat_unionid, is_test_account, test_tier_override, disabled, last_login_at, notes, expires_at, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)]
+[parameters: ('test-uid-010', 'test@test.com', 'Tester', None, 'max', 'user', 'email', None, 0, None, None, 0, None, 0, None, None, None, '2026-04-13T23:54:36+00:00', '2026-04-13T23:54:36+00:00')]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+AC3 - Unauthenticated /api/market/AAPL/details: status=401

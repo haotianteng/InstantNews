@@ -1,0 +1,2723 @@
+/**
+ * SIGNAL News Trading Terminal — Frontend Application
+ * Auto-refreshing financial news aggregator with sentiment analysis
+ */
+
+"use strict";
+
+import SignalAuth from './auth.js';
+
+// ---------------------------------------------------------------------------
+// Config
+// ---------------------------------------------------------------------------
+
+const API = "/api";
+const DEFAULT_LIMIT = 200;
+const NEW_THRESHOLD_MS = 60000; // 60 seconds
+const MARKET_REFRESH_MS = 10000; // 10 seconds
+const MAX_CONCURRENT_FETCHES = 10;
+
+// ---------------------------------------------------------------------------
+// Column Definitions
+// ---------------------------------------------------------------------------
+
+const COLUMN_DEFS = [
+  { id: 'time', label: 'Time', defaultVisible: true, required: false, requiredFeature: null },
+  { id: 'sentiment', label: 'Sentiment', defaultVisible: true, required: false, requiredFeature: 'sentiment_filter' },
+  { id: 'source', label: 'Source', defaultVisible: true, required: false, requiredFeature: null },
+  { id: 'headline', label: 'Headline', defaultVisible: true, required: true, requiredFeature: null },
+  { id: 'summary', label: 'Summary', defaultVisible: true, required: false, requiredFeature: null },
+  { id: 'ticker', label: 'Ticker', defaultVisible: false, required: false, requiredFeature: 'ai_ticker_recommendations' },
+  { id: 'confidence', label: 'Confidence', defaultVisible: false, required: false, requiredFeature: 'ai_ticker_recommendations' },
+  { id: 'risk', label: 'Risk Level', defaultVisible: false, required: false, requiredFeature: 'ai_ticker_recommendations' },
+];
+
+const LS_COLUMN_KEY = 'instnews_column_visibility';
+const LS_COLUMN_ORDER_KEY = 'instnews_column_order';
+const LS_COLUMN_WIDTHS_KEY = 'instnews_column_widths';
+const LS_ONBOARDING_KEY = 'instnews_onboarding_done';
+const MIN_COL_WIDTH = 60;
+
+// ---------------------------------------------------------------------------
+// Column Layout Presets (for onboarding)
+// ---------------------------------------------------------------------------
+
+const COLUMN_PRESETS = {
+  news: {
+    name: 'News Focus',
+    icon: '\u{1F4F0}',
+    description: 'Headlines, sources, and summaries at a glance.',
+    visibility: { time: true, sentiment: false, source: true, headline: true, summary: true, ticker: false, confidence: false, risk: false },
+    order: ['time', 'source', 'headline', 'summary', 'sentiment', 'ticker', 'confidence', 'risk'],
+  },
+  trading: {
+    name: 'Trading View',
+    icon: '\u{1F4C8}',
+    description: 'Sentiment, tickers, and risk signals for active traders.',
+    visibility: { time: true, sentiment: true, source: false, headline: true, summary: false, ticker: true, confidence: true, risk: true },
+    order: ['time', 'sentiment', 'ticker', 'headline', 'confidence', 'risk', 'source', 'summary'],
+  },
+  full: {
+    name: 'Full Terminal',
+    icon: '\u{1F5A5}\uFE0F',
+    description: 'Every column enabled \u2014 maximum information density.',
+    visibility: { time: true, sentiment: true, source: true, headline: true, summary: true, ticker: true, confidence: true, risk: true },
+    order: ['time', 'sentiment', 'source', 'headline', 'summary', 'ticker', 'confidence', 'risk'],
+  },
+};
+
+// ---------------------------------------------------------------------------
+// Asset Type Icons & Futures Registry
+// ---------------------------------------------------------------------------
+
+// Asset type icons — configurable via assets/icons/ folder.
+// Replace .file with custom SVG/PNG to rebrand instrument icons.
+// .fallback is the Unicode glyph used if the image fails to load.
+const ASSET_TYPE_ICONS = {
+  STOCK:    { file: 'stock.svg',    fallback: '\u25B3', label: 'Stock' },
+  ETF:      { file: 'etf.svg',      fallback: '\u25C7', label: 'ETF' },
+  FUTURE:   { file: 'future.svg',   fallback: '\u25CE', label: 'Futures' },
+  CURRENCY: { file: 'currency.svg', fallback: '\u00A4', label: 'Currency' },
+  CRYPTO:   { file: 'crypto.svg',   fallback: '\u20BF', label: 'Crypto' },
+  BOND:     { file: 'bond.svg',     fallback: '\u25AC', label: 'Bond' },
+  OPTION:   { file: 'option.svg',   fallback: '\u2295', label: 'Option' },
+  '':       { file: 'stock.svg',    fallback: '\u25B3', label: 'Equity' },
+};
+
+const FUTURES_CONTRACTS = {
+  CL: { name: 'Crude Oil (WTI)', exchange: 'NYMEX', unit: '1,000 barrels', tickSize: '$0.01', hours: 'Sun\u2013Fri 6:00pm\u20135:00pm ET' },
+  NG: { name: 'Natural Gas', exchange: 'NYMEX', unit: '10,000 MMBtu', tickSize: '$0.001', hours: 'Sun\u2013Fri 6:00pm\u20135:00pm ET' },
+  GC: { name: 'Gold', exchange: 'COMEX', unit: '100 troy oz', tickSize: '$0.10', hours: 'Sun\u2013Fri 6:00pm\u20135:00pm ET' },
+  SI: { name: 'Silver', exchange: 'COMEX', unit: '5,000 troy oz', tickSize: '$0.005', hours: 'Sun\u2013Fri 6:00pm\u20135:00pm ET' },
+  ES: { name: 'E-mini S&P 500', exchange: 'CME', unit: '$50 \u00D7 index', tickSize: '$0.25', hours: 'Sun\u2013Fri 6:00pm\u20135:00pm ET' },
+  NQ: { name: 'E-mini Nasdaq 100', exchange: 'CME', unit: '$20 \u00D7 index', tickSize: '$0.25', hours: 'Sun\u2013Fri 6:00pm\u20135:00pm ET' },
+  YM: { name: 'E-mini Dow', exchange: 'CBOT', unit: '$5 \u00D7 index', tickSize: '$1.00', hours: 'Sun\u2013Fri 6:00pm\u20135:00pm ET' },
+  ZB: { name: '30-Year T-Bond', exchange: 'CBOT', unit: '$100,000 face', tickSize: '1/32 point', hours: 'Sun\u2013Fri 7:20pm\u20136:00pm ET' },
+  ZC: { name: 'Corn', exchange: 'CBOT', unit: '5,000 bushels', tickSize: '$0.25/bu', hours: 'Sun\u2013Fri 7:00pm\u20137:45am, 8:30am\u20131:20pm CT' },
+  ZW: { name: 'Wheat', exchange: 'CBOT', unit: '5,000 bushels', tickSize: '$0.25/bu', hours: 'Sun\u2013Fri 7:00pm\u20137:45am, 8:30am\u20131:20pm CT' },
+  HG: { name: 'Copper', exchange: 'COMEX', unit: '25,000 lbs', tickSize: '$0.0005/lb', hours: 'Sun\u2013Fri 6:00pm\u20135:00pm ET' },
+};
+
+// ---------------------------------------------------------------------------
+// State
+// ---------------------------------------------------------------------------
+
+let state = {
+  items: [],
+  seenIds: new Set(),
+  newIds: new Set(),
+  sources: [],
+  stats: null,
+  filter: {
+    sentiment: "all",
+    sources: new Set(), // empty = all selected
+    query: "",
+    dateFrom: "",
+    dateTo: "",
+    hideDuplicates: false,
+  },
+  refreshInterval: 5000,
+  refreshTimer: null,
+  lastRefresh: null,
+  connected: false,
+  loading: true,
+  totalFetched: 0,
+  fetchCount: 0,
+  itemsPerSecond: 0,
+  startTime: Date.now(),
+  sidebarOpen: false,
+  modalOpen: false,
+  detailModalOpen: false,
+  detailItem: null,
+  userTier: null,
+  userFeatures: {},
+  soundEnabled: false,
+  columnVisibility: {},
+  columnOrder: COLUMN_DEFS.map(c => c.id),
+  columnWidths: {},
+  columnSettingsOpen: false,
+  marketPrices: {},
+  priceRefreshTimer: null,
+  companyProfileOpen: false,
+  companyProfileSymbol: null,
+  companyProfileData: null,
+  companyProfileLoading: false,
+  companyProfileActiveTab: "fundamentals",
+  companyProfileFinancials: null,
+  companyProfileCompetitors: null,
+  companyProfileInstitutions: null,
+  companyProfileInsiders: null,
+};
+
+// ---------------------------------------------------------------------------
+// DOM References
+// ---------------------------------------------------------------------------
+
+const $ = (sel) => document.querySelector(sel);
+const $$ = (sel) => [...document.querySelectorAll(sel)];
+
+// ---------------------------------------------------------------------------
+// Utilities
+// ---------------------------------------------------------------------------
+
+function formatTime(dateStr) {
+  if (!dateStr) return "--:--:--";
+  try {
+    const d = new Date(dateStr);
+    if (isNaN(d.getTime())) return "--:--:--";
+    return d.toLocaleTimeString("en-US", { hour12: false, hour: "2-digit", minute: "2-digit", second: "2-digit" });
+  } catch {
+    return "--:--:--";
+  }
+}
+
+function formatDate(dateStr) {
+  if (!dateStr) return "";
+  try {
+    const d = new Date(dateStr);
+    if (isNaN(d.getTime())) return "";
+    return d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+  } catch {
+    return "";
+  }
+}
+
+function timeAgo(dateStr) {
+  if (!dateStr) return "";
+  try {
+    const d = new Date(dateStr);
+    const now = new Date();
+    const diff = now - d;
+    if (diff < 0) return "just now";
+    if (diff < 60000) return `${Math.floor(diff / 1000)}s ago`;
+    if (diff < 3600000) return `${Math.floor(diff / 60000)}m ago`;
+    if (diff < 86400000) return `${Math.floor(diff / 3600000)}h ago`;
+    return `${Math.floor(diff / 86400000)}d ago`;
+  } catch {
+    return "";
+  }
+}
+
+function isNew(dateStr) {
+  if (!dateStr) return false;
+  try {
+    const d = new Date(dateStr);
+    return (Date.now() - d.getTime()) < NEW_THRESHOLD_MS;
+  } catch {
+    return false;
+  }
+}
+
+function escapeHtml(str) {
+  const div = document.createElement("div");
+  div.textContent = str;
+  return div.innerHTML;
+}
+
+function truncate(str, max) {
+  if (!str) return "";
+  return str.length > max ? str.slice(0, max) + "\u2026" : str;
+}
+
+function formatMarketCap(val) {
+  if (val == null) return "\u2014";
+  if (val >= 1e12) return "$" + (val / 1e12).toFixed(2) + "T";
+  if (val >= 1e9) return "$" + (val / 1e9).toFixed(2) + "B";
+  if (val >= 1e6) return "$" + (val / 1e6).toFixed(2) + "M";
+  return "$" + val.toLocaleString();
+}
+
+// ---------------------------------------------------------------------------
+// API Calls
+// ---------------------------------------------------------------------------
+
+async function fetchNews() {
+  try {
+    const params = new URLSearchParams({ limit: DEFAULT_LIMIT });
+    if (state.filter.dateFrom) params.set("from", state.filter.dateFrom);
+    if (state.filter.dateTo) params.set("to", state.filter.dateTo);
+    const res = await SignalAuth.fetch(`${API}/news?${params}`);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+    state.connected = true;
+    state.loading = false;
+    state.fetchCount++;
+    state.lastRefresh = new Date().toISOString();
+
+    if (data.items && data.items.length > 0) {
+      // Detect new items
+      const newIds = new Set();
+      for (const item of data.items) {
+        if (!state.seenIds.has(item.id)) {
+          newIds.add(item.id);
+          state.seenIds.add(item.id);
+        }
+      }
+
+      // Play sound for new items if enabled
+      if (state.soundEnabled && newIds.size > 0 && state.fetchCount > 1) {
+        playNotificationSound();
+      }
+
+      state.newIds = newIds;
+      state.items = data.items;
+      state.totalFetched = data.count;
+
+      // Calculate items/second
+      const elapsed = (Date.now() - state.startTime) / 1000;
+      state.itemsPerSecond = elapsed > 0 ? (state.totalFetched / elapsed).toFixed(1) : 0;
+    }
+
+    renderNews();
+    updateStatusBar();
+    updateConnectionStatus(true);
+    fetchMarketPrices();
+  } catch (err) {
+    state.connected = false;
+    state.loading = false;
+    updateConnectionStatus(false);
+    if (state.items.length === 0) {
+      renderEmpty("Unable to connect to API. Retrying...");
+    }
+  }
+}
+
+async function fetchSources() {
+  try {
+    const res = await SignalAuth.fetch(`${API}/sources`);
+    if (!res.ok) return;
+    const data = await res.json();
+    state.sources = data.sources || [];
+    renderSources();
+  } catch {
+    // silent
+  }
+}
+
+async function fetchStats() {
+  try {
+    const res = await SignalAuth.fetch(`${API}/stats`);
+    if (!res.ok) return;
+    state.stats = await res.json();
+    updateHeaderStats();
+  } catch {
+    // silent
+  }
+}
+
+async function fetchMarketPrices() {
+  if (!state.userFeatures.ai_ticker_recommendations) return;
+  if (!state.columnVisibility.ticker) return;
+
+  // Build ticker → asset_type map (first occurrence wins)
+  const tickerAssetTypes = {};
+  state.items.forEach(i => {
+    if (i.target_asset && !tickerAssetTypes[i.target_asset]) {
+      tickerAssetTypes[i.target_asset] = i.asset_type || '';
+    }
+  });
+  const tickers = Object.keys(tickerAssetTypes);
+  if (tickers.length === 0) return;
+
+  for (let i = 0; i < tickers.length; i += MAX_CONCURRENT_FETCHES) {
+    const batch = tickers.slice(i, i + MAX_CONCURRENT_FETCHES);
+    const promises = batch.map(async (symbol) => {
+      try {
+        const assetType = tickerAssetTypes[symbol];
+        const qs = assetType ? `?asset_type=${encodeURIComponent(assetType)}` : '';
+        const res = await SignalAuth.fetch(`${API}/market/${encodeURIComponent(symbol)}${qs}`);
+        if (res.ok) {
+          state.marketPrices[symbol] = await res.json();
+        }
+      } catch {
+        // silent — price just won't display
+      }
+    });
+    await Promise.all(promises);
+  }
+
+  renderNews();
+}
+
+function startPriceRefresh() {
+  stopPriceRefresh();
+  if (!state.userFeatures.ai_ticker_recommendations) return;
+  if (!state.columnVisibility.ticker) return;
+  state.priceRefreshTimer = setInterval(fetchMarketPrices, MARKET_REFRESH_MS);
+}
+
+function stopPriceRefresh() {
+  if (state.priceRefreshTimer) {
+    clearInterval(state.priceRefreshTimer);
+    state.priceRefreshTimer = null;
+  }
+}
+
+async function forceRefresh() {
+  try {
+    const btn = $("#btn-refresh");
+    if (btn) {
+      btn.disabled = true;
+      btn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="spinning"><path d="M21 12a9 9 0 11-6.219-8.56"/></svg>Refreshing`;
+    }
+    await SignalAuth.fetch(`${API}/refresh`, { method: "POST" });
+    await fetchNews();
+    await fetchStats();
+    if (btn) {
+      btn.disabled = false;
+      btn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 11-6.219-8.56"/><path d="M22 3v6h-6"/></svg>Refresh`;
+    }
+  } catch {
+    const btn = $("#btn-refresh");
+    if (btn) {
+      btn.disabled = false;
+      btn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 11-6.219-8.56"/><path d="M22 3v6h-6"/></svg>Refresh`;
+    }
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Sound
+// ---------------------------------------------------------------------------
+
+function playNotificationSound() {
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.type = "sine";
+    osc.frequency.setValueAtTime(880, ctx.currentTime);
+    osc.frequency.setValueAtTime(1100, ctx.currentTime + 0.05);
+    gain.gain.setValueAtTime(0.08, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.15);
+    osc.start(ctx.currentTime);
+    osc.stop(ctx.currentTime + 0.15);
+  } catch {
+    // silent
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Filtering
+// ---------------------------------------------------------------------------
+
+function getFilteredItems() {
+  return state.items.filter((item) => {
+    // Sentiment filter
+    if (state.filter.sentiment !== "all" && item.sentiment_label !== state.filter.sentiment) {
+      return false;
+    }
+    // Source filter
+    if (state.filter.sources.size > 0 && !state.filter.sources.has(item.source)) {
+      return false;
+    }
+    // Query filter
+    if (state.filter.query) {
+      const q = state.filter.query.toLowerCase();
+      const inTitle = (item.title || "").toLowerCase().includes(q);
+      const inSummary = (item.summary || "").toLowerCase().includes(q);
+      if (!inTitle && !inSummary) return false;
+    }
+    // Duplicate filter
+    if (state.filter.hideDuplicates && item.duplicate) {
+      return false;
+    }
+    return true;
+  });
+}
+
+function getSentimentCounts() {
+  const counts = { all: 0, bullish: 0, bearish: 0, neutral: 0 };
+  for (const item of state.items) {
+    counts.all++;
+    if (counts[item.sentiment_label] !== undefined) {
+      counts[item.sentiment_label]++;
+    }
+  }
+  return counts;
+}
+
+// ---------------------------------------------------------------------------
+// Column Configuration
+// ---------------------------------------------------------------------------
+
+function loadColumnVisibility() {
+  try {
+    const stored = localStorage.getItem(LS_COLUMN_KEY);
+    if (stored) {
+      const parsed = JSON.parse(stored);
+      const vis = {};
+      for (const col of COLUMN_DEFS) {
+        vis[col.id] = col.id in parsed ? parsed[col.id] : col.defaultVisible;
+      }
+      state.columnVisibility = vis;
+      return;
+    }
+  } catch {
+    // Fall through to defaults
+  }
+  const vis = {};
+  for (const col of COLUMN_DEFS) {
+    vis[col.id] = col.defaultVisible;
+  }
+  state.columnVisibility = vis;
+}
+
+function saveColumnVisibility() {
+  try {
+    localStorage.setItem(LS_COLUMN_KEY, JSON.stringify(state.columnVisibility));
+  } catch {
+    // Silent
+  }
+}
+
+function loadColumnOrder() {
+  try {
+    const stored = localStorage.getItem(LS_COLUMN_ORDER_KEY);
+    if (stored) {
+      const parsed = JSON.parse(stored);
+      if (Array.isArray(parsed)) {
+        const knownIds = new Set(COLUMN_DEFS.map(c => c.id));
+        const valid = parsed.filter(id => knownIds.has(id));
+        // Append any new columns not in stored order
+        for (const col of COLUMN_DEFS) {
+          if (!valid.includes(col.id)) valid.push(col.id);
+        }
+        state.columnOrder = valid;
+        return;
+      }
+    }
+  } catch {
+    // Fall through to defaults
+  }
+  state.columnOrder = COLUMN_DEFS.map(c => c.id);
+}
+
+function saveColumnOrder() {
+  try {
+    localStorage.setItem(LS_COLUMN_ORDER_KEY, JSON.stringify(state.columnOrder));
+  } catch {
+    // Silent
+  }
+}
+
+function loadColumnWidths() {
+  try {
+    const stored = localStorage.getItem(LS_COLUMN_WIDTHS_KEY);
+    if (stored) {
+      const parsed = JSON.parse(stored);
+      if (parsed && typeof parsed === 'object') {
+        const widths = {};
+        for (const col of COLUMN_DEFS) {
+          if (col.id in parsed && typeof parsed[col.id] === 'number' && parsed[col.id] >= MIN_COL_WIDTH) {
+            widths[col.id] = parsed[col.id];
+          }
+        }
+        state.columnWidths = widths;
+        return;
+      }
+    }
+  } catch {
+    // Fall through to defaults
+  }
+  state.columnWidths = {};
+}
+
+function saveColumnWidths() {
+  try {
+    localStorage.setItem(LS_COLUMN_WIDTHS_KEY, JSON.stringify(state.columnWidths));
+  } catch {
+    // Silent
+  }
+}
+
+function getOrderedColumnDefs() {
+  const defMap = {};
+  for (const col of COLUMN_DEFS) defMap[col.id] = col;
+  return state.columnOrder.map(id => defMap[id]).filter(Boolean);
+}
+
+function isColumnLocked(col) {
+  if (!col.requiredFeature) return false;
+  if (state.userTier === null) return false;
+  return !state.userFeatures[col.requiredFeature];
+}
+
+function getVisibleColumns() {
+  return getOrderedColumnDefs().filter(col => {
+    if (isColumnLocked(col)) return false;
+    return state.columnVisibility[col.id] !== false;
+  });
+}
+
+// ---------------------------------------------------------------------------
+// Column Onboarding
+// ---------------------------------------------------------------------------
+
+function hasExistingColumnConfig() {
+  return localStorage.getItem(LS_COLUMN_KEY) !== null
+    || localStorage.getItem(LS_COLUMN_ORDER_KEY) !== null
+    || localStorage.getItem(LS_COLUMN_WIDTHS_KEY) !== null;
+}
+
+function shouldShowOnboarding() {
+  if (state.userTier !== 'max') return false;
+  if (localStorage.getItem(LS_ONBOARDING_KEY)) return false;
+  if (hasExistingColumnConfig()) return false;
+  return true;
+}
+
+function applyColumnPreset(presetKey) {
+  const preset = COLUMN_PRESETS[presetKey];
+  if (!preset) return;
+  state.columnVisibility = { ...preset.visibility };
+  state.columnOrder = [...preset.order];
+  state.columnWidths = {};
+  saveColumnVisibility();
+  saveColumnOrder();
+  saveColumnWidths();
+  renderTableHeader();
+  renderColumnSettings();
+  renderNews();
+}
+
+function dismissOnboarding() {
+  try {
+    localStorage.setItem(LS_ONBOARDING_KEY, '1');
+  } catch {
+    // Silent
+  }
+  const overlay = $('#onboarding-overlay');
+  if (overlay) overlay.remove();
+}
+
+function showOnboarding() {
+  if (!shouldShowOnboarding()) return;
+
+  const overlay = document.createElement('div');
+  overlay.id = 'onboarding-overlay';
+  overlay.className = 'onboarding-overlay';
+
+  const presetCards = Object.entries(COLUMN_PRESETS).map(([key, preset]) => {
+    const colTags = COLUMN_DEFS
+      .filter(c => preset.visibility[c.id])
+      .map(c => `<span>${c.label}</span>`)
+      .join('');
+    return `<div class="onboarding-preset" data-preset="${key}">
+      <div class="onboarding-preset-icon">${preset.icon}</div>
+      <div class="onboarding-preset-name">${preset.name}</div>
+      <div class="onboarding-preset-desc">${preset.description}</div>
+      <div class="onboarding-preset-cols">${colTags}</div>
+    </div>`;
+  }).join('');
+
+  overlay.innerHTML = `<div class="onboarding-card">
+    <h2>Choose Your Layout</h2>
+    <p>Pick a starting layout for your terminal. You can always customize columns later.</p>
+    <div class="onboarding-presets">${presetCards}</div>
+    <button class="onboarding-skip" id="onboarding-skip">Customize later</button>
+  </div>`;
+
+  document.body.appendChild(overlay);
+
+  // Bind preset clicks
+  overlay.querySelectorAll('.onboarding-preset').forEach(card => {
+    card.addEventListener('click', () => {
+      const key = card.getAttribute('data-preset');
+      applyColumnPreset(key);
+      dismissOnboarding();
+    });
+  });
+
+  // "Customize later" applies Full Terminal and dismisses
+  const skipBtn = overlay.querySelector('#onboarding-skip');
+  if (skipBtn) {
+    skipBtn.addEventListener('click', () => {
+      applyColumnPreset('full');
+      dismissOnboarding();
+    });
+  }
+}
+
+function renderTableHeader() {
+  const head = document.querySelector('.news-table thead');
+  if (!head) return;
+  const cols = getVisibleColumns();
+  head.innerHTML = '<tr>' + cols.map(col => {
+    const w = state.columnWidths[col.id];
+    const style = w ? ` style="width:${w}px"` : '';
+    return `<th class="col-${col.id}" draggable="true" data-col-id="${col.id}"${style}><span class="th-drag-label">${col.label}</span><span class="col-resize-handle" data-col-id="${col.id}"></span></th>`;
+  }).join('') + '</tr>';
+
+  // Apply table-layout: fixed when any custom width is set
+  const table = document.querySelector('.news-table');
+  if (table) {
+    table.style.tableLayout = Object.keys(state.columnWidths).length > 0 ? 'fixed' : '';
+  }
+
+  bindColumnResizeHandles();
+  bindHeaderDragReorder();
+}
+
+function bindHeaderDragReorder() {
+  const headerRow = document.querySelector('.news-table thead tr');
+  if (!headerRow) return;
+  const ths = headerRow.querySelectorAll('th[draggable]');
+  let dragSrcTh = null;
+
+  ths.forEach(th => {
+    th.addEventListener('dragstart', (e) => {
+      // Don't start drag if user is on the resize handle
+      if (e.target.closest('.col-resize-handle')) { e.preventDefault(); return; }
+      dragSrcTh = th;
+      th.classList.add('th-dragging');
+      e.dataTransfer.effectAllowed = 'move';
+      e.dataTransfer.setData('text/plain', th.dataset.colId);
+    });
+
+    th.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'move';
+      if (!dragSrcTh || th === dragSrcTh) return;
+      headerRow.querySelectorAll('th').forEach(el => el.classList.remove('th-drag-over-left', 'th-drag-over-right'));
+      const rect = th.getBoundingClientRect();
+      const midX = rect.left + rect.width / 2;
+      if (e.clientX < midX) {
+        th.classList.add('th-drag-over-left');
+      } else {
+        th.classList.add('th-drag-over-right');
+      }
+    });
+
+    th.addEventListener('dragleave', () => {
+      th.classList.remove('th-drag-over-left', 'th-drag-over-right');
+    });
+
+    th.addEventListener('drop', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      if (!dragSrcTh || th === dragSrcTh) return;
+      headerRow.querySelectorAll('th').forEach(el => el.classList.remove('th-drag-over-left', 'th-drag-over-right'));
+
+      const srcId = dragSrcTh.dataset.colId;
+      const dstId = th.dataset.colId;
+      const order = [...state.columnOrder];
+      const srcIdx = order.indexOf(srcId);
+      const dstIdx = order.indexOf(dstId);
+      if (srcIdx === -1 || dstIdx === -1) return;
+
+      order.splice(srcIdx, 1);
+      const rect = th.getBoundingClientRect();
+      const midX = rect.left + rect.width / 2;
+      const insertIdx = e.clientX < midX ? order.indexOf(dstId) : order.indexOf(dstId) + 1;
+      order.splice(insertIdx, 0, srcId);
+
+      state.columnOrder = order;
+      saveColumnOrder();
+      renderTableHeader();
+      renderNews();
+      if (state.columnSettingsOpen) renderColumnSettings();
+    });
+
+    th.addEventListener('dragend', () => {
+      th.classList.remove('th-dragging');
+      headerRow.querySelectorAll('th').forEach(el => el.classList.remove('th-drag-over-left', 'th-drag-over-right'));
+    });
+  });
+}
+
+function bindColumnResizeHandles() {
+  const handles = document.querySelectorAll('.col-resize-handle');
+  handles.forEach(handle => {
+    handle.addEventListener('mousedown', onResizeStart);
+    handle.addEventListener('dblclick', onResizeAutoFit);
+  });
+}
+
+function onResizeStart(e) {
+  e.preventDefault();
+  e.stopPropagation();
+  const handle = e.target;
+  const th = handle.parentElement;
+  const colId = handle.dataset.colId;
+  const startX = e.clientX;
+  const startWidth = th.offsetWidth;
+
+  const table = document.querySelector('.news-table');
+  if (table) table.style.tableLayout = 'fixed';
+
+  // Lock all column widths to their current rendered size so resizing one doesn't shift others
+  const allThs = [...document.querySelectorAll('.news-table thead th')];
+  let totalWidth = 0;
+  allThs.forEach(t => {
+    const w = t.offsetWidth;
+    t.style.width = w + 'px';
+    totalWidth += w;
+  });
+  // Set table width to the sum of columns so it can grow beyond container
+  if (table) table.style.width = totalWidth + 'px';
+
+  document.body.style.cursor = 'col-resize';
+  document.body.style.userSelect = 'none';
+  handle.classList.add('active');
+
+  function onMouseMove(ev) {
+    const delta = ev.clientX - startX;
+    const newWidth = Math.max(MIN_COL_WIDTH, startWidth + delta);
+    th.style.width = newWidth + 'px';
+    if (table) table.style.width = (totalWidth + (newWidth - startWidth)) + 'px';
+  }
+
+  function onMouseUp(ev) {
+    document.removeEventListener('mousemove', onMouseMove);
+    document.removeEventListener('mouseup', onMouseUp);
+    document.body.style.cursor = '';
+    document.body.style.userSelect = '';
+    handle.classList.remove('active');
+
+    // Save all column widths (including the ones we locked)
+    allThs.forEach(t => {
+      const cid = t.dataset.colId;
+      if (cid) {
+        state.columnWidths[cid] = t.offsetWidth;
+      }
+    });
+    const delta = ev.clientX - startX;
+    state.columnWidths[colId] = Math.max(MIN_COL_WIDTH, startWidth + delta);
+    if (table) table.style.width = '';
+    saveColumnWidths();
+    renderTableHeader();
+    renderNews();
+  }
+
+  document.addEventListener('mousemove', onMouseMove);
+  document.addEventListener('mouseup', onMouseUp);
+}
+
+function onResizeAutoFit(e) {
+  e.preventDefault();
+  e.stopPropagation();
+  const colId = e.target.dataset.colId;
+  const cols = getVisibleColumns();
+  const colIndex = cols.findIndex(c => c.id === colId);
+  if (colIndex === -1) return;
+
+  const rows = document.querySelectorAll('#news-body tr');
+  let maxWidth = MIN_COL_WIDTH;
+
+  // Measure header text width
+  const th = e.target.parentElement;
+  const headerSpan = document.createElement('span');
+  headerSpan.style.cssText = 'visibility:hidden;position:absolute;white-space:nowrap;font-size:10px;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;';
+  headerSpan.textContent = th.textContent;
+  document.body.appendChild(headerSpan);
+  maxWidth = Math.max(maxWidth, headerSpan.offsetWidth + 32); // 24px padding + 8px handle
+  document.body.removeChild(headerSpan);
+
+  // Measure cell content widths
+  rows.forEach(row => {
+    if (row.classList.contains('skeleton-row')) return;
+    const cells = row.querySelectorAll('td');
+    const cell = cells[colIndex];
+    if (!cell) return;
+    const measurer = document.createElement('div');
+    measurer.style.cssText = 'visibility:hidden;position:absolute;white-space:nowrap;font-size:12px;';
+    measurer.innerHTML = cell.innerHTML;
+    document.body.appendChild(measurer);
+    maxWidth = Math.max(maxWidth, measurer.offsetWidth + 24); // 24px padding
+    document.body.removeChild(measurer);
+  });
+
+  // Cap at reasonable max
+  maxWidth = Math.min(maxWidth, 600);
+
+  const table = document.querySelector('.news-table');
+  if (table) table.style.tableLayout = 'fixed';
+
+  state.columnWidths[colId] = maxWidth;
+  saveColumnWidths();
+  renderTableHeader();
+  renderNews();
+}
+
+function renderCell(colId, item, isFresh, dupBadge) {
+  switch (colId) {
+    case 'time':
+      return `<td class="cell-time" title="${timeAgo(item.published)}">${formatTime(item.published)}</td>`;
+    case 'sentiment':
+      return `<td class="cell-sentiment"><span class="sentiment-badge ${item.sentiment_label}"><span class="sentiment-dot"></span>${item.sentiment_label}</span></td>`;
+    case 'source':
+      return `<td class="cell-source"><span class="source-tag">${escapeHtml(item.source || "")}</span></td>`;
+    case 'headline': {
+      const bolt = item.tradeable ? '<span class="t-bolt"><img src="./assets/lightneingClearBG.png" alt="Tradeable"></span>' : '';
+      return `<td class="cell-headline"><a href="${escapeHtml(item.link || "#")}" target="_blank" rel="noopener noreferrer">${escapeHtml(item.title || "Untitled")}</a>${isFresh ? '<span class="badge-new">NEW</span>' : ''}${bolt}${dupBadge}</td>`;
+    }
+    case 'summary':
+      return `<td class="cell-summary">${escapeHtml(truncate(item.summary, 120))}</td>`;
+    case 'ticker': {
+      if (!item.target_asset) return '<td class="cell-ticker"><span class="cell-dash">\u2014</span></td>';
+      const ticker = escapeHtml(item.target_asset);
+      const assetType = (item.asset_type || '').toUpperCase();
+      const typeIcon = ASSET_TYPE_ICONS[assetType] || ASSET_TYPE_ICONS[''];
+      const mkt = state.marketPrices[item.target_asset];
+      let priceHtml = '';
+      if (mkt && mkt.price != null && mkt.price > 0) {
+        const pct = mkt.change_percent || 0;
+        const sign = pct >= 0 ? '+' : '';
+        const cls = pct > 0 ? 'price-up' : pct < 0 ? 'price-down' : 'price-flat';
+        const ms = mkt.market_status;
+        const label = ms === 'closed' ? '<span class="market-label-closed">Closed</span>'
+          : ms === '24h' ? '<span class="market-label-24h">24H</span>' : '';
+        priceHtml = `<span class="ticker-price ${cls}">$${mkt.price.toFixed(2)} <span class="ticker-change">${sign}${pct.toFixed(2)}%</span>${label}</span>`;
+      }
+      return `<td class="cell-ticker"><span class="ticker-badge" data-ticker="${ticker}" data-asset-type="${escapeHtml(assetType)}"><span class="asset-icon" title="${escapeHtml(typeIcon.label)}"><img src="./assets/icons/${typeIcon.file}" alt="${escapeHtml(typeIcon.label)}" onerror="this.parentElement.textContent='${typeIcon.fallback}'"></span>${ticker}${priceHtml}</span></td>`;
+    }
+    case 'confidence':
+      return `<td class="cell-confidence">${item.confidence != null ? Math.round(item.confidence * 100) + '%' : '<span class="cell-dash">\u2014</span>'}</td>`;
+    case 'risk': {
+      if (!item.risk_level) return '<td class="cell-risk"><span class="cell-dash">\u2014</span></td>';
+      const rl = item.risk_level.toLowerCase();
+      const rc = rl === 'low' ? 'green' : rl === 'high' ? 'red' : 'yellow';
+      return `<td class="cell-risk"><span class="risk-badge ${rc}">${escapeHtml(item.risk_level.toUpperCase())}</span></td>`;
+    }
+    default:
+      return '<td></td>';
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Column Settings Panel
+// ---------------------------------------------------------------------------
+
+function toggleColumnSettings(forceState) {
+  const open = typeof forceState === 'boolean' ? forceState : !state.columnSettingsOpen;
+  state.columnSettingsOpen = open;
+  const panel = $('#column-settings-panel');
+  if (panel) panel.classList.toggle('open', open);
+}
+
+function renderColumnSettings() {
+  const panel = $('#column-settings-panel');
+  if (!panel) return;
+
+  const orderedDefs = getOrderedColumnDefs();
+  const items = orderedDefs.map(col => {
+    const locked = isColumnLocked(col);
+    const checked = !locked && state.columnVisibility[col.id] !== false;
+    const disabled = col.required || locked;
+
+    return `<div class="col-toggle-item${locked ? ' locked' : ''}${col.required ? ' required' : ''}" draggable="true" data-col-id="${col.id}">
+      <span class="col-drag-handle" aria-label="Drag to reorder">\u2261</span>
+      <span class="col-toggle-label">
+        ${locked ? '<svg class="col-lock-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg><span class="col-max-badge">MAX</span>' : ''}
+        ${escapeHtml(col.label)}
+      </span>
+      <label class="col-toggle-switch${disabled ? ' disabled' : ''}">
+        <input type="checkbox" ${checked ? 'checked' : ''} ${disabled ? 'disabled' : ''} data-col-id="${col.id}">
+        <span class="col-toggle-track"><span class="col-toggle-thumb"></span></span>
+      </label>
+    </div>`;
+  });
+
+  panel.innerHTML = `<div class="col-settings-header"><span>Columns</span></div>
+    <div class="col-settings-list">${items.join('')}</div>`;
+
+  // Toggle visibility
+  panel.querySelectorAll('input[type="checkbox"]').forEach(cb => {
+    cb.addEventListener('change', (e) => {
+      const colId = e.target.dataset.colId;
+      state.columnVisibility[colId] = e.target.checked;
+      saveColumnVisibility();
+      renderTableHeader();
+      renderNews();
+    });
+  });
+
+  // Locked column click → show Max upgrade prompt
+  panel.querySelectorAll('.col-toggle-item.locked').forEach(item => {
+    item.style.cursor = 'pointer';
+    item.addEventListener('click', (e) => {
+      if (e.target.closest('input')) return; // ignore checkbox clicks
+      showMaxUpgradePrompt();
+    });
+  });
+
+  // Drag-and-drop reorder
+  const list = panel.querySelector('.col-settings-list');
+  let dragSrcEl = null;
+  let dragHandleActive = false;
+
+  // Only initiate drag from the handle — mousedown on handle sets flag
+  list.querySelectorAll('.col-drag-handle').forEach(handle => {
+    handle.addEventListener('mousedown', () => { dragHandleActive = true; });
+  });
+  document.addEventListener('mouseup', () => { dragHandleActive = false; }, { once: false });
+
+  list.querySelectorAll('.col-toggle-item[draggable]').forEach(item => {
+    item.addEventListener('dragstart', (e) => {
+      if (!dragHandleActive) { e.preventDefault(); return; }
+      dragSrcEl = item;
+      state._dragging = true;
+      item.classList.add('dragging');
+      e.dataTransfer.effectAllowed = 'move';
+      e.dataTransfer.setData('text/plain', item.dataset.colId);
+    });
+
+    item.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'move';
+      if (!dragSrcEl || item === dragSrcEl) return;
+
+      // Remove existing drop indicator
+      list.querySelectorAll('.col-toggle-item').forEach(el => el.classList.remove('drag-over-above', 'drag-over-below'));
+
+      const rect = item.getBoundingClientRect();
+      const midY = rect.top + rect.height / 2;
+      if (e.clientY < midY) {
+        item.classList.add('drag-over-above');
+      } else {
+        item.classList.add('drag-over-below');
+      }
+    });
+
+    item.addEventListener('dragleave', () => {
+      item.classList.remove('drag-over-above', 'drag-over-below');
+    });
+
+    item.addEventListener('drop', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      if (!dragSrcEl || item === dragSrcEl) return;
+
+      list.querySelectorAll('.col-toggle-item').forEach(el => el.classList.remove('drag-over-above', 'drag-over-below'));
+
+      const rect = item.getBoundingClientRect();
+      const midY = rect.top + rect.height / 2;
+      if (e.clientY < midY) {
+        list.insertBefore(dragSrcEl, item);
+      } else {
+        list.insertBefore(dragSrcEl, item.nextSibling);
+      }
+
+      // Update column order from DOM order
+      const newOrder = [...list.querySelectorAll('.col-toggle-item[data-col-id]')].map(el => el.dataset.colId);
+      state.columnOrder = newOrder;
+      saveColumnOrder();
+      renderTableHeader();
+      renderNews();
+    });
+
+    item.addEventListener('dragend', () => {
+      item.classList.remove('dragging');
+      state._dragging = false;
+      list.querySelectorAll('.col-toggle-item').forEach(el => el.classList.remove('drag-over-above', 'drag-over-below'));
+    });
+  });
+
+  // Allow drops on the list container itself
+  list.addEventListener('dragover', (e) => { e.preventDefault(); });
+}
+
+// ---------------------------------------------------------------------------
+// Rendering
+// ---------------------------------------------------------------------------
+
+function renderNews() {
+  const container = $("#news-body");
+  if (!container) return;
+
+  const items = getFilteredItems();
+  const visibleCols = getVisibleColumns();
+  const colCount = visibleCols.length;
+
+  if (items.length === 0 && !state.loading) {
+    container.innerHTML = `
+      <tr>
+        <td colspan="${colCount}">
+          <div class="empty-state">
+            <div class="icon">\u25C7</div>
+            <div>No items match current filters</div>
+            <div style="font-size:11px">Try adjusting sentiment or source filters</div>
+          </div>
+        </td>
+      </tr>`;
+    return;
+  }
+
+  const rows = items.map((item) => {
+    const isNewItem = state.newIds.has(item.id);
+    const isFresh = isNew(item.fetched_at);
+    const rowClass = isNewItem ? "news-row-new" : "";
+    const dupBadge = item.duplicate ? '<span class="badge-dup">DUP</span>' : '';
+    const cells = visibleCols.map(col => renderCell(col.id, item, isFresh, dupBadge)).join('');
+    return `<tr class="${rowClass}" data-id="${item.id}">${cells}</tr>`;
+  });
+
+  container.innerHTML = rows.join("");
+  updateSentimentFilters();
+  updateItemCount();
+}
+
+function renderSkeleton() {
+  const container = $("#news-body");
+  if (!container) return;
+  const visibleCols = getVisibleColumns();
+  const rows = Array.from({ length: 15 }, () => {
+    const cells = visibleCols.map(col => {
+      const w = col.id === 'headline' ? (200 + Math.random() * 200)
+        : col.id === 'summary' ? (100 + Math.random() * 100)
+        : (50 + Math.random() * 30);
+      return `<td><div class="skeleton-block" style="width:${w}px"></div></td>`;
+    }).join('');
+    return `<tr class="skeleton-row">${cells}</tr>`;
+  });
+  container.innerHTML = rows.join("");
+}
+
+function renderEmpty(message) {
+  const container = $("#news-body");
+  if (!container) return;
+  const colCount = getVisibleColumns().length;
+  container.innerHTML = `
+    <tr>
+      <td colspan="${colCount}">
+        <div class="loading-state">
+          <div class="loading-spinner"></div>
+          <div>${escapeHtml(message)}</div>
+        </div>
+      </td>
+    </tr>`;
+}
+
+function renderSources() {
+  const container = $("#source-list");
+  if (!container) return;
+
+  if (!state.sources.length) {
+    // Show all feed names from a static list
+    const feedNames = [
+      "CNBC", "CNBC_World", "Reuters_Business", "MarketWatch", "MarketWatch_Markets",
+      "Investing_com", "Yahoo_Finance", "Nasdaq", "SeekingAlpha", "Benzinga",
+      "AP_News", "Bloomberg_Business", "Bloomberg_Markets",
+      "BBC_Business", "Google_News_Business"
+    ];
+    container.innerHTML = feedNames.map((name) => `
+      <label class="source-item">
+        <input type="checkbox" checked data-source="${name}">
+        <span>${name.replace(/_/g, " ")}</span>
+        <span class="source-count">--</span>
+      </label>`).join("");
+  } else {
+    container.innerHTML = state.sources.map((s) => `
+      <label class="source-item">
+        <input type="checkbox" checked data-source="${s.name}">
+        <span>${s.name.replace(/_/g, " ")}</span>
+        <span class="source-count">${s.total_items}</span>
+      </label>`).join("");
+  }
+
+  // Bind change events
+  container.querySelectorAll('input[type="checkbox"]').forEach((cb) => {
+    cb.addEventListener("change", () => {
+      updateSourceFilter();
+      renderNews();
+    });
+  });
+}
+
+function updateSourceFilter() {
+  const unchecked = new Set();
+  const allChecked = [];
+  $$('#source-list input[type="checkbox"]').forEach((cb) => {
+    if (!cb.checked) {
+      unchecked.add(cb.dataset.source);
+    } else {
+      allChecked.push(cb.dataset.source);
+    }
+  });
+  // If all are checked, sources is empty (meaning "all")
+  if (unchecked.size === 0) {
+    state.filter.sources = new Set();
+  } else {
+    state.filter.sources = new Set(allChecked);
+  }
+}
+
+function updateSentimentFilters() {
+  const counts = getSentimentCounts();
+  const countEls = {
+    all: $("#sentiment-count-all"),
+    bullish: $("#sentiment-count-bullish"),
+    bearish: $("#sentiment-count-bearish"),
+    neutral: $("#sentiment-count-neutral"),
+  };
+  Object.entries(countEls).forEach(([key, el]) => {
+    if (el) el.textContent = counts[key] || 0;
+  });
+}
+
+function updateItemCount() {
+  const el = $("#total-items");
+  if (el) {
+    const filtered = getFilteredItems();
+    el.textContent = filtered.length;
+  }
+}
+
+function updateHeaderStats() {
+  if (!state.stats) return;
+  const el = $("#total-items");
+  if (el && state.filter.sentiment === "all" && state.filter.sources.size === 0 && !state.filter.query) {
+    el.textContent = state.stats.total_items;
+  }
+  const feedCountEl = $("#feed-count");
+  if (feedCountEl) feedCountEl.textContent = state.stats.feed_count;
+  const avgSentEl = $("#avg-sentiment");
+  if (avgSentEl) {
+    const score = state.stats.avg_sentiment_score;
+    avgSentEl.textContent = (score >= 0 ? "+" : "") + score.toFixed(3);
+    avgSentEl.style.color = score > 0.05 ? "var(--green)" : score < -0.05 ? "var(--red)" : "var(--yellow)";
+  }
+}
+
+function updateConnectionStatus(connected) {
+  const dot = $("#connection-dot");
+  const label = $("#connection-label");
+  if (dot) {
+    dot.className = connected ? "status-dot connected" : "status-dot disconnected";
+  }
+  if (label) {
+    label.textContent = connected ? "LIVE" : "DISCONNECTED";
+  }
+}
+
+function updateStatusBar() {
+  const lastRefreshEl = $("#last-refresh");
+  if (lastRefreshEl && state.lastRefresh) {
+    lastRefreshEl.textContent = formatTime(state.lastRefresh);
+  }
+  const ipsEl = $("#items-per-sec");
+  if (ipsEl) {
+    ipsEl.textContent = state.itemsPerSecond;
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Clock
+// ---------------------------------------------------------------------------
+
+function updateClock() {
+  const el = $("#clock");
+  if (!el) return;
+  const now = new Date();
+  const time = now.toLocaleTimeString("en-US", { hour12: false, hour: "2-digit", minute: "2-digit", second: "2-digit" });
+  const date = now.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric", year: "numeric" });
+  el.textContent = `${date}  ${time}`;
+}
+
+// ---------------------------------------------------------------------------
+// Auto-refresh
+// ---------------------------------------------------------------------------
+
+function startAutoRefresh() {
+  stopAutoRefresh();
+  state.refreshTimer = setInterval(() => {
+    fetchNews();
+  }, state.refreshInterval);
+}
+
+function stopAutoRefresh() {
+  if (state.refreshTimer) {
+    clearInterval(state.refreshTimer);
+    state.refreshTimer = null;
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Event Handlers
+// ---------------------------------------------------------------------------
+
+function bindEvents() {
+  // Sentiment filter buttons
+  $$(".sentiment-filter-btn").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const value = btn.dataset.sentiment;
+      state.filter.sentiment = value;
+      $$(".sentiment-filter-btn").forEach((b) => b.classList.remove("active"));
+      btn.classList.add("active");
+      renderNews();
+    });
+  });
+
+  // Search input
+  const searchInput = $("#search-input");
+  if (searchInput) {
+    let debounceTimer;
+    searchInput.addEventListener("input", (e) => {
+      clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(() => {
+        state.filter.query = e.target.value.trim();
+        renderNews();
+      }, 150);
+    });
+  }
+
+  // Date range inputs
+  const dateFrom = $("#date-from");
+  const dateTo = $("#date-to");
+  if (dateFrom) {
+    dateFrom.addEventListener("change", (e) => {
+      state.filter.dateFrom = e.target.value;
+      fetchNews();
+    });
+  }
+  if (dateTo) {
+    dateTo.addEventListener("change", (e) => {
+      state.filter.dateTo = e.target.value;
+      fetchNews();
+    });
+  }
+  const clearDateBtn = $("#btn-clear-dates");
+  if (clearDateBtn) {
+    clearDateBtn.addEventListener("click", () => {
+      state.filter.dateFrom = "";
+      state.filter.dateTo = "";
+      if (dateFrom) dateFrom.value = "";
+      if (dateTo) dateTo.value = "";
+      fetchNews();
+    });
+  }
+
+  // Hide duplicates toggle
+  const hideDupsCb = $("#hide-duplicates");
+  if (hideDupsCb) {
+    hideDupsCb.addEventListener("change", (e) => {
+      state.filter.hideDuplicates = e.target.checked;
+      renderNews();
+    });
+  }
+
+  // Refresh button
+  const refreshBtn = $("#btn-refresh");
+  if (refreshBtn) {
+    refreshBtn.addEventListener("click", forceRefresh);
+  }
+
+  // Refresh interval selector
+  const intervalSelect = $("#refresh-interval");
+  if (intervalSelect) {
+    intervalSelect.addEventListener("change", (e) => {
+      state.refreshInterval = parseInt(e.target.value, 10);
+      startAutoRefresh();
+    });
+  }
+
+  // API docs button
+  const docsBtn = $("#btn-docs");
+  if (docsBtn) {
+    docsBtn.addEventListener("click", () => toggleModal(true));
+  }
+
+  // Modal close
+  const modalClose = $("#modal-close");
+  if (modalClose) {
+    modalClose.addEventListener("click", () => toggleModal(false));
+  }
+
+  const modalOverlay = $("#modal-overlay");
+  if (modalOverlay) {
+    modalOverlay.addEventListener("click", (e) => {
+      if (e.target === modalOverlay) toggleModal(false);
+    });
+  }
+
+  // Column settings button
+  const colSettingsBtn = $('#btn-col-settings');
+  if (colSettingsBtn) {
+    colSettingsBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      toggleColumnSettings();
+      if (state.columnSettingsOpen) renderColumnSettings();
+    });
+  }
+
+  // Close column settings on outside click (skip during drag)
+  document.addEventListener('click', (e) => {
+    if (state._dragging) return;
+    if (state.columnSettingsOpen && !e.target.closest('#column-settings-wrap')) {
+      toggleColumnSettings(false);
+    }
+  });
+
+  // Detail modal — row click (event delegation)
+  const newsBody = $("#news-body");
+  if (newsBody) {
+    newsBody.addEventListener("click", (e) => {
+      // Don't intercept link clicks — let them open in new tab
+      if (e.target.closest("a")) return;
+      // Ticker badge click → open company profile modal
+      const badge = e.target.closest(".ticker-badge[data-ticker]");
+      if (badge) {
+        e.stopPropagation();
+        openCompanyProfile(badge.dataset.ticker, badge.dataset.assetType || '');
+        return;
+      }
+      const row = e.target.closest("tr[data-id]");
+      if (!row) return;
+      const itemId = row.dataset.id;
+      const item = state.items.find((i) => String(i.id) === itemId);
+      if (item) openDetailModal(item);
+    });
+  }
+
+  // Detail modal close
+  const detailClose = $("#detail-modal-close");
+  if (detailClose) {
+    detailClose.addEventListener("click", closeDetailModal);
+  }
+  const detailOverlay = $("#detail-modal-overlay");
+  if (detailOverlay) {
+    detailOverlay.addEventListener("click", (e) => {
+      if (e.target === detailOverlay) closeDetailModal();
+    });
+  }
+
+  // Company profile panel close
+  const cpClose = document.getElementById("company-profile-close");
+  if (cpClose) {
+    cpClose.addEventListener("click", closeCompanyProfile);
+  }
+
+  // Company profile tab switching
+  const cpTabs = document.querySelectorAll(".cp-tab");
+  cpTabs.forEach((tab) => {
+    tab.addEventListener("click", () => {
+      const tabId = tab.dataset.tab;
+      if (tabId === state.companyProfileActiveTab) return;
+      state.companyProfileActiveTab = tabId;
+      cpTabs.forEach((t) => t.classList.toggle("active", t.dataset.tab === tabId));
+      if (tabId === "overview") {
+        // Already rendered during openCompanyProfile — no lazy-load needed
+      } else if (tabId === "fundamentals" && state.companyProfileData) {
+        renderCompanyFundamentals(state.companyProfileData);
+      } else if (tabId === "financials") {
+        loadCompanyFinancials(state.companyProfileSymbol);
+      } else if (tabId === "competitors") {
+        loadCompanyCompetitors(state.companyProfileSymbol);
+      } else if (tabId === "institutions") {
+        loadCompanyInstitutions(state.companyProfileSymbol);
+      } else if (tabId === "insiders") {
+        loadCompanyInsiders(state.companyProfileSymbol);
+      }
+    });
+  });
+
+  // Sound toggle
+  const soundBtn = $("#btn-sound");
+  if (soundBtn) {
+    soundBtn.addEventListener("click", () => {
+      state.soundEnabled = !state.soundEnabled;
+      soundBtn.classList.toggle("active", state.soundEnabled);
+      soundBtn.title = state.soundEnabled ? "Sound alerts ON" : "Sound alerts OFF";
+      const icon = soundBtn.querySelector(".sound-icon");
+      if (icon) {
+        icon.innerHTML = state.soundEnabled
+          ? '<path d="M11 5L6 9H2v6h4l5 4V5z"/><path d="M19.07 4.93a10 10 0 010 14.14M15.54 8.46a5 5 0 010 7.07"/>'
+          : '<path d="M11 5L6 9H2v6h4l5 4V5z"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/>';
+      }
+    });
+  }
+
+  // Hamburger
+  const hamburgerBtn = $("#hamburger-btn");
+  if (hamburgerBtn) {
+    hamburgerBtn.addEventListener("click", toggleSidebar);
+  }
+
+  const sidebarBackdrop = $("#sidebar-backdrop");
+  if (sidebarBackdrop) {
+    sidebarBackdrop.addEventListener("click", () => toggleSidebar(false));
+  }
+
+  // Keyboard shortcuts
+  document.addEventListener("keydown", (e) => {
+    // Don't intercept when typing in inputs
+    if (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA" || e.target.tagName === "SELECT") {
+      if (e.key === "Escape") {
+        e.target.blur();
+      }
+      return;
+    }
+
+    switch (e.key.toLowerCase()) {
+      case "r":
+        e.preventDefault();
+        forceRefresh();
+        break;
+      case "f":
+        e.preventDefault();
+        const si = $("#search-input");
+        if (si) si.focus();
+        break;
+      case "1":
+        e.preventDefault();
+        setSentimentFilter("all");
+        break;
+      case "2":
+        e.preventDefault();
+        setSentimentFilter("bullish");
+        break;
+      case "3":
+        e.preventDefault();
+        setSentimentFilter("bearish");
+        break;
+      case "4":
+        e.preventDefault();
+        setSentimentFilter("neutral");
+        break;
+      case "escape":
+        if (state.companyProfileOpen) closeCompanyProfile();
+        else if (state.detailModalOpen) closeDetailModal();
+        else if (state.modalOpen) toggleModal(false);
+        if (state.sidebarOpen) toggleSidebar(false);
+        break;
+    }
+  });
+
+  // Copy API URL
+  const apiUrlEl = $("#api-url");
+  if (apiUrlEl) {
+    apiUrlEl.addEventListener("click", () => {
+      const url = `${API}/news`;
+      if (navigator.clipboard) {
+        navigator.clipboard.writeText(url).then(() => {
+          apiUrlEl.textContent = "Copied!";
+          setTimeout(() => {
+            apiUrlEl.textContent = `${API}/news`;
+          }, 1500);
+        });
+      }
+    });
+  }
+}
+
+function setSentimentFilter(value) {
+  state.filter.sentiment = value;
+  $$(".sentiment-filter-btn").forEach((b) => {
+    b.classList.toggle("active", b.dataset.sentiment === value);
+  });
+  renderNews();
+}
+
+function toggleSidebar(forceState) {
+  const open = typeof forceState === "boolean" ? forceState : !state.sidebarOpen;
+  state.sidebarOpen = open;
+  const sidebar = $(".sidebar");
+  const backdrop = $("#sidebar-backdrop");
+  if (sidebar) sidebar.classList.toggle("open", open);
+  if (backdrop) backdrop.classList.toggle("open", open);
+}
+
+function toggleModal(open) {
+  state.modalOpen = open;
+  const overlay = $("#modal-overlay");
+  if (overlay) overlay.classList.toggle("open", open);
+  // Populate API base URL in docs
+  if (open) {
+    $$(".api-base-url").forEach((el) => {
+      el.textContent = window.location.origin + window.location.pathname.replace(/\/[^/]*$/, "");
+    });
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Detail Modal (Ticker Recommendation)
+// ---------------------------------------------------------------------------
+
+function openDetailModal(item) {
+  state.detailItem = item;
+  state.detailModalOpen = true;
+
+  const overlay = $("#detail-modal-overlay");
+  if (!overlay) return;
+
+  const isMax = state.userTier === "max";
+  let content = "";
+
+  // Article context — always shown
+  content += `<div class="detail-article">
+    <h3 class="detail-headline">${escapeHtml(item.title || "Untitled")}</h3>
+    <div class="detail-meta">
+      <span class="source-tag">${escapeHtml(item.source || "")}</span>
+      <span class="detail-time">${formatTime(item.published)} \u00B7 ${timeAgo(item.published)}</span>
+    </div>
+  </div>`;
+
+  if (!isMax) {
+    // Non-Max users see upgrade prompt
+    content += `<div class="detail-upgrade">
+      <div class="detail-upgrade-icon">\u25C7</div>
+      <h4>Ticker Recommendations</h4>
+      <p>Upgrade to Max to see AI ticker recommendations, risk assessment, and trading signals for every article.</p>
+      <a href="/pricing" class="detail-upgrade-btn">Upgrade to Max</a>
+    </div>`;
+  } else if (!item.ai_analyzed) {
+    // Max user but analysis hasn't run
+    content += `<div class="detail-pending">
+      <div class="detail-pending-icon">\u25C7</div>
+      <p>Analysis pending</p>
+      <span>AI analysis has not yet been run on this article.</span>
+    </div>`;
+  } else if (!item.target_asset) {
+    // Max user, analyzed but no ticker recommendation
+    content += `<div class="detail-pending">
+      <div class="detail-pending-icon">\u2014</div>
+      <p>No recommendation</p>
+      <span>AI analysis did not identify a tradeable ticker for this article.</span>
+    </div>`;
+  } else {
+    // Full ticker recommendation
+    const confidencePct = item.confidence != null ? Math.round(item.confidence * 100) : "\u2014";
+    const riskRaw = (item.risk_level || "").toLowerCase();
+    const riskColor = riskRaw === "low" ? "green" : riskRaw === "high" ? "red" : "yellow";
+    const tradeableLabel = item.tradeable ? "YES" : "NO";
+    const tradeableClass = item.tradeable ? "yes" : "no";
+    const sentClass = (item.sentiment_label || "neutral").toLowerCase();
+    const sentScore = item.sentiment_score != null
+      ? (item.sentiment_score >= 0 ? "+" : "") + Number(item.sentiment_score).toFixed(2)
+      : "\u2014";
+
+    content += `<div class="detail-ticker-header">
+      <div class="detail-ticker-symbol">${escapeHtml(item.target_asset)}</div>
+      <span class="detail-asset-type">${escapeHtml(item.asset_type || "\u2014")}</span>
+    </div>
+    <div class="detail-metrics">
+      <div class="detail-metric">
+        <div class="detail-metric-label">Sentiment</div>
+        <div class="detail-metric-value">
+          <span class="sentiment-badge ${sentClass}"><span class="sentiment-dot"></span>${sentClass}</span>
+          <span class="detail-metric-sub">${sentScore}</span>
+        </div>
+      </div>
+      <div class="detail-metric">
+        <div class="detail-metric-label">Confidence</div>
+        <div class="detail-metric-value detail-confidence">${confidencePct}%</div>
+      </div>
+      <div class="detail-metric">
+        <div class="detail-metric-label">Risk Level</div>
+        <div class="detail-metric-value">
+          <span class="detail-risk ${riskColor}">${escapeHtml((item.risk_level || "\u2014").toUpperCase())}</span>
+        </div>
+      </div>
+      <div class="detail-metric">
+        <div class="detail-metric-label">Tradeable</div>
+        <div class="detail-metric-value">
+          <span class="detail-tradeable ${tradeableClass}">${tradeableLabel}</span>
+        </div>
+      </div>
+    </div>
+    <div class="detail-reasoning">
+      <div class="detail-reasoning-label">Reasoning</div>
+      <div class="detail-reasoning-text">${escapeHtml(item.reasoning || "No reasoning provided.")}</div>
+    </div>`;
+  }
+
+  const modalBody = overlay.querySelector(".detail-modal-body");
+  if (modalBody) modalBody.innerHTML = content;
+  overlay.classList.add("open");
+}
+
+function closeDetailModal() {
+  state.detailModalOpen = false;
+  state.detailItem = null;
+  const overlay = $("#detail-modal-overlay");
+  if (overlay) overlay.classList.remove("open");
+}
+
+// ---------------------------------------------------------------------------
+// Company Profile Modal
+// ---------------------------------------------------------------------------
+
+async function openCompanyProfile(symbol, assetType = '') {
+  const type = assetType.toUpperCase();
+  state.companyProfileOpen = true;
+  state.companyProfileSymbol = symbol;
+  state.companyProfileAssetType = type;
+  state.companyProfileData = null;
+  state.companyProfileLoading = true;
+  state.companyProfileFinancials = null;
+  state.companyProfileCompetitors = null;
+  state.companyProfileInstitutions = null;
+  state.companyProfileInsiders = null;
+
+  // Configure tab visibility per asset type
+  const stockTabs = ['fundamentals', 'financials', 'competitors', 'institutions', 'insiders'];
+  const overviewOnly = ['overview'];
+  const visibleTabs = (type === 'FUTURE' || type === 'CURRENCY') ? overviewOnly : stockTabs;
+  const firstTab = visibleTabs[0];
+  state.companyProfileActiveTab = firstTab;
+
+  document.querySelectorAll('.cp-tab').forEach((t) => {
+    t.style.display = visibleTabs.includes(t.dataset.tab) ? '' : 'none';
+    t.classList.toggle('active', t.dataset.tab === firstTab);
+  });
+
+  const panel = $("#company-profile-panel");
+  if (!panel) return;
+
+  const titleEl = $("#company-profile-title");
+  const typeIcon = ASSET_TYPE_ICONS[type] || ASSET_TYPE_ICONS[''];
+  if (titleEl) {
+    const suffix = type === 'FUTURE' ? ' FUTURES' : type === 'CURRENCY' ? ' FX' : '';
+    titleEl.textContent = `// ${symbol.toUpperCase()}${suffix}`;
+  }
+
+  const body = $("#company-profile-body");
+  if (body) {
+    body.innerHTML = `<div class="cp-spinner-wrap">
+      <div class="cp-spinner"></div>
+      <span class="cp-spinner-text">Loading${type === 'FUTURE' ? ' contract' : type === 'CURRENCY' ? ' forex' : ' company'} data\u2026</span>
+    </div>`;
+  }
+
+  panel.classList.add("open");
+  document.querySelector(".dashboard").classList.add("cp-open");
+
+  if (type === 'FUTURE') {
+    loadFuturesProfile(symbol);
+  } else if (type === 'CURRENCY') {
+    loadCurrencyProfile(symbol);
+  } else {
+    loadStockProfile(symbol);
+  }
+}
+
+async function loadStockProfile(symbol) {
+  const body = $("#company-profile-body");
+  if (!body) return;
+  try {
+    const res = await SignalAuth.fetch(`${API}/market/${encodeURIComponent(symbol)}/details`);
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.message || `HTTP ${res.status}`);
+    }
+    const data = await res.json();
+    state.companyProfileData = data;
+    state.companyProfileLoading = false;
+    renderCompanyFundamentals(data);
+  } catch (err) {
+    state.companyProfileLoading = false;
+    logger.warn("Error fetching company details for", symbol, err);
+    if (body) {
+      body.innerHTML = `<div class="cp-error">
+        <div class="cp-error-icon">!</div>
+        <p>Could not load company details for <strong>${escapeHtml(symbol)}</strong></p>
+        <span>${escapeHtml(err.message)}</span>
+      </div>`;
+    }
+  }
+}
+
+function loadFuturesProfile(symbol) {
+  const body = $("#company-profile-body");
+  if (!body) return;
+
+  const contract = FUTURES_CONTRACTS[symbol.toUpperCase()] || null;
+  const name = contract ? contract.name : 'Futures Contract';
+  const mkt = state.marketPrices[symbol];
+
+  let priceHtml = '';
+  if (mkt && mkt.price != null) {
+    const pct = mkt.change_percent || 0;
+    const sign = pct >= 0 ? '+' : '';
+    const cls = pct > 0 ? 'price-up' : pct < 0 ? 'price-down' : 'price-flat';
+    priceHtml = `
+      <div class="cp-section">
+        <div class="cp-section-title">CURRENT PRICE</div>
+        <div class="cp-futures-price">
+          <span class="cp-big-price ${cls}">$${mkt.price.toFixed(2)}</span>
+          <span class="ticker-change ${cls}">${sign}${pct.toFixed(2)}%</span>
+        </div>
+      </div>`;
+  }
+
+  let specsHtml = '';
+  if (contract) {
+    specsHtml = `
+      <div class="cp-section">
+        <div class="cp-section-title">CONTRACT SPECIFICATIONS</div>
+        <div class="cp-specs-grid">
+          <div class="cp-spec"><span class="cp-spec-label">Exchange</span><span class="cp-spec-value">${escapeHtml(contract.exchange)}</span></div>
+          <div class="cp-spec"><span class="cp-spec-label">Contract Unit</span><span class="cp-spec-value">${escapeHtml(contract.unit)}</span></div>
+          <div class="cp-spec"><span class="cp-spec-label">Tick Size</span><span class="cp-spec-value">${escapeHtml(contract.tickSize)}</span></div>
+          <div class="cp-spec"><span class="cp-spec-label">Trading Hours</span><span class="cp-spec-value">${escapeHtml(contract.hours)}</span></div>
+        </div>
+      </div>`;
+  }
+
+  body.innerHTML = `
+    <div class="cp-instrument-header">
+      <div class="cp-instrument-icon">\u25CE</div>
+      <div>
+        <div class="cp-instrument-name">${escapeHtml(name)}</div>
+        <div class="cp-instrument-meta">
+          <span class="cp-instrument-symbol">${escapeHtml(symbol.toUpperCase())}</span>
+          <span class="cp-instrument-type">FUTURE</span>
+        </div>
+      </div>
+    </div>
+    ${priceHtml}
+    ${specsHtml}`;
+  state.companyProfileLoading = false;
+}
+
+async function loadCurrencyProfile(symbol) {
+  const body = $("#company-profile-body");
+  if (!body) return;
+
+  const pair = symbol.toUpperCase() + '/USD';
+
+  try {
+    const res = await SignalAuth.fetch(`${API}/market/forex/${encodeURIComponent(symbol)}`);
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.message || `HTTP ${res.status}`);
+    }
+    const data = await res.json();
+    state.companyProfileLoading = false;
+
+    const pct = data.change_percent || 0;
+    const sign = pct >= 0 ? '+' : '';
+    const cls = pct > 0 ? 'price-up' : pct < 0 ? 'price-down' : 'price-flat';
+    const rangeHtml = (data.day_high != null && data.day_low != null)
+      ? `<div class="cp-section">
+          <div class="cp-section-title">DAY RANGE</div>
+          <div class="cp-range">${data.day_low.toFixed(4)} \u2014 ${data.day_high.toFixed(4)}</div>
+        </div>`
+      : '';
+
+    body.innerHTML = `
+      <div class="cp-instrument-header">
+        <div class="cp-instrument-icon">\u00A4</div>
+        <div>
+          <div class="cp-instrument-name">${escapeHtml(pair)}</div>
+          <div class="cp-instrument-meta">
+            <span class="cp-instrument-symbol">${escapeHtml(symbol.toUpperCase())}</span>
+            <span class="cp-instrument-type">CURRENCY</span>
+          </div>
+        </div>
+      </div>
+      <div class="cp-section">
+        <div class="cp-section-title">EXCHANGE RATE</div>
+        <div class="cp-futures-price">
+          <span class="cp-big-price ${cls}">${data.price != null ? data.price.toFixed(4) : '\u2014'}</span>
+          <span class="ticker-change ${cls}">${sign}${pct.toFixed(2)}%</span>
+        </div>
+      </div>
+      ${rangeHtml}`;
+  } catch (err) {
+    state.companyProfileLoading = false;
+    logger.warn("Error fetching forex data for", symbol, err);
+    body.innerHTML = `<div class="cp-error">
+      <div class="cp-error-icon">\u00A4</div>
+      <p>Currency data not available for <strong>${escapeHtml(symbol.toUpperCase())}</strong></p>
+      <span>${escapeHtml(err.message)}</span>
+    </div>`;
+  }
+}
+
+function renderCompanyFundamentals(data) {
+  const body = $("#company-profile-body");
+  if (!body) return;
+
+  const logoHtml = data.logo_url
+    ? `<img class="cp-logo" src="${escapeHtml(data.logo_url)}" alt="${escapeHtml(data.name)}" onerror="this.style.display='none'">`
+    : "";
+
+  const homepageHtml = data.homepage_url
+    ? `<a class="cp-homepage" href="${escapeHtml(data.homepage_url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(data.homepage_url.replace(/^https?:\/\//, ""))}</a>`
+    : "";
+
+  body.innerHTML = `
+    <div class="cp-header">
+      ${logoHtml}
+      <div class="cp-header-info">
+        <div class="cp-name">${escapeHtml(data.name || "\u2014")}</div>
+        <div class="cp-symbol-row">
+          <span class="cp-symbol">${escapeHtml(data.symbol || "\u2014")}</span>
+          ${data.sector ? `<span class="cp-sector">${escapeHtml(data.sector)}</span>` : ""}
+        </div>
+      </div>
+    </div>
+    <div class="cp-metrics">
+      <div class="detail-metric">
+        <div class="detail-metric-label">Market Cap</div>
+        <div class="detail-metric-value">${formatMarketCap(data.market_cap)}</div>
+      </div>
+      <div class="detail-metric">
+        <div class="detail-metric-label">Sector</div>
+        <div class="detail-metric-value" style="font-size:12px">${escapeHtml(data.sector || "\u2014")}</div>
+      </div>
+    </div>
+    ${data.description ? `<div class="cp-description">
+      <div class="cp-desc-label">About</div>
+      <p class="cp-desc-text">${escapeHtml(data.description)}</p>
+    </div>` : ""}
+    ${homepageHtml ? `<div class="cp-links">${homepageHtml}</div>` : ""}
+  `;
+}
+
+function closeCompanyProfile() {
+  state.companyProfileOpen = false;
+  state.companyProfileSymbol = null;
+  state.companyProfileData = null;
+  state.companyProfileLoading = false;
+  state.companyProfileActiveTab = "fundamentals";
+  state.companyProfileFinancials = null;
+  state.companyProfileCompetitors = null;
+  state.companyProfileInstitutions = null;
+  state.companyProfileInsiders = null;
+  const panel = $("#company-profile-panel");
+  if (panel) panel.classList.remove("open");
+  const dash = document.querySelector(".dashboard");
+  if (dash) dash.classList.remove("cp-open");
+}
+
+async function loadCompanyFinancials(symbol) {
+  if (!symbol) return;
+  const body = $("#company-profile-body");
+  if (!body) return;
+
+  // Use cached data if available
+  if (state.companyProfileFinancials) {
+    renderCompanyFinancials(state.companyProfileFinancials);
+    return;
+  }
+
+  body.innerHTML = `<div class="cp-spinner-wrap">
+    <div class="cp-spinner"></div>
+    <span class="cp-spinner-text">Loading financials\u2026</span>
+  </div>`;
+
+  try {
+    const res = await SignalAuth.fetch(`${API}/market/${encodeURIComponent(symbol)}/financials`);
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.message || `HTTP ${res.status}`);
+    }
+    const data = await res.json();
+    state.companyProfileFinancials = data;
+    // Only render if we're still on the financials tab
+    if (state.companyProfileActiveTab === "financials") {
+      renderCompanyFinancials(data);
+    }
+  } catch (err) {
+    logger.warn("Error fetching financials for", symbol, err);
+    if (state.companyProfileActiveTab === "financials" && body) {
+      body.innerHTML = `<div class="cp-error">
+        <div class="cp-error-icon">!</div>
+        <p>Could not load financial data for <strong>${escapeHtml(symbol)}</strong></p>
+        <span>${escapeHtml(err.message)}</span>
+      </div>`;
+    }
+  }
+}
+
+function formatFinancialValue(val) {
+  if (val == null) return "\u2014";
+  const abs = Math.abs(val);
+  const sign = val < 0 ? "-" : "";
+  if (abs >= 1e12) return sign + "$" + (abs / 1e12).toFixed(2) + "T";
+  if (abs >= 1e9) return sign + "$" + (abs / 1e9).toFixed(2) + "B";
+  if (abs >= 1e6) return sign + "$" + (abs / 1e6).toFixed(2) + "M";
+  if (abs >= 1e3) return sign + "$" + (abs / 1e3).toFixed(2) + "K";
+  return sign + "$" + abs.toFixed(2);
+}
+
+function renderCompanyFinancials(data) {
+  const body = $("#company-profile-body");
+  if (!body) return;
+
+  const fin = data.financials;
+  const earnings = data.earnings || [];
+
+  // Check if there's any meaningful data
+  const hasFinancials = fin && (fin.revenue != null || fin.net_income != null || fin.eps != null);
+  const hasEarnings = earnings.length > 0 && earnings.some((e) => e.actual_eps != null);
+
+  if (!hasFinancials && !hasEarnings) {
+    body.innerHTML = `<div class="cp-no-data">
+      <div class="cp-no-data-icon">\u2014</div>
+      <p>No financial data available</p>
+      <span>Financial data is not available for this ticker (e.g., ETFs, indices).</span>
+    </div>`;
+    return;
+  }
+
+  // Key metrics section
+  const periodLabel = fin && fin.fiscal_period && fin.fiscal_year
+    ? `${fin.fiscal_period} ${fin.fiscal_year}` : "";
+
+  const metricsHtml = hasFinancials ? `
+    ${periodLabel ? `<div class="cp-fin-period">Latest Quarter: ${escapeHtml(periodLabel)}</div>` : ""}
+    <div class="cp-fin-metrics">
+      <div class="detail-metric">
+        <div class="detail-metric-label">Revenue</div>
+        <div class="detail-metric-value">${formatFinancialValue(fin.revenue)}</div>
+      </div>
+      <div class="detail-metric">
+        <div class="detail-metric-label">Net Income</div>
+        <div class="detail-metric-value">${formatFinancialValue(fin.net_income)}</div>
+      </div>
+      <div class="detail-metric">
+        <div class="detail-metric-label">EPS</div>
+        <div class="detail-metric-value">${fin.eps != null ? "$" + fin.eps.toFixed(2) : "\u2014"}</div>
+      </div>
+      <div class="detail-metric">
+        <div class="detail-metric-label">P/E Ratio</div>
+        <div class="detail-metric-value">${fin.pe_ratio != null ? fin.pe_ratio.toFixed(1) + "x" : "\u2014"}</div>
+      </div>
+    </div>` : "";
+
+  // Earnings bar chart section (last 4 quarters, chronological order)
+  let chartHtml = "";
+  if (hasEarnings) {
+    const chronological = [...earnings].reverse();
+    const maxAbs = Math.max(...chronological.map((e) => Math.abs(e.actual_eps || 0)), 0.01);
+
+    const barsHtml = chronological.map((e) => {
+      const eps = e.actual_eps;
+      if (eps == null) return "";
+      const pct = Math.min(Math.abs(eps) / maxAbs * 100, 100);
+      const isPositive = eps >= 0;
+      const barClass = isPositive ? "cp-bar-positive" : "cp-bar-negative";
+      const label = `${e.fiscal_period} ${String(e.fiscal_year).slice(-2)}`;
+      const hasEstimate = e.estimated_eps != null;
+      const beat = hasEstimate && eps >= e.estimated_eps;
+      const colorClass = hasEstimate ? (beat ? "cp-bar-beat" : "cp-bar-miss") : barClass;
+
+      return `<div class="cp-bar-col">
+        <div class="cp-bar-value ${colorClass}">$${eps.toFixed(2)}</div>
+        <div class="cp-bar-track">
+          <div class="cp-bar-fill ${colorClass}" style="height:${pct}%"></div>
+        </div>
+        <div class="cp-bar-label">${escapeHtml(label)}</div>
+        ${hasEstimate ? `<div class="cp-bar-est">Est: $${e.estimated_eps.toFixed(2)}</div>` : ""}
+      </div>`;
+    }).join("");
+
+    chartHtml = `
+    <div class="cp-fin-chart-section">
+      <div class="cp-desc-label">Earnings Per Share — Last 4 Quarters</div>
+      <div class="cp-bar-chart">${barsHtml}</div>
+      <div class="cp-bar-legend">
+        <span class="cp-legend-item"><span class="cp-legend-dot cp-bar-positive"></span>Positive</span>
+        <span class="cp-legend-item"><span class="cp-legend-dot cp-bar-negative"></span>Negative</span>
+      </div>
+    </div>`;
+  }
+
+  body.innerHTML = metricsHtml + chartHtml;
+}
+
+// ---------------------------------------------------------------------------
+// Company Profile — Competitors Tab
+// ---------------------------------------------------------------------------
+
+async function loadCompanyCompetitors(symbol) {
+  if (!symbol) return;
+  const body = $("#company-profile-body");
+  if (!body) return;
+
+  // Use cached data if available
+  if (state.companyProfileCompetitors) {
+    renderCompanyCompetitors(state.companyProfileCompetitors);
+    return;
+  }
+
+  body.innerHTML = `<div class="cp-spinner-wrap">
+    <div class="cp-spinner"></div>
+    <span class="cp-spinner-text">Loading competitors\u2026</span>
+  </div>`;
+
+  try {
+    const res = await SignalAuth.fetch(`${API}/market/${encodeURIComponent(symbol)}/competitors`);
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.message || `HTTP ${res.status}`);
+    }
+    const data = await res.json();
+    state.companyProfileCompetitors = data;
+    if (state.companyProfileActiveTab === "competitors") {
+      renderCompanyCompetitors(data);
+    }
+  } catch (err) {
+    logger.warn("Error fetching competitors for", symbol, err);
+    if (state.companyProfileActiveTab === "competitors" && body) {
+      body.innerHTML = `<div class="cp-error">
+        <div class="cp-error-icon">!</div>
+        <p>Could not load competitor data for <strong>${escapeHtml(symbol)}</strong></p>
+        <span>${escapeHtml(err.message)}</span>
+      </div>`;
+    }
+  }
+}
+
+function renderCompanyCompetitors(data) {
+  const body = $("#company-profile-body");
+  if (!body) return;
+
+  const competitors = data.competitors || [];
+
+  if (competitors.length === 0) {
+    body.innerHTML = `<div class="cp-no-data">
+      <div class="cp-no-data-icon">\u2014</div>
+      <p>No competitor data available</p>
+      <span>Competitor information is not available for this ticker.</span>
+    </div>`;
+    return;
+  }
+
+  const rowsHtml = competitors.map((c) => {
+    const changeVal = c.change_percent != null ? c.change_percent : null;
+    const changeClass = changeVal != null ? (changeVal >= 0 ? "positive" : "negative") : "";
+    const changeText = changeVal != null
+      ? `${changeVal >= 0 ? "+" : ""}${changeVal.toFixed(2)}%`
+      : "\u2014";
+    const priceText = c.price != null ? `$${c.price.toFixed(2)}` : "\u2014";
+    const mcapText = formatFinancialValue(c.market_cap);
+    const sectorText = c.sector || "\u2014";
+
+    return `<tr class="cp-comp-row">
+      <td class="cp-comp-ticker"><span class="cp-comp-ticker-link" data-ticker="${escapeHtml(c.symbol)}">${escapeHtml(c.symbol)}</span></td>
+      <td class="cp-comp-name">${escapeHtml(c.name)}</td>
+      <td class="cp-comp-mcap">${mcapText}</td>
+      <td class="cp-comp-price">${priceText}</td>
+      <td class="cp-comp-change ${changeClass}">${changeText}</td>
+      <td class="cp-comp-sector">${escapeHtml(sectorText)}</td>
+    </tr>`;
+  }).join("");
+
+  body.innerHTML = `
+    <div class="cp-comp-section">
+      <div class="cp-desc-label">Related Companies</div>
+      <table class="cp-comp-table">
+        <thead>
+          <tr>
+            <th>Ticker</th>
+            <th>Company Name</th>
+            <th>Market Cap</th>
+            <th>Price</th>
+            <th>Change%</th>
+            <th>Sector</th>
+          </tr>
+        </thead>
+        <tbody>${rowsHtml}</tbody>
+      </table>
+    </div>`;
+
+  // Bind click handlers for competitor tickers
+  body.querySelectorAll(".cp-comp-ticker-link[data-ticker]").forEach((el) => {
+    el.addEventListener("click", () => {
+      openCompanyProfile(el.dataset.ticker);
+    });
+  });
+}
+
+// ---------------------------------------------------------------------------
+// Company Profile — Institutions Tab (13F + 13D/13G)
+// ---------------------------------------------------------------------------
+
+const INST_TOOLTIP_KEY = "inst_tooltip_dismissed";
+
+function formatShareCount(val) {
+  if (val == null) return "\u2014";
+  const abs = Math.abs(val);
+  if (abs >= 1e9) return (abs / 1e9).toFixed(2) + "B";
+  if (abs >= 1e6) return (abs / 1e6).toFixed(2) + "M";
+  if (abs >= 1e3) return (abs / 1e3).toFixed(1) + "K";
+  return abs.toLocaleString();
+}
+
+async function loadCompanyInstitutions(symbol) {
+  if (!symbol) return;
+  const body = $("#company-profile-body");
+  if (!body) return;
+
+  if (state.companyProfileInstitutions) {
+    renderCompanyInstitutions(state.companyProfileInstitutions);
+    return;
+  }
+
+  body.innerHTML = `<div class="cp-spinner-wrap">
+    <div class="cp-spinner"></div>
+    <span class="cp-spinner-text">Loading institutional data\u2026</span>
+  </div>`;
+
+  try {
+    const res = await SignalAuth.fetch(`${API}/market/${encodeURIComponent(symbol)}/institutions`);
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.message || `HTTP ${res.status}`);
+    }
+    const data = await res.json();
+    state.companyProfileInstitutions = data;
+    if (state.companyProfileActiveTab === "institutions") {
+      renderCompanyInstitutions(data);
+    }
+  } catch (err) {
+    logger.warn("Error fetching institutions for", symbol, err);
+    if (state.companyProfileActiveTab === "institutions" && body) {
+      body.innerHTML = `<div class="cp-error">
+        <div class="cp-error-icon">!</div>
+        <p>Could not load institutional data for <strong>${escapeHtml(symbol)}</strong></p>
+        <span>${escapeHtml(err.message)}</span>
+      </div>`;
+    }
+  }
+}
+
+function renderCompanyInstitutions(data) {
+  const body = $("#company-profile-body");
+  if (!body) return;
+
+  const holders = data.institutional_holders || [];
+  const positions = data.major_position_changes || [];
+
+  if (holders.length === 0 && positions.length === 0) {
+    body.innerHTML = `<div class="cp-no-data">
+      <div class="cp-no-data-icon">\u2014</div>
+      <p>No institutional data available</p>
+      <span>Institutional holdings data is not available for this ticker.</span>
+    </div>`;
+    return;
+  }
+
+  // --- Date banner ---
+  const latestDate = holders.length > 0 ? holders[0].report_date : null;
+  const dateBannerHtml = latestDate
+    ? `<div class="cp-inst-date-banner">Holdings as of ${escapeHtml(latestDate)}</div>`
+    : "";
+
+  // --- First-time tooltip ---
+  const tooltipDismissed = localStorage.getItem(INST_TOOLTIP_KEY);
+  const tooltipHtml = tooltipDismissed ? "" : `<div class="cp-inst-tooltip" id="cp-inst-tooltip">
+    <div class="cp-inst-tooltip-text">
+      <strong>About this data:</strong> 13F holdings are filed quarterly (up to 45 days after quarter end).
+      13D/13G filings are filed in near-real-time when an investor crosses the 5% ownership threshold.
+    </div>
+    <button class="cp-inst-tooltip-dismiss" id="cp-inst-tooltip-dismiss">\u2715</button>
+  </div>`;
+
+  // --- Summary ---
+  let totalValue = 0;
+  let totalShares = 0;
+  holders.forEach((h) => {
+    if (h.value != null) totalValue += h.value;
+    if (h.shares_held != null) totalShares += h.shares_held;
+  });
+  const summaryHtml = `<div class="cp-inst-summary">
+    <div class="cp-inst-summary-item">
+      <span class="cp-inst-summary-label">Institutions Reporting</span>
+      <span class="cp-inst-summary-value">${holders.length}</span>
+    </div>
+    <div class="cp-inst-summary-item">
+      <span class="cp-inst-summary-label">Total Institutional Value</span>
+      <span class="cp-inst-summary-value">${formatFinancialValue(totalValue)}</span>
+    </div>
+    <div class="cp-inst-summary-item">
+      <span class="cp-inst-summary-label">Total Shares Held</span>
+      <span class="cp-inst-summary-value">${formatShareCount(totalShares)}</span>
+    </div>
+  </div>`;
+
+  // --- 13F holdings table ---
+  const holdersRowsHtml = holders.map((h) => {
+    const sharesText = formatShareCount(h.shares_held);
+    const valueText = formatFinancialValue(h.value);
+    const changeType = h.change_type || "held";
+    let changeBadge = "";
+    if (changeType === "new") {
+      changeBadge = `<span class="cp-inst-badge cp-inst-badge-new">NEW</span>`;
+    } else if (changeType === "increased") {
+      changeBadge = `<span class="cp-inst-change-up">\u25B2</span>`;
+    } else if (changeType === "decreased") {
+      changeBadge = `<span class="cp-inst-change-down">\u25BC</span>`;
+    } else {
+      changeBadge = `<span class="cp-inst-change-flat">\u2014</span>`;
+    }
+    return `<tr class="cp-inst-row">
+      <td class="cp-inst-name">${escapeHtml(h.institution_name || "Unknown")}</td>
+      <td class="cp-inst-shares">${sharesText}</td>
+      <td class="cp-inst-value">${valueText}</td>
+      <td class="cp-inst-change">${changeBadge}</td>
+    </tr>`;
+  }).join("");
+
+  const holdersTableHtml = holders.length > 0 ? `
+    <div class="cp-inst-section">
+      <div class="cp-desc-label">13F Institutional Holdings</div>
+      <table class="cp-inst-table">
+        <thead>
+          <tr>
+            <th>Institution</th>
+            <th>Shares Held</th>
+            <th>Value</th>
+            <th>Change</th>
+          </tr>
+        </thead>
+        <tbody>${holdersRowsHtml}</tbody>
+      </table>
+    </div>` : "";
+
+  // --- 13D/13G Recent Activity ---
+  const now = Date.now();
+  const thirtyDaysMs = 30 * 24 * 60 * 60 * 1000;
+  const positionsRowsHtml = positions.map((p) => {
+    const filingDate = p.filing_date || "";
+    const isRecent = filingDate && (now - new Date(filingDate).getTime()) < thirtyDaysMs;
+    const newBadge = isRecent ? `<span class="cp-inst-badge cp-inst-badge-new">NEW</span> ` : "";
+    const pctText = p.percent_owned != null ? p.percent_owned.toFixed(2) + "%" : "\u2014";
+    const filingType = p.filing_type || "";
+    const is13D = filingType.includes("13D");
+    const colorClass = is13D ? "cp-inst-13d" : "cp-inst-13g";
+    return `<tr class="cp-inst-row ${colorClass}">
+      <td class="cp-inst-filer">${newBadge}${escapeHtml(p.filer_name || "Unknown")}</td>
+      <td class="cp-inst-pct">${pctText}</td>
+      <td class="cp-inst-filing-date">${escapeHtml(filingDate)}</td>
+      <td class="cp-inst-filing-type">${escapeHtml(filingType)}</td>
+    </tr>`;
+  }).join("");
+
+  const positionsHtml = positions.length > 0 ? `
+    <div class="cp-inst-section cp-inst-positions">
+      <div class="cp-desc-label">13D/13G Recent Activity</div>
+      <table class="cp-inst-table">
+        <thead>
+          <tr>
+            <th>Filer</th>
+            <th>% Owned</th>
+            <th>Filing Date</th>
+            <th>Filing Type</th>
+          </tr>
+        </thead>
+        <tbody>${positionsRowsHtml}</tbody>
+      </table>
+    </div>` : "";
+
+  // --- Source attribution ---
+  const sourceHtml = `<div class="cp-inst-source">Source: SEC EDGAR (13F quarterly + 13D/13G real-time filings)</div>`;
+
+  body.innerHTML = dateBannerHtml + tooltipHtml + summaryHtml + holdersTableHtml + positionsHtml + sourceHtml;
+
+  // Bind tooltip dismiss
+  const dismissBtn = document.getElementById("cp-inst-tooltip-dismiss");
+  if (dismissBtn) {
+    dismissBtn.addEventListener("click", () => {
+      localStorage.setItem(INST_TOOLTIP_KEY, "1");
+      const tooltip = document.getElementById("cp-inst-tooltip");
+      if (tooltip) tooltip.remove();
+    });
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Company Profile — Insiders Tab (Form 4)
+// ---------------------------------------------------------------------------
+
+async function loadCompanyInsiders(symbol) {
+  if (!symbol) return;
+  const body = $("#company-profile-body");
+  if (!body) return;
+
+  if (state.companyProfileInsiders) {
+    renderCompanyInsiders(state.companyProfileInsiders);
+    return;
+  }
+
+  body.innerHTML = `<div class="cp-spinner-wrap">
+    <div class="cp-spinner"></div>
+    <span class="cp-spinner-text">Loading insider transactions\u2026</span>
+  </div>`;
+
+  try {
+    const res = await SignalAuth.fetch(`${API}/market/${encodeURIComponent(symbol)}/insiders`);
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.message || `HTTP ${res.status}`);
+    }
+    const data = await res.json();
+    state.companyProfileInsiders = data;
+    if (state.companyProfileActiveTab === "insiders") {
+      renderCompanyInsiders(data);
+    }
+  } catch (err) {
+    logger.warn("Error fetching insiders for", symbol, err);
+    if (state.companyProfileActiveTab === "insiders" && body) {
+      body.innerHTML = `<div class="cp-error">
+        <div class="cp-error-icon">!</div>
+        <p>Could not load insider trading data for <strong>${escapeHtml(symbol)}</strong></p>
+        <span>${escapeHtml(err.message)}</span>
+      </div>`;
+    }
+  }
+}
+
+function renderCompanyInsiders(data) {
+  const body = $("#company-profile-body");
+  if (!body) return;
+
+  const transactions = data.insider_transactions || [];
+
+  if (transactions.length === 0) {
+    body.innerHTML = `<div class="cp-error">
+      <div class="cp-error-icon">\u2014</div>
+      <p>No insider transaction data available for <strong>${escapeHtml(data.symbol || "")}</strong></p>
+    </div>`;
+    return;
+  }
+
+  // --- Net insider sentiment (last 90 days) ---
+  const ninetyDaysAgo = Date.now() - 90 * 24 * 60 * 60 * 1000;
+  let buyVolume = 0;
+  let sellVolume = 0;
+  let buyCount = 0;
+  let sellCount = 0;
+  for (const t of transactions) {
+    const d = t.filing_date ? new Date(t.filing_date).getTime() : 0;
+    if (d < ninetyDaysAgo) continue;
+    const type = (t.transaction_type || "").toLowerCase();
+    const val = Math.abs(t.total_value || 0);
+    if (type === "purchase") {
+      buyVolume += val;
+      buyCount++;
+    } else if (type === "sale") {
+      sellVolume += val;
+      sellCount++;
+    }
+  }
+  const netVolume = buyVolume - sellVolume;
+  const sentimentClass = netVolume > 0 ? "cp-insider-sentiment-buy" : netVolume < 0 ? "cp-insider-sentiment-sell" : "cp-insider-sentiment-neutral";
+  const sentimentLabel = netVolume > 0 ? "Net Buying" : netVolume < 0 ? "Net Selling" : "Neutral";
+  const sentimentIcon = netVolume > 0 ? "\u25B2" : netVolume < 0 ? "\u25BC" : "\u25CF";
+
+  const sentimentHtml = `<div class="cp-insider-sentiment ${sentimentClass}">
+    <div class="cp-insider-sentiment-header">
+      <span class="cp-insider-sentiment-icon">${sentimentIcon}</span>
+      <span class="cp-insider-sentiment-label">${sentimentLabel}</span>
+      <span class="cp-insider-sentiment-period">90-day insider activity</span>
+    </div>
+    <div class="cp-insider-sentiment-stats">
+      <div class="cp-insider-stat">
+        <span class="cp-insider-stat-value cp-insider-buy-text">${buyCount} buys</span>
+        <span class="cp-insider-stat-amount">$${formatShareCount(buyVolume)}</span>
+      </div>
+      <div class="cp-insider-stat">
+        <span class="cp-insider-stat-value cp-insider-sell-text">${sellCount} sells</span>
+        <span class="cp-insider-stat-amount">$${formatShareCount(sellVolume)}</span>
+      </div>
+      <div class="cp-insider-stat">
+        <span class="cp-insider-stat-value">Net</span>
+        <span class="cp-insider-stat-amount ${sentimentClass}">${netVolume >= 0 ? "+" : ""}$${formatShareCount(Math.abs(netVolume))}</span>
+      </div>
+    </div>
+  </div>`;
+
+  // --- Transactions table ---
+  // Sort by most recent first
+  const sorted = [...transactions].sort((a, b) => {
+    const da = a.filing_date || "";
+    const db = b.filing_date || "";
+    return db.localeCompare(da);
+  });
+
+  const rowsHtml = sorted.map((t) => {
+    const type = (t.transaction_type || "").toLowerCase();
+    let rowClass = "cp-insider-row-other";
+    if (type === "purchase") rowClass = "cp-insider-row-buy";
+    else if (type === "sale") rowClass = "cp-insider-row-sell";
+    else if (type === "option exercise") rowClass = "cp-insider-row-exercise";
+
+    const sharesText = t.shares != null ? formatShareCount(t.shares) : "\u2014";
+    const priceText = t.price_per_share != null ? "$" + t.price_per_share.toFixed(2) : "\u2014";
+    const totalText = t.total_value != null ? "$" + formatShareCount(t.total_value) : "\u2014";
+    const holdingsText = t.shares_held_after != null ? formatShareCount(t.shares_held_after) : "\u2014";
+
+    return `<tr class="cp-insider-row ${rowClass}">
+      <td class="cp-insider-date">${escapeHtml(t.filing_date || "")}</td>
+      <td class="cp-insider-name">${escapeHtml(t.insider_name || "Unknown")}</td>
+      <td class="cp-insider-title">${escapeHtml(t.title || "")}</td>
+      <td class="cp-insider-type">${escapeHtml(t.transaction_type || "")}</td>
+      <td class="cp-insider-shares">${sharesText}</td>
+      <td class="cp-insider-price">${priceText}</td>
+      <td class="cp-insider-total">${totalText}</td>
+      <td class="cp-insider-holdings">${holdingsText}</td>
+    </tr>`;
+  }).join("");
+
+  const tableHtml = `<div class="cp-insider-table-wrap">
+    <table class="cp-insider-table">
+      <thead>
+        <tr>
+          <th>Date</th>
+          <th>Insider Name</th>
+          <th>Title</th>
+          <th>Type</th>
+          <th>Shares</th>
+          <th>Price</th>
+          <th>Total Value</th>
+          <th>Holdings After</th>
+        </tr>
+      </thead>
+      <tbody>${rowsHtml}</tbody>
+    </table>
+  </div>`;
+
+  const sourceHtml = `<div class="cp-insider-source">Source: SEC EDGAR Form 4 (filed within 2 business days of transaction)</div>`;
+
+  body.innerHTML = sentimentHtml + tableHtml + sourceHtml;
+}
+
+// ---------------------------------------------------------------------------
+// Initialize
+// ---------------------------------------------------------------------------
+
+// ---------------------------------------------------------------------------
+// Auth UI
+// ---------------------------------------------------------------------------
+
+function initAuth() {
+  if (typeof SignalAuth === "undefined") return;
+
+  SignalAuth.init();
+
+  // Sign in button
+  const btnSignin = $("#btn-signin");
+  if (btnSignin) {
+    btnSignin.addEventListener("click", () => {
+      SignalAuth.showAuthModal("signin");
+    });
+  }
+
+  // Sign out button
+  const btnSignout = $("#btn-signout");
+  if (btnSignout) {
+    btnSignout.addEventListener("click", () => {
+      SignalAuth.signOut();
+    });
+  }
+
+  // User menu toggle
+  const btnUser = $("#btn-user");
+  const dropdown = $("#user-dropdown");
+  if (btnUser && dropdown) {
+    btnUser.addEventListener("click", (e) => {
+      e.stopPropagation();
+      dropdown.classList.toggle("open");
+    });
+    document.addEventListener("click", () => {
+      dropdown.classList.remove("open");
+    });
+  }
+
+  // Listen for auth state changes
+  SignalAuth.onAuthChange((user) => {
+    updateAuthUI(user);
+  });
+}
+
+function updateAuthUI(user) {
+  const btnSignin = $("#btn-signin");
+  const userMenu = $("#user-menu");
+
+  if (user) {
+    // Signed in
+    if (btnSignin) btnSignin.style.display = "none";
+    if (userMenu) userMenu.style.display = "flex";
+
+    const avatar = $("#user-avatar");
+    const userName = $("#user-name");
+    const dropdownEmail = $("#dropdown-email");
+
+    if (avatar && user.photoURL) {
+      avatar.src = user.photoURL;
+      avatar.alt = user.displayName || "";
+    }
+    if (userName) userName.textContent = user.displayName || user.email || "";
+    if (dropdownEmail) dropdownEmail.textContent = user.email || "";
+
+    // Fetch tier info
+    fetchTier();
+  } else {
+    // Signed out — block terminal for unauthenticated visitors
+    if (btnSignin) btnSignin.style.display = "flex";
+    if (userMenu) userMenu.style.display = "none";
+    showUpgradeGate();
+  }
+}
+
+async function fetchTier() {
+  try {
+    const res = await SignalAuth.fetch(`${API}/auth/tier`);
+    if (!res.ok) return;
+    const data = await res.json();
+    const rawTier = data.tier || "free";
+    const tier = rawTier === "plus" ? "pro" : rawTier;
+    const features = data.features || {};
+    state.userTier = tier;
+    state.userFeatures = features;
+
+    // Re-render columns with tier-based locks
+    renderColumnSettings();
+    renderTableHeader();
+
+    // Re-fetch news with auth token to get tier-gated fields (sentiment, tickers)
+    await fetchNews();
+
+    // Start market price refresh for Max users
+    fetchMarketPrices();
+    startPriceRefresh();
+
+    const badge = $("#tier-badge");
+    const dropdownTier = $("#dropdown-tier");
+
+    if (badge) {
+      badge.textContent = tier.toUpperCase();
+      badge.className = "tier-badge" + (tier !== "free" ? " " + tier : "");
+    }
+    if (dropdownTier) {
+      const labels = { free: "Free Plan", pro: "Pro Plan", plus: "Pro Plan" };
+      dropdownTier.textContent = labels[tier] || "Free Plan";
+    }
+
+    // Client-side terminal access gate (defense in depth)
+    if (features.terminal_access === false || tier === "free") {
+      showUpgradeGate();
+    } else {
+      hideUpgradeGate();
+      // Show column onboarding for first-visit Max users
+      showOnboarding();
+    }
+  } catch {
+    // silent
+  }
+}
+
+/**
+ * Show a full-screen overlay blocking the terminal for Free-tier users.
+ * This is a client-side safety net; the server-side redirect is the
+ * primary gate.
+ */
+function showUpgradeGate() {
+  // Avoid creating duplicate overlays
+  if ($("#upgrade-gate")) return;
+
+  const overlay = document.createElement("div");
+  overlay.id = "upgrade-gate";
+  overlay.style.cssText =
+    "position:fixed;inset:0;z-index:10000;display:flex;align-items:center;" +
+    "justify-content:center;background:rgba(1,4,9,0.95);";
+  overlay.innerHTML =
+    '<div style="text-align:center;max-width:420px;padding:40px;' +
+    'border:1px solid rgba(48,54,61,0.8);border-radius:12px;background:#0d1117;">' +
+    '<h2 style="color:#e6edf3;margin:0 0 12px;font-size:22px;">Upgrade to Pro</h2>' +
+    '<p style="color:#8b949e;margin:0 0 24px;line-height:1.6;">' +
+    "The SIGNAL terminal requires a Pro subscription. " +
+    "Get full access to real-time news, sentiment analysis, and deduplication." +
+    "</p>" +
+    '<a href="/pricing" style="display:inline-block;padding:10px 28px;' +
+    "background:#238636;color:#fff;border-radius:6px;text-decoration:none;" +
+    'font-weight:600;font-size:14px;">View Plans</a>' +
+    '<div style="margin-top:16px;">' +
+    '<a href="/" style="color:#8b949e;font-size:13px;text-decoration:underline;">Back to home</a>' +
+    "</div></div>";
+
+  document.body.appendChild(overlay);
+
+  // Stop auto-refresh to avoid unnecessary API calls
+  stopAutoRefresh();
+  stopPriceRefresh();
+}
+
+function hideUpgradeGate() {
+  const overlay = $("#upgrade-gate");
+  if (overlay) overlay.remove();
+}
+
+/**
+ * Show a modal prompting Pro users to upgrade to Max for locked columns.
+ */
+function showMaxUpgradePrompt() {
+  if ($("#max-upgrade-prompt")) return;
+
+  const overlay = document.createElement("div");
+  overlay.id = "max-upgrade-prompt";
+  overlay.className = "modal-overlay open";
+  overlay.innerHTML =
+    '<div class="modal" style="width:min(420px,90vw);text-align:center;padding:32px;">' +
+    '<div style="font-size:28px;margin-bottom:12px;">\u{1F680}</div>' +
+    '<h2 style="color:var(--text-primary);margin:0 0 12px;font-size:18px;">Upgrade to Max</h2>' +
+    '<p style="color:var(--text-secondary);margin:0 0 8px;line-height:1.5;font-size:13px;">' +
+    "AI-powered ticker recommendations, confidence scores, risk levels, and real-time market data " +
+    "are exclusive to the <strong>Max</strong> plan." +
+    "</p>" +
+    '<p style="color:var(--text-muted);margin:0 0 24px;font-size:12px;">' +
+    "Unlock the full trading terminal experience." +
+    "</p>" +
+    '<a href="/pricing" style="display:inline-block;padding:10px 28px;' +
+    "background:var(--blue);color:#fff;border-radius:6px;text-decoration:none;" +
+    'font-weight:600;font-size:14px;">View Max Plan</a>' +
+    '<div style="margin-top:12px;">' +
+    '<button id="max-upgrade-dismiss" style="background:none;border:none;color:var(--text-muted);' +
+    'font-size:13px;cursor:pointer;padding:8px;">Maybe later</button>' +
+    "</div></div>";
+
+  overlay.addEventListener("click", (e) => {
+    if (e.target === overlay || e.target.id === "max-upgrade-dismiss") {
+      overlay.remove();
+    }
+  });
+
+  document.body.appendChild(overlay);
+}
+
+
+function init() {
+  loadColumnVisibility();
+  loadColumnOrder();
+  loadColumnWidths();
+  renderTableHeader();
+  renderSkeleton();
+  renderSources();
+  bindEvents();
+  updateClock();
+  initAuth();
+
+  // Start clock
+  setInterval(updateClock, 1000);
+
+  // Initial data fetch happens in fetchTier() after auth resolves.
+  // Fetch news immediately as anonymous (shows data without gated columns),
+  // then fetchTier() re-fetches with auth to get sentiment/ticker data.
+  fetchNews();
+  fetchStats();
+  fetchSources();
+
+  // Start auto-refresh
+  startAutoRefresh();
+
+  // Periodic stats refresh (every 30s)
+  setInterval(() => {
+    fetchStats();
+    fetchSources();
+  }, 30000);
+}
+
+// Start when DOM is ready
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", init);
+} else {
+  init();
+}

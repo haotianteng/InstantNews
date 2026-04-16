@@ -1,0 +1,11 @@
+POLYGON_API_KEY not set — market data service disabled
+<function Blueprint.add_url_rule.<locals>.<lambda> at 0x7fd579bc8c10>
+<function Blueprint.add_url_rule.<locals>.<lambda> at 0x7fd579bc8e50>
+<function Blueprint.add_url_rule.<locals>.<lambda> at 0x7fd579bc9090>
+<function Blueprint.add_url_rule.<locals>.<lambda> at 0x7fd579bc92d0>
+<function Blueprint.add_url_rule.<locals>.<lambda> at 0x7fd579bc9510>
+<function Blueprint.add_url_rule.<locals>.<lambda> at 0x7fd579bc9750>
+116:@market_bp.route("/api/market/<symbol>/institutions")
+119:def market_institutions(symbol: str):
+137:@market_bp.route("/api/market/<symbol>/insiders")
+140:def market_insiders(symbol: str):

@@ -1,0 +1,15 @@
+162:    batch_size = len(batch)
+165:        "batch_size": batch_size,
+178:            "batch_size": batch_size,
+179:            "elapsed_seconds": elapsed,
+186:        success_count = 0
+187:        failure_count = 0
+190:                failure_count += 1
+194:                failure_count += 1
+205:            success_count += 1
+210:            "batch_size": batch_size,
+211:            "success_count": success_count,
+212:            "failure_count": failure_count,
+213:            "elapsed_seconds": elapsed,
+221:            "batch_size": batch_size,
+222:            "elapsed_seconds": elapsed,

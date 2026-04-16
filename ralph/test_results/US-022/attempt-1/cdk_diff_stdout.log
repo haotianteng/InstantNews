@@ -1,0 +1,152 @@
+b'!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n'
+b'!!                                                                                       !!\n'
+b'!!  Node 18 is end-of-life and not supported anymore by this software since 2025-11-30.  !!\n'
+b'!!  Please upgrade to a supported node version as soon as possible.                      !!\n'
+b'!!                                                                                       !!\n'
+b'!!  This software is currently running on node v18.20.8.                                 !!\n'
+b'!!  As of the current release of this software, supported node releases are:             !!\n'
+b'!!  - ^24.0.0 (Planned end-of-life: 2028-04-30)                                          !!\n'
+b'!!  - ^22.0.0 (Planned end-of-life: 2027-04-30)                                          !!\n'
+b'!!  - ^20.0.0 (Planned end-of-life: 2026-04-30)                                          !!\n'
+b'!!                                                                                       !!\n'
+b'!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n'
+[Warning at /InstantNewsStack/WorkerService] minHealthyPercent has not been configured so the default value of 50% is used. The number of running tasks will decrease below the desired count during deployments etc. See https://github.com/aws/aws-cdk/issues/31705 [ack: @aws-cdk/aws-ecs:minHealthyPercent]
+[Warning at /InstantNewsStack/WebService/Service] minHealthyPercent has not been configured so the default value of 50% is used. The number of running tasks will decrease below the desired count during deployments etc. See https://github.com/aws/aws-cdk/issues/31705 [ack: @aws-cdk/aws-ecs:minHealthyPercent]
+[Warning at /InstantNewsStack/AdminService/Service] minHealthyPercent has not been configured so the default value of 50% is used. The number of running tasks will decrease below the desired count during deployments etc. See https://github.com/aws/aws-cdk/issues/31705 [ack: @aws-cdk/aws-ecs:minHealthyPercent]
+(node:4003876) Warning: NodeDeprecationWarning: The AWS SDK for JavaScript (v3) will
+no longer support Node.js v18.20.8 in January 2026.
+
+To continue receiving updates to AWS services, bug fixes, and security
+updates please upgrade to a supported Node.js LTS version.
+
+More information can be found at: https://a.co/c895JFp
+(Use `node --trace-warnings ...` to show where the warning was created)
+start: Building InstantNewsStack Template
+success: Built InstantNewsStack Template
+start: Publishing InstantNewsStack Template (596080539716-us-east-1-04b0a813)
+success: Published InstantNewsStack Template (596080539716-us-east-1-04b0a813)
+Hold on while we create a read-only change set to get a diff with accurate replacement information (use --no-change-set to use a less accurate but faster template-only diff)
+
+Stack InstantNewsStack
+Resources
+[~] AWS::ECS::TaskDefinition WebTask WebTask51ED7374 replace
+ └─ [~] ContainerDefinitions (requires replacement)
+     └─ @@ -22,6 +22,10 @@
+        [ ]   "Value": "us-east-1"
+        [ ] },
+        [ ] {
+        [+]   "Name": "MINIMAX_MODEL_ID",
+        [+]   "Value": "MiniMax-M2.7"
+        [+] },
+        [+] {
+        [ ]   "Name": "DB_HOST",
+        [ ]   "Value": {
+        [ ]     "Fn::GetAtt": [
+        @@ -176,6 +180,20 @@
+        [ ]   }
+        [ ] },
+        [ ] {
+        [+]   "Name": "POLYGON_API_KEY",
+        [+]   "ValueFrom": {
+        [+]     "Fn::Join": [
+        [+]       "",
+        [+]       [
+        [+]         {
+        [+]           "Ref": "AppSecretsA1997F2A"
+        [+]         },
+        [+]         ":POLYGON_API_KEY::"
+        [+]       ]
+        [+]     ]
+        [+]   }
+        [+] },
+        [+] {
+        [ ]   "Name": "STRIPE_SECRET_KEY",
+        [ ]   "ValueFrom": {
+        [ ]     "Fn::Join": [
+[~] AWS::ECS::TaskDefinition AdminTask AdminTaskD8C87731 replace
+ └─ [~] ContainerDefinitions (requires replacement)
+     └─ @@ -22,6 +22,10 @@
+        [ ]   "Value": "us-east-1"
+        [ ] },
+        [ ] {
+        [+]   "Name": "MINIMAX_MODEL_ID",
+        [+]   "Value": "MiniMax-M2.7"
+        [+] },
+        [+] {
+        [ ]   "Name": "DB_HOST",
+        [ ]   "Value": {
+        [ ]     "Fn::GetAtt": [
+        @@ -185,6 +189,20 @@
+        [ ]   }
+        [ ] },
+        [ ] {
+        [+]   "Name": "POLYGON_API_KEY",
+        [+]   "ValueFrom": {
+        [+]     "Fn::Join": [
+        [+]       "",
+        [+]       [
+        [+]         {
+        [+]           "Ref": "AppSecretsA1997F2A"
+        [+]         },
+        [+]         ":POLYGON_API_KEY::"
+        [+]       ]
+        [+]     ]
+        [+]   }
+        [+] },
+        [+] {
+        [ ]   "Name": "STRIPE_SECRET_KEY",
+        [ ]   "ValueFrom": {
+        [ ]     "Fn::Join": [
+[~] AWS::ECS::TaskDefinition WorkerTask WorkerTaskCBB1FEE3 replace
+ └─ [~] ContainerDefinitions (requires replacement)
+     └─ @@ -27,6 +27,10 @@
+        [ ]   "Value": "us-east-1"
+        [ ] },
+        [ ] {
+        [+]   "Name": "MINIMAX_MODEL_ID",
+        [+]   "Value": "MiniMax-M2.7"
+        [+] },
+        [+] {
+        [ ]   "Name": "DB_HOST",
+        [ ]   "Value": {
+        [ ]     "Fn::GetAtt": [
+        @@ -151,6 +155,20 @@
+        [ ]           ]
+        [ ]         ]
+        [ ]       }
+        [+]     },
+        [+]     {
+        [+]       "Name": "POLYGON_API_KEY",
+        [+]       "ValueFrom": {
+        [+]         "Fn::Join": [
+        [+]           "",
+        [+]           [
+        [+]             {
+        [+]               "Ref": "AppSecretsA1997F2A"
+        [+]             },
+        [+]             ":POLYGON_API_KEY::"
+        [+]           ]
+        [+]         ]
+        [+]       }
+        [ ]     }
+        [ ]   ]
+        [ ] }
+
+
+
+✨  Number of stacks with differences: 1
+
+
+NOTICES         (What's this? https://github.com/aws/aws-cdk/wiki/CLI-Notices)
+
+34635	Support for this Node.js version will end soon
+
+	Overview: Support for Node.js v18.20.8 ends on November 30,
+	          2025. Please upgrade to a recent LTS version.
+
+	Affected versions: node: >=18.0.0 <20.0.0
+
+	More information at: https://github.com/aws/aws-cdk/issues/34635
+
+
+If you don't want to see a notice anymore, use "cdk acknowledge <id>". For example, "cdk acknowledge 34635".

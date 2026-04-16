@@ -1,0 +1,13 @@
+POLYGON_API_KEY not set — market data service disabled
+{"timestamp": "2026-04-13T23:55:45.786150+00:00", "level": "INFO", "logger": "signal", "message": "Firebase Admin SDK initialized"}
+{"timestamp": "2026-04-13T23:55:45.822375+00:00", "level": "INFO", "logger": "signal", "message": "Background scheduler started (interval=30s)"}
+{"timestamp": "2026-04-13T23:55:45.822428+00:00", "level": "INFO", "logger": "signal", "message": "Application initialized", "event": "app_start"}
+{"timestamp": "2026-04-13T23:55:45.843487+00:00", "level": "INFO", "logger": "signal.auth", "message": "New Google user registered", "user_id": 15, "event": "user_registered"}
+{"timestamp": "2026-04-13T23:55:45.844278+00:00", "level": "INFO", "logger": "signal.requests", "message": "GET /api/market/MSFT \u2192 200 (0.6ms)", "request_id": "591d89df5285", "method": "GET", "path": "/api/market/MSFT", "status": 200, "latency_ms": 0.6, "user_id": 15, "tier": "free", "ip": "127.0.0.1", "user_agent": "Werkzeug/3.1.7", "endpoint": "market.market_snapshot"}
+Status: 200
+X-RateLimit-Limit: 60
+X-RateLimit-Remaining: 59
+X-RateLimit-Reset: 1776124606
+Response fields: ['change', 'change_percent', 'price', 'symbol', 'updated_at', 'volume', 'vwap']
+updated_at present and ISO format: True
+All 7 fields present: True

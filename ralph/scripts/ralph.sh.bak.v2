@@ -1,0 +1,442 @@
+#!/bin/bash
+# Ralph v2 — Adversarial Agent Loop
+#
+# Directory layout:
+#   ralph/scripts/ralph.sh        ← this file
+#   ralph/scripts/CLAUDE.md       ← soul file (both roles)
+#   ralph/scripts/TEAM_PROMPT.md  ← team lead prompt
+#   ralph/scripts/skills/         ← skill definitions
+#   ralph/prd.json                ← story state
+#   ralph/progress.txt            ← append-only log
+#   ralph/test_results/           ← persistent test artifacts
+#   ralph/archive/                ← previous run archives
+#
+# Two modes:
+#   --mode team   Agent Teams (lead spawns implementor + tester as teammates)
+#   --mode loop   Bash loop (alternates implementor ↔ tester with fresh context)
+#
+# Usage:
+#   ./ralph/scripts/ralph.sh                              # defaults: loop, 30 iterations
+#   ./ralph/scripts/ralph.sh --mode team                  # agent teams
+#   ./ralph/scripts/ralph.sh --mode loop --max-iterations 50
+#   ./ralph/scripts/ralph.sh --mode loop --model sonnet
+
+set -e
+
+# ── Paths ────────────────────────────────────────────────────────────
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+RALPH_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
+PROJECT_ROOT="$(cd "$RALPH_DIR/.." && pwd)"
+
+PRD_FILE="$RALPH_DIR/prd.json"
+PROGRESS_FILE="$RALPH_DIR/progress.txt"
+ARCHIVE_DIR="$RALPH_DIR/archive"
+TEST_RESULTS_DIR="$RALPH_DIR/test_results"
+LAST_BRANCH_FILE="$RALPH_DIR/.last-branch"
+
+TEAM_PROMPT="$SCRIPT_DIR/TEAM_PROMPT.md"
+CLAUDE_MD="$SCRIPT_DIR/CLAUDE.md"
+
+MODE="loop"
+MODEL="opus"
+MAX_ITERATIONS=30
+
+# ── Tmux split pane support ─────────────────────────────────────────
+TMUX_SPLIT=false
+RIGHT_PANE=""
+
+setup_tmux_split() {
+  if [ -n "$TMUX" ]; then
+    TMUX_SPLIT=true
+    RIGHT_PANE=$(tmux split-window -h -d -P -F '#{pane_id}')
+    tmux select-layout even-horizontal
+    sleep 0.5  # let the pane shell initialize
+    echo "Tmux detected: claude sessions will run in the right pane."
+  fi
+}
+
+cleanup_tmux() {
+  if [ "$TMUX_SPLIT" = true ] && [ -n "$RIGHT_PANE" ]; then
+    tmux kill-pane -t "$RIGHT_PANE" 2>/dev/null || true
+  fi
+}
+
+# Run claude in the right tmux pane, or inline if no tmux.
+# Usage: run_claude_in_pane <prompt_file> <log_file>
+run_claude_in_pane() {
+  local prompt_file="$1"
+  local log_file="$2"
+  local done_marker="${log_file}.done"
+
+  rm -f "$done_marker"
+
+  if [ "$TMUX_SPLIT" = true ]; then
+    # Write a runner script so send-keys only needs a short command
+    local runner="$RALPH_DIR/sessions/.runner.sh"
+    cat > "$runner" << RUNNER_EOF
+#!/bin/bash
+echo ""
+echo "═══════════════════════════════════════════════════════════"
+echo "  Claude session starting..."
+echo "  Model: $MODEL"
+echo "  Prompt: $(basename "$prompt_file")"
+echo "═══════════════════════════════════════════════════════════"
+echo ""
+cd "$PROJECT_ROOT"
+script -qfc "claude --model '$MODEL' --dangerously-skip-permissions --print < '$prompt_file'" "$log_file"
+touch "$done_marker"
+RUNNER_EOF
+    chmod +x "$runner"
+
+    # Wait for right pane shell to be ready before sending keys
+    sleep 1
+    tmux send-keys -t "$RIGHT_PANE" "bash '${runner}'" Enter
+
+    # Left pane waits for the right pane to finish
+    while [ ! -f "$done_marker" ]; do sleep 2; done
+    rm -f "$done_marker"
+  else
+    cd "$PROJECT_ROOT"
+    claude --model "$MODEL" --dangerously-skip-permissions --print \
+      < "$prompt_file" > >(tee "$log_file") 2>&1 || true
+  fi
+}
+
+# ── Parse arguments ──────────────────────────────────────────────────
+while [[ $# -gt 0 ]]; do
+  case $1 in
+    --mode)            MODE="$2"; shift 2 ;;
+    --mode=*)          MODE="${1#*=}"; shift ;;
+    --model)           MODEL="$2"; shift 2 ;;
+    --model=*)         MODEL="${1#*=}"; shift ;;
+    --max-iterations)  MAX_ITERATIONS="$2"; shift 2 ;;
+    *)
+      if [[ "$1" =~ ^[0-9]+$ ]]; then MAX_ITERATIONS="$1"; fi
+      shift
+      ;;
+  esac
+done
+
+if [[ "$MODE" != "team" && "$MODE" != "loop" ]]; then
+  echo "Error: Invalid mode '$MODE'. Must be 'team' or 'loop'."
+  exit 1
+fi
+
+# ── Validation ───────────────────────────────────────────────────────
+if [ ! -f "$PRD_FILE" ]; then
+  echo "Error: $PRD_FILE not found. Generate a PRD first."
+  exit 1
+fi
+
+if [ ! -f "$CLAUDE_MD" ]; then
+  echo "Error: $CLAUDE_MD not found."
+  exit 1
+fi
+
+if [[ "$MODE" == "team" && ! -f "$TEAM_PROMPT" ]]; then
+  echo "Error: $TEAM_PROMPT not found (required for team mode)."
+  exit 1
+fi
+
+# ── Install CLAUDE.md to project root ────────────────────────────────
+# Claude Code auto-loads CLAUDE.md from the working directory.
+# Copy ours to project root so all teammates pick it up.
+PROJECT_CLAUDE_MD="$PROJECT_ROOT/CLAUDE.md"
+
+if [ -f "$PROJECT_CLAUDE_MD" ]; then
+  # Check if it's ours (has the ralph marker) or the user's own CLAUDE.md
+  if grep -q "Ralph v2 — Adversarial Build" "$PROJECT_CLAUDE_MD" 2>/dev/null; then
+    # It's ours — overwrite with latest
+    cp "$CLAUDE_MD" "$PROJECT_CLAUDE_MD"
+  else
+    # User has their own CLAUDE.md — append ours if not already appended
+    if ! grep -q "Ralph v2 — Adversarial Build" "$PROJECT_CLAUDE_MD" 2>/dev/null; then
+      echo "" >> "$PROJECT_CLAUDE_MD"
+      echo "<!-- BEGIN RALPH V2 -->" >> "$PROJECT_CLAUDE_MD"
+      cat "$CLAUDE_MD" >> "$PROJECT_CLAUDE_MD"
+      echo "<!-- END RALPH V2 -->" >> "$PROJECT_CLAUDE_MD"
+      echo "Appended Ralph CLAUDE.md to existing $PROJECT_CLAUDE_MD"
+    fi
+  fi
+else
+  cp "$CLAUDE_MD" "$PROJECT_CLAUDE_MD"
+  echo "Installed CLAUDE.md to $PROJECT_CLAUDE_MD"
+fi
+
+# ── Check Agent Teams is enabled (team mode only) ────────────────────
+if [[ "$MODE" == "team" ]]; then
+  SETTINGS_FILE="$HOME/.claude/settings.json"
+  if [ -f "$SETTINGS_FILE" ]; then
+    if ! grep -q "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS" "$SETTINGS_FILE" 2>/dev/null; then
+      echo ""
+      echo "WARNING: Agent Teams may not be enabled."
+      echo "Add to $SETTINGS_FILE:"
+      echo '  { "env": { "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1" } }'
+      echo ""
+    fi
+  fi
+fi
+
+# ── Archive previous run if branch changed ───────────────────────────
+if [ -f "$LAST_BRANCH_FILE" ]; then
+  CURRENT_BRANCH=$(jq -r '.branchName // empty' "$PRD_FILE" 2>/dev/null || echo "")
+  LAST_BRANCH=$(cat "$LAST_BRANCH_FILE" 2>/dev/null || echo "")
+
+  if [ -n "$CURRENT_BRANCH" ] && [ -n "$LAST_BRANCH" ] && [ "$CURRENT_BRANCH" != "$LAST_BRANCH" ]; then
+    DATE=$(date +%Y-%m-%d)
+    FOLDER_NAME=$(echo "$LAST_BRANCH" | sed 's|^ralph/||')
+    ARCHIVE_FOLDER="$ARCHIVE_DIR/$DATE-$FOLDER_NAME"
+
+    echo "Archiving previous run: $LAST_BRANCH"
+    mkdir -p "$ARCHIVE_FOLDER"
+    [ -f "$PRD_FILE" ] && cp "$PRD_FILE" "$ARCHIVE_FOLDER/"
+    [ -f "$PROGRESS_FILE" ] && cp "$PROGRESS_FILE" "$ARCHIVE_FOLDER/"
+    echo "   Archived to: $ARCHIVE_FOLDER"
+  fi
+fi
+
+# Track current branch
+CURRENT_BRANCH=$(jq -r '.branchName // empty' "$PRD_FILE" 2>/dev/null || echo "")
+if [ -n "$CURRENT_BRANCH" ]; then
+  echo "$CURRENT_BRANCH" > "$LAST_BRANCH_FILE"
+fi
+
+# ── Initialize progress file ─────────────────────────────────────────
+if [ ! -f "$PROGRESS_FILE" ]; then
+  DESCRIPTION=$(jq -r '.description // "No description"' "$PRD_FILE")
+  cat > "$PROGRESS_FILE" << EOF
+# Ralph v2 Progress Log
+Started: $(date)
+PRD: $DESCRIPTION
+Mode: Adversarial ($MODE)
+---
+
+## Codebase Patterns
+(Patterns discovered during implementation will be added here)
+
+---
+EOF
+fi
+
+# ── Ensure test_results dir exists ────────────────────────────────────
+mkdir -p "$TEST_RESULTS_DIR"
+
+# ── Status display ────────────────────────────────────────────────────
+show_status() {
+  local TOTAL DONE FAILED READY TODO
+  TOTAL=$(jq '.userStories | length' "$PRD_FILE")
+  DONE=$(jq '[.userStories[] | select(.status == "TEST_PASSED")] | length' "$PRD_FILE")
+  FAILED=$(jq '[.userStories[] | select(.status == "TEST_FAILED")] | length' "$PRD_FILE")
+  READY=$(jq '[.userStories[] | select(.status == "READY_FOR_TEST")] | length' "$PRD_FILE")
+  TODO=$(jq "[.userStories[] | select(.status == \"REQUIRE_IMPLEMENT\" or .status == null)] | length" "$PRD_FILE")
+
+  echo "========================================"
+  echo "  Ralph v2 — Adversarial Agent Loop"
+  echo "========================================"
+  echo "  Mode:   $MODE"
+  echo "  Model:  $MODEL"
+  echo "  Branch: $CURRENT_BRANCH"
+  echo "  Stories: $DONE/$TOTAL passed"
+  echo "    ✓ Passed:  $DONE"
+  echo "    ✗ Failed:  $FAILED"
+  echo "    ⧖ Ready:   $READY"
+  echo "    ○ To do:   $TODO"
+  echo "========================================"
+}
+
+# ── Check if all stories are done ─────────────────────────────────────
+all_done() {
+  local TOTAL DONE
+  TOTAL=$(jq '.userStories | length' "$PRD_FILE")
+  DONE=$(jq '[.userStories[] | select(.status == "TEST_PASSED")] | length' "$PRD_FILE")
+  [ "$TOTAL" -eq "$DONE" ]
+}
+
+# ── Pick which agent to run (loop mode) ──────────────────────────────
+pick_agent() {
+  local ready impl
+  ready=$(jq '[.userStories[] | select(.status == "READY_FOR_TEST")] | length' "$PRD_FILE")
+  if [ "$ready" -gt 0 ]; then echo "tester"; return; fi
+
+  impl=$(jq '[.userStories[] | select(.status == "REQUIRE_IMPLEMENT" or .status == "TEST_FAILED" or .status == null)] | length' "$PRD_FILE")
+  if [ "$impl" -gt 0 ]; then echo "implementor"; return; fi
+
+  echo "done"
+}
+
+# ── Generate role prompt for loop mode ────────────────────────────────
+make_implementor_prompt() {
+  cat << 'PROMPT'
+You are the **Implementor** agent in the Ralph v2 adversarial system.
+
+Read CLAUDE.md in the project root for your full role definition under "Role: Implementor".
+
+Your task right now:
+1. Read ralph/prd.json
+2. Read ralph/progress.txt (Codebase Patterns section first)
+3. Check you're on the correct branch from prd.json branchName
+4. Pick the highest-priority story: TEST_FAILED first (rework), then REQUIRE_IMPLEMENT, then null
+5. If TEST_FAILED: inspect ralph/test_results/<story-id>/ for the Tester's artifacts before coding
+6. Implement that ONE story
+7. Self-validate (typecheck, lint, test)
+8. Commit with: feat: [Story ID] - [Title]  (or fix: ... for rework)
+9. Update ralph/prd.json: status → READY_FOR_TEST, write implementation_notes and files_changed
+10. Append to ralph/progress.txt with environment notes for the Tester
+11. Update CLAUDE.md files if you found reusable patterns
+
+NEVER set passes to true. NEVER modify tester-owned fields.
+
+Work on ONE story only, then stop.
+PROMPT
+}
+
+make_tester_prompt() {
+  cat << 'PROMPT'
+You are the **Tester** agent in the Ralph v2 adversarial system.
+
+Read CLAUDE.md in the project root for your full role definition under "Role: Tester".
+
+Your task right now:
+1. Read ralph/prd.json — find stories with status: READY_FOR_TEST
+2. Read ralph/progress.txt — check Implementor's environment notes
+3. Pick the highest-priority READY_FOR_TEST story
+4. Create test results dir: mkdir -p ralph/test_results/<story-id>/attempt-<N>/
+5. Execute REAL validation for EVERY acceptance criterion — capture all output to test results dir
+6. Check test_assertions — verify each by execution, not by reading code
+7. Run project quality checks (typecheck, lint, test) — capture output
+8. Judgment:
+   - ALL pass → status: TEST_PASSED, passes: true
+   - ANY fail → status: TEST_FAILED, fail_count++, write failure_reason + test_evidence with paths
+9. Append to ralph/progress.txt with results
+
+NEVER modify source code. NEVER write mock implementations. You TEST, you don't FIX.
+Save ALL artifacts to ralph/test_results/<story-id>/attempt-<N>/, NEVER to /tmp.
+
+Test ONE story only, then stop.
+
+After testing, check: are ALL stories TEST_PASSED? If yes, reply with:
+<promise>COMPLETE</promise>
+PROMPT
+}
+
+# ══════════════════════════════════════════════════════════════════════
+#  MAIN
+# ══════════════════════════════════════════════════════════════════════
+
+setup_tmux_split
+trap cleanup_tmux EXIT
+
+show_status
+
+if all_done; then
+  echo ""
+  echo "All stories already passed! Nothing to do."
+  exit 0
+fi
+
+echo ""
+
+# ── MODE: team ────────────────────────────────────────────────────────
+if [[ "$MODE" == "team" ]]; then
+  echo "Mode: Agent Teams"
+  echo "The team lead will spawn implementor + tester teammates."
+  echo "If the session exhausts context, ralph.sh will re-launch automatically."
+  echo ""
+
+  for session in $(seq 1 $MAX_ITERATIONS); do
+    if all_done; then
+      echo ""
+      echo "All stories passed! Ralph is done."
+      show_status
+      exit 0
+    fi
+
+    echo ""
+    echo "═══════════════════════════════════════════════════════════"
+    echo "  Team session $session / $MAX_ITERATIONS (re-launch on context exhaustion)"
+    echo "═══════════════════════════════════════════════════════════"
+
+    SESSION_LOG="$RALPH_DIR/sessions/team-session-${session}.log"
+    mkdir -p "$RALPH_DIR/sessions"
+
+    run_claude_in_pane "$TEAM_PROMPT" "$SESSION_LOG"
+
+    echo ""
+    echo "Team session $session ended (log: $SESSION_LOG). Checking progress..."
+    show_status
+    sleep 3
+  done
+
+  echo ""
+  echo "Reached max sessions ($MAX_ITERATIONS) without completing all stories."
+  exit 1
+fi
+
+# ── MODE: loop ────────────────────────────────────────────────────────
+echo "Mode: Bash loop (alternating implementor ↔ tester)"
+echo ""
+
+for i in $(seq 1 $MAX_ITERATIONS); do
+
+  if all_done; then
+    echo ""
+    echo "All stories passed! Ralph is done at iteration $i."
+    show_status
+    exit 0
+  fi
+
+  AGENT=$(pick_agent)
+
+  if [ "$AGENT" == "done" ]; then
+    echo ""
+    echo "All stories passed! Ralph is done at iteration $i."
+    show_status
+    exit 0
+  fi
+
+  echo ""
+  echo "═══════════════════════════════════════════════════════════"
+  echo "  Iteration $i / $MAX_ITERATIONS — $(echo "$AGENT" | tr '[:lower:]' '[:upper:]')"
+  echo "═══════════════════════════════════════════════════════════"
+
+  PROMPT_FILE="$RALPH_DIR/sessions/.loop-${i}-prompt.txt"
+  SESSION_LOG="$RALPH_DIR/sessions/loop-${i}-${AGENT}.log"
+  mkdir -p "$RALPH_DIR/sessions"
+
+  if [ "$AGENT" == "implementor" ]; then
+    make_implementor_prompt > "$PROMPT_FILE"
+  else
+    make_tester_prompt > "$PROMPT_FILE"
+  fi
+
+  run_claude_in_pane "$PROMPT_FILE" "$SESSION_LOG"
+
+  # Check for tester completion signal
+  if grep -q "<promise>COMPLETE</promise>" "$SESSION_LOG" 2>/dev/null; then
+    echo ""
+    echo "Ralph completed all tasks!"
+    show_status
+    exit 0
+  fi
+
+  # Stuck loop detection
+  MOST_FAILED=$(jq -r '
+    [.userStories[] | select(.status == "TEST_FAILED")]
+    | sort_by(.fail_count // 0) | last
+    | "\(.id // "none") failed \(.fail_count // 0) times"
+  ' "$PRD_FILE" 2>/dev/null || echo "none failed 0 times")
+  FAIL_COUNT=$(echo "$MOST_FAILED" | grep -oP 'failed \K[0-9]+' || echo "0")
+  if [ "${FAIL_COUNT:-0}" -ge 5 ]; then
+    echo ""
+    echo "⚠ WARNING: $MOST_FAILED — possible stuck loop. Review needed."
+  fi
+
+  show_status
+  echo "Iteration $i complete. Continuing in 3s..."
+  sleep 3
+done
+
+echo ""
+echo "Reached max iterations ($MAX_ITERATIONS) without completing all stories."
+show_status
+exit 1

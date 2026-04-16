@@ -487,6 +487,73 @@
   border-color: var(--blue);
 }
 
+/* Date range filter */
+.date-range-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+}
+
+.date-range-row {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+}
+
+.date-range-label {
+  font-size: 11px;
+  color: var(--text-muted);
+  min-width: 34px;
+  flex-shrink: 0;
+}
+
+.date-input {
+  flex: 1;
+  width: 100%;
+  padding: 5px 8px;
+  font-size: 12px;
+  color: var(--text-primary);
+  background: var(--bg-primary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  transition: border-color var(--duration) var(--ease-out);
+  color-scheme: dark;
+}
+
+.date-input:focus {
+  outline: none;
+  border-color: var(--blue);
+  box-shadow: 0 0 0 3px var(--blue-bg);
+}
+
+.date-input::-webkit-calendar-picker-indicator {
+  filter: invert(0.7);
+  cursor: pointer;
+}
+
+.btn-clear-dates {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--sp-1);
+  padding: 4px 8px;
+  font-size: 11px;
+  color: var(--text-muted);
+  border-radius: var(--radius-sm);
+  transition: all var(--duration-fast) var(--ease-out);
+  cursor: pointer;
+  width: 100%;
+}
+
+.btn-clear-dates:hover {
+  background: var(--bg-hover);
+  color: var(--text-secondary);
+}
+
+.btn-clear-dates:active {
+  background: var(--bg-active);
+}
+
 /* =========================================================================
    Main Content Area
    ========================================================================= */
@@ -651,6 +718,22 @@
   margin-left: var(--sp-2);
   animation: badge-flash 1s ease-out;
   letter-spacing: 0.05em;
+}
+
+.badge-dup {
+  display: inline-flex;
+  align-items: center;
+  padding: 1px 5px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9px;
+  font-weight: 700;
+  color: var(--yellow);
+  background: rgba(210, 153, 34, 0.1);
+  border: 1px solid rgba(210, 153, 34, 0.3);
+  border-radius: var(--radius-sm);
+  margin-left: var(--sp-2);
+  letter-spacing: 0.05em;
+  opacity: 0.8;
 }
 
 /* New row animation */

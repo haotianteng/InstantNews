@@ -1,0 +1,13 @@
+POLYGON_API_KEY not set — market data service disabled
+{"timestamp": "2026-04-13T23:55:03.810966+00:00", "level": "INFO", "logger": "signal", "message": "Firebase Admin SDK initialized"}
+{"timestamp": "2026-04-13T23:55:03.846720+00:00", "level": "INFO", "logger": "signal", "message": "Background scheduler started (interval=30s)"}
+{"timestamp": "2026-04-13T23:55:03.846774+00:00", "level": "INFO", "logger": "signal", "message": "Application initialized", "event": "app_start"}
+{"timestamp": "2026-04-13T23:55:03.848402+00:00", "level": "INFO", "logger": "signal.requests", "message": "GET /api/market/AAPL \u2192 401 (0.2ms)", "request_id": "8266c6e0d32b", "method": "GET", "path": "/api/market/AAPL", "status": 401, "latency_ms": 0.2, "tier": "anonymous", "ip": "127.0.0.1", "user_agent": "Werkzeug/3.1.7", "endpoint": "market.market_snapshot"}
+{"timestamp": "2026-04-13T23:55:03.849022+00:00", "level": "INFO", "logger": "signal.requests", "message": "GET /api/market/AAPL/details \u2192 401 (0.1ms)", "request_id": "7752e76cffad", "method": "GET", "path": "/api/market/AAPL/details", "status": 401, "latency_ms": 0.1, "tier": "anonymous", "ip": "127.0.0.1", "user_agent": "Werkzeug/3.1.7", "endpoint": "market.market_details"}
+AC3 - Unauthenticated snapshot: 401 (expected 401)
+AC3 - Unauthenticated details: 401 (expected 401)
+Route /api/market/<symbol> registered: True
+Route /api/market/<symbol>/details registered: True
+market_snapshot function exists: True
+market_details function exists: True
+AC3 verification complete - both endpoints require auth

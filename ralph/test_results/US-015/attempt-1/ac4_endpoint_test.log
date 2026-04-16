@@ -1,0 +1,8 @@
+POLYGON_API_KEY not set — market data service disabled
+Traceback (most recent call last):
+  File "<string>", line 7, in <module>
+  File "/home/haotiant/conda/envs/instnews/lib/python3.10/unittest/mock.py", line 1447, in __enter__
+    original, local = self.get_original()
+  File "/home/haotiant/conda/envs/instnews/lib/python3.10/unittest/mock.py", line 1420, in get_original
+    raise AttributeError(
+AttributeError: <module 'app.routes.market' from '/home/haotiant/Projects/Personal/InstantNews/app/routes/market.py'> does not have the attribute 'verify_firebase_token'

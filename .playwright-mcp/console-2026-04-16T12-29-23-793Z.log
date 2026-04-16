@@ -1,0 +1,10 @@
+[     136ms] [VERBOSE] [DOM] Password forms should have (optionally hidden) username fields for accessibility: (More info: https://goo.gl/9p2vKq) %o @ http://localhost:5173/pricing:0
+[   26561ms] [WARNING] You may test your Stripe.js integration over HTTP. However, live Stripe.js integrations must use HTTPS. @ https://js.stripe.com/v3/:0
+[   26565ms] [ERROR] Stripe init error: IntegrationError: You must upgrade to the Basil release or higher to use initCheckout. Read more about versioning: https://docs.stripe.com/sdks/stripejs-versioning
+    at od (https://js.stripe.com/v3/:1:572782)
+    at rd (https://js.stripe.com/v3/:1:572707)
+    at ad (https://js.stripe.com/v3/:1:573497)
+    at e.c (https://js.stripe.com/v3/:1:794172)
+    at e.initCheckoutElementsSdk (https://js.stripe.com/v3/:1:109505)
+    at http://localhost:5173/src/checkout.js?t=1776341590895:152:38 @ http://localhost:5173/src/checkout.js?t=1776341590895:203
+[   69479ms] [VERBOSE] [DOM] Password forms should have (optionally hidden) username fields for accessibility: (More info: https://goo.gl/9p2vKq) %o @ http://localhost:5173/pricing:0

@@ -28,6 +28,9 @@
       sentiment: "all",
       sources: new Set(), // empty = all selected
       query: "",
+      dateFrom: "",
+      dateTo: "",
+      hideDuplicates: false,
     },
     refreshInterval: 5000,
     refreshTimer: null,
@@ -120,6 +123,8 @@
   async function fetchNews() {
     try {
       const params = new URLSearchParams({ limit: DEFAULT_LIMIT });
+      if (state.filter.dateFrom) params.set("from", state.filter.dateFrom);
+      if (state.filter.dateTo) params.set("to", state.filter.dateTo);
       const res = await fetch(`${API}/news?${params}`);
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
@@ -255,6 +260,10 @@
         const inSummary = (item.summary || "").toLowerCase().includes(q);
         if (!inTitle && !inSummary) return false;
       }
+      // Duplicate filter
+      if (state.filter.hideDuplicates && item.duplicate) {
+        return false;
+      }
       return true;
     });
   }
@@ -298,13 +307,17 @@
       const isNewItem = state.newIds.has(item.id);
       const isFresh = isNew(item.fetched_at);
       const rowClass = isNewItem ? "news-row-new" : "";
+      const pubTime = formatTime(item.published);
+      const ago = timeAgo(item.published);
+
+      const dupBadge = item.duplicate ? '<span class="badge-dup">DUP</span>' : '';
 
       return `<tr class="${rowClass}" data-id="${item.id}">
-        <td class="cell-time">${formatTime(item.fetched_at)}</td>
+        <td class="cell-time" title="${ago}">${pubTime}</td>
         <td><span class="sentiment-badge ${item.sentiment_label}"><span class="sentiment-dot"></span>${item.sentiment_label}</span></td>
         <td><span class="source-tag">${escapeHtml(item.source || "")}</span></td>
         <td class="cell-headline">
-          <a href="${escapeHtml(item.link || "#")}" target="_blank" rel="noopener noreferrer">${escapeHtml(item.title || "Untitled")}</a>${isFresh ? '<span class="badge-new">NEW</span>' : ''}
+          <a href="${escapeHtml(item.link || "#")}" target="_blank" rel="noopener noreferrer">${escapeHtml(item.title || "Untitled")}</a>${isFresh ? '<span class="badge-new">NEW</span>' : ''}${dupBadge}
         </td>
         <td class="cell-summary">${escapeHtml(truncate(item.summary, 120))}</td>
       </tr>`;
@@ -356,7 +369,8 @@
       const feedNames = [
         "CNBC", "CNBC_World", "Reuters_Business", "MarketWatch", "MarketWatch_Markets",
         "Investing_com", "Yahoo_Finance", "Nasdaq", "SeekingAlpha", "Benzinga",
-        "AP_News", "BBC_Business", "Google_News_Business"
+        "AP_News", "Bloomberg_Business", "Bloomberg_Markets",
+        "BBC_Business", "Google_News_Business"
       ];
       container.innerHTML = feedNames.map((name) => `
         <label class="source-item">
@@ -516,6 +530,41 @@
           state.filter.query = e.target.value.trim();
           renderNews();
         }, 150);
+      });
+    }
+
+    // Date range inputs
+    const dateFrom = $("#date-from");
+    const dateTo = $("#date-to");
+    if (dateFrom) {
+      dateFrom.addEventListener("change", (e) => {
+        state.filter.dateFrom = e.target.value;
+        fetchNews();
+      });
+    }
+    if (dateTo) {
+      dateTo.addEventListener("change", (e) => {
+        state.filter.dateTo = e.target.value;
+        fetchNews();
+      });
+    }
+    const clearDateBtn = $("#btn-clear-dates");
+    if (clearDateBtn) {
+      clearDateBtn.addEventListener("click", () => {
+        state.filter.dateFrom = "";
+        state.filter.dateTo = "";
+        if (dateFrom) dateFrom.value = "";
+        if (dateTo) dateTo.value = "";
+        fetchNews();
+      });
+    }
+
+    // Hide duplicates toggle
+    const hideDupsCb = $("#hide-duplicates");
+    if (hideDupsCb) {
+      hideDupsCb.addEventListener("change", (e) => {
+        state.filter.hideDuplicates = e.target.checked;
+        renderNews();
       });
     }
 

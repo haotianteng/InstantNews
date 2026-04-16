@@ -1,0 +1,506 @@
+"""Tests for SEC EDGAR client — 13F, 13D/13G, Form 4 parsers."""
+
+from unittest.mock import MagicMock, patch
+
+from app.services.edgar_client import EdgarClient, _normalize_company_name
+
+
+# Sample Form 4 XML for testing
+SAMPLE_FORM4_XML = b"""<?xml version="1.0"?>
+<ownershipDocument>
+  <reportingOwner>
+    <reportingOwnerId>
+      <rptOwnerName>DOE JOHN</rptOwnerName>
+    </reportingOwnerId>
+    <reportingOwnerRelationship>
+      <officerTitle>CEO</officerTitle>
+    </reportingOwnerRelationship>
+  </reportingOwner>
+  <nonDerivativeTable>
+    <nonDerivativeTransaction>
+      <transactionCoding>
+        <transactionCode>P</transactionCode>
+      </transactionCoding>
+      <transactionAmounts>
+        <transactionShares>
+          <value>1000</value>
+        </transactionShares>
+        <transactionPricePerShare>
+          <value>150.50</value>
+        </transactionPricePerShare>
+      </transactionAmounts>
+      <postTransactionAmounts>
+        <sharesOwnedFollowingTransaction>
+          <value>5000</value>
+        </sharesOwnedFollowingTransaction>
+      </postTransactionAmounts>
+    </nonDerivativeTransaction>
+  </nonDerivativeTable>
+</ownershipDocument>"""
+
+
+class TestEdgarClientBasic:
+    """Basic EdgarClient tests."""
+
+    def test_always_enabled(self):
+        client = EdgarClient()
+        assert client.enabled is True
+
+    def test_import_works(self):
+        from app.services.edgar_client import EdgarClient
+        assert EdgarClient is not None
+
+
+class TestEdgarClientCIKLookup:
+    """Tests for CIK resolution."""
+
+    @patch("app.services.edgar_client.requests.Session.get")
+    def test_resolve_cik_success(self, mock_get: MagicMock):
+        mock_resp = MagicMock()
+        mock_resp.status_code = 200
+        mock_resp.raise_for_status = MagicMock()
+        mock_resp.json.return_value = {
+            "0": {"cik_str": 320193, "ticker": "AAPL", "title": "Apple Inc."}
+        }
+        mock_get.return_value = mock_resp
+
+        client = EdgarClient()
+        cik = client._resolve_cik("AAPL")
+        assert cik == "0000320193"
+
+    @patch("app.services.edgar_client.requests.Session.get")
+    def test_resolve_cik_not_found(self, mock_get: MagicMock):
+        mock_resp = MagicMock()
+        mock_resp.status_code = 200
+        mock_resp.raise_for_status = MagicMock()
+        mock_resp.json.return_value = {
+            "0": {"cik_str": 320193, "ticker": "AAPL", "title": "Apple Inc."}
+        }
+        mock_get.return_value = mock_resp
+
+        client = EdgarClient()
+        cik = client._resolve_cik("ZZZZZ")
+        assert cik is None
+
+    @patch("app.services.edgar_client.requests.Session.get")
+    def test_resolve_cik_cached(self, mock_get: MagicMock):
+        mock_resp = MagicMock()
+        mock_resp.status_code = 200
+        mock_resp.raise_for_status = MagicMock()
+        mock_resp.json.return_value = {
+            "0": {"cik_str": 320193, "ticker": "AAPL", "title": "Apple Inc."}
+        }
+        mock_get.return_value = mock_resp
+
+        client = EdgarClient()
+        client._resolve_cik("AAPL")
+        client._resolve_cik("AAPL")
+        # Only one request for the CIK lookup (cached)
+        assert mock_get.call_count == 1
+
+
+class TestEdgarClientForm4:
+    """Tests for Form 4 parsing."""
+
+    @patch("app.services.edgar_client.requests.Session.get")
+    def test_insider_transactions_success(self, mock_get: MagicMock):
+        # CIK lookup response
+        mock_cik_resp = MagicMock()
+        mock_cik_resp.status_code = 200
+        mock_cik_resp.raise_for_status = MagicMock()
+        mock_cik_resp.json.return_value = {
+            "0": {"cik_str": 320193, "ticker": "AAPL", "title": "Apple Inc."}
+        }
+
+        # Submissions response with Form 4 filings
+        mock_submissions_resp = MagicMock()
+        mock_submissions_resp.status_code = 200
+        mock_submissions_resp.raise_for_status = MagicMock()
+        mock_submissions_resp.json.return_value = {
+            "filings": {
+                "recent": {
+                    "form": ["4", "10-Q", "4"],
+                    "filingDate": ["2025-01-15", "2025-01-10", "2025-01-05"],
+                    "accessionNumber": ["0001-23-456789", "0002-23-456789", "0003-23-456789"],
+                    "primaryDocument": ["form4.xml", "10q.htm", "form4.xml"],
+                }
+            }
+        }
+
+        # Form 4 XML response
+        mock_xml_resp = MagicMock()
+        mock_xml_resp.status_code = 200
+        mock_xml_resp.content = SAMPLE_FORM4_XML
+
+        mock_get.side_effect = [mock_cik_resp, mock_submissions_resp, mock_xml_resp, mock_xml_resp]
+
+        client = EdgarClient()
+        result = client.get_insider_transactions("AAPL")
+
+        assert result is not None
+        assert isinstance(result, list)
+        assert len(result) > 0
+
+        txn = result[0]
+        assert txn["insider_name"] == "DOE JOHN"
+        assert txn["title"] == "CEO"
+        assert txn["transaction_type"] == "Purchase"
+        assert txn["shares"] == 1000.0
+        assert txn["price_per_share"] == 150.50
+        assert txn["total_value"] == 150500.0
+        assert txn["shares_held_after"] == 5000.0
+
+    @patch("app.services.edgar_client.requests.Session.get")
+    def test_insider_transactions_caching(self, mock_get: MagicMock):
+        mock_cik_resp = MagicMock()
+        mock_cik_resp.status_code = 200
+        mock_cik_resp.raise_for_status = MagicMock()
+        mock_cik_resp.json.return_value = {
+            "0": {"cik_str": 320193, "ticker": "AAPL", "title": "Apple Inc."}
+        }
+
+        mock_submissions_resp = MagicMock()
+        mock_submissions_resp.status_code = 200
+        mock_submissions_resp.raise_for_status = MagicMock()
+        mock_submissions_resp.json.return_value = {
+            "filings": {"recent": {"form": [], "filingDate": [], "accessionNumber": [], "primaryDocument": []}}
+        }
+
+        mock_get.side_effect = [mock_cik_resp, mock_submissions_resp]
+
+        client = EdgarClient()
+        result1 = client.get_insider_transactions("AAPL")
+        result2 = client.get_insider_transactions("AAPL")
+
+        assert result1 == result2
+        # Second call should hit cache, so only 2 HTTP requests total
+        assert mock_get.call_count == 2
+
+    @patch("app.services.edgar_client.requests.Session.get")
+    def test_insider_transactions_no_cik(self, mock_get: MagicMock):
+        # CIK lookup returns empty — ticker not in company_tickers.json
+        mock_tickers = MagicMock()
+        mock_tickers.status_code = 200
+        mock_tickers.raise_for_status = MagicMock()
+        mock_tickers.json.return_value = {}
+
+        mock_get.return_value = mock_tickers
+
+        client = EdgarClient()
+        result = client.get_insider_transactions("INVALID")
+        assert result is not None
+        assert result == []
+
+
+def _make_13dg_hit(
+    subject_name: str, subject_cik: str, filer_name: str, filer_cik: str,
+    adsh: str, filename: str, filing_date: str, form: str,
+) -> dict:
+    """Helper to create a mock EFTS search-index hit for 13D/13G."""
+    return {
+        "_id": f"{adsh}:{filename}",
+        "_source": {
+            "ciks": [subject_cik, filer_cik],
+            "display_names": [
+                f"{subject_name}  (CIK {subject_cik})",
+                f"{filer_name}  (CIK {filer_cik})",
+            ],
+            "file_date": filing_date,
+            "form": form,
+            "file_type": form,
+            "adsh": adsh,
+        },
+    }
+
+
+SAMPLE_13G_HTML = """
+<html><body>
+<p>9.  AGGREGATE AMOUNT BENEFICIALLY OWNED BY EACH REPORTING PERSON</p>
+<p>1,317,966,471</p>
+<p>10.  CHECK BOX IF THE AGGREGATE AMOUNT IN ROW (9) EXCLUDES CERTAIN SHARES</p>
+<p>11.  PERCENT OF CLASS REPRESENTED BY AMOUNT IN ROW 9</p>
+<p>8.47%</p>
+<p>12.  TYPE OF REPORTING PERSON</p>
+</body></html>
+"""
+
+
+class TestEdgarClient13DG:
+    """Tests for 13D/13G position changes via EFTS search."""
+
+    @patch("app.services.edgar_client.requests.Session.get")
+    def test_major_position_changes_success(self, mock_get: MagicMock):
+        mock_cik_resp = MagicMock()
+        mock_cik_resp.status_code = 200
+        mock_cik_resp.raise_for_status = MagicMock()
+        mock_cik_resp.json.return_value = {
+            "0": {"cik_str": 320193, "ticker": "AAPL", "title": "Apple Inc."}
+        }
+
+        mock_search_resp = MagicMock()
+        mock_search_resp.status_code = 200
+        mock_search_resp.json.return_value = {
+            "hits": {
+                "hits": [
+                    _make_13dg_hit(
+                        "Apple Inc.", "0000320193", "VANGUARD GROUP INC", "0000102909",
+                        "0001104659-24-020009", "tv0017-appleinc.htm", "2024-02-13", "SC 13G/A",
+                    ),
+                    _make_13dg_hit(
+                        "Apple Inc.", "0000320193", "BlackRock Inc.  (BLK)", "0001364742",
+                        "0001086364-24-006980", "filing.htm", "2024-02-12", "SC 13G/A",
+                    ),
+                ]
+            }
+        }
+
+        # Document response for ownership parsing
+        mock_doc_resp = MagicMock()
+        mock_doc_resp.status_code = 200
+        mock_doc_resp.text = SAMPLE_13G_HTML
+
+        mock_get.side_effect = [mock_cik_resp, mock_search_resp, mock_doc_resp, mock_doc_resp]
+
+        client = EdgarClient()
+        result = client.get_major_position_changes("AAPL")
+
+        assert result is not None
+        assert isinstance(result, list)
+        assert len(result) == 2
+
+        assert result[0]["filer_name"] == "VANGUARD GROUP INC"
+        assert result[0]["filing_type"] == "SC 13G/A"
+        assert result[0]["filing_date"] == "2024-02-13"
+        assert "Amended" in result[0]["change_description"]
+        assert result[0]["percent_owned"] == 8.47
+        assert result[0]["shares_held"] == 1317966471
+
+        # Second filer: ticker parenthetical "(BLK)" stripped from name
+        assert result[1]["filer_name"] == "BlackRock Inc."
+
+    @patch("app.services.edgar_client.requests.Session.get")
+    def test_major_position_changes_filters_by_cik(self, mock_get: MagicMock):
+        """Non-matching subject CIKs (e.g., Apple Hospitality REIT) are filtered out."""
+        mock_cik_resp = MagicMock()
+        mock_cik_resp.status_code = 200
+        mock_cik_resp.raise_for_status = MagicMock()
+        mock_cik_resp.json.return_value = {
+            "0": {"cik_str": 320193, "ticker": "AAPL", "title": "Apple Inc."}
+        }
+
+        mock_search_resp = MagicMock()
+        mock_search_resp.status_code = 200
+        mock_search_resp.json.return_value = {
+            "hits": {
+                "hits": [
+                    _make_13dg_hit(
+                        "Apple Inc.", "0000320193", "VANGUARD GROUP INC", "0000102909",
+                        "0001104659-24-020009", "filing.htm", "2024-02-13", "SC 13G/A",
+                    ),
+                    _make_13dg_hit(
+                        "Apple Hospitality REIT", "0001418121", "BlackRock Inc.", "0001364742",
+                        "0001306550-23-003482", "filing.txt", "2023-01-25", "SC 13G/A",
+                    ),
+                ]
+            }
+        }
+
+        mock_doc_resp = MagicMock()
+        mock_doc_resp.status_code = 200
+        mock_doc_resp.text = SAMPLE_13G_HTML
+
+        mock_get.side_effect = [mock_cik_resp, mock_search_resp, mock_doc_resp]
+
+        client = EdgarClient()
+        result = client.get_major_position_changes("AAPL")
+
+        assert result is not None
+        assert len(result) == 1  # Apple Hospitality REIT filtered out
+        assert result[0]["filer_name"] == "VANGUARD GROUP INC"
+
+    @patch("app.services.edgar_client.requests.Session.get")
+    def test_major_position_changes_empty(self, mock_get: MagicMock):
+        mock_cik_resp = MagicMock()
+        mock_cik_resp.status_code = 200
+        mock_cik_resp.raise_for_status = MagicMock()
+        mock_cik_resp.json.return_value = {
+            "0": {"cik_str": 320193, "ticker": "AAPL", "title": "Apple Inc."}
+        }
+
+        mock_search_resp = MagicMock()
+        mock_search_resp.status_code = 200
+        mock_search_resp.json.return_value = {"hits": {"hits": []}}
+
+        mock_get.side_effect = [mock_cik_resp, mock_search_resp]
+
+        client = EdgarClient()
+        result = client.get_major_position_changes("AAPL")
+        assert result == []
+
+
+class TestNormalizeCompanyName:
+    """Tests for company name normalization helper."""
+
+    def test_strips_inc(self):
+        assert _normalize_company_name("Apple Inc.") == "APPLE"
+
+    def test_strips_corp(self):
+        assert _normalize_company_name("Microsoft Corp") == "MICROSOFT"
+
+    def test_strips_corporation(self):
+        assert _normalize_company_name("Tesla Corporation") == "TESLA"
+
+    def test_handles_plain_name(self):
+        assert _normalize_company_name("BERKSHIRE HATHAWAY") == "BERKSHIRE HATHAWAY"
+
+
+# Sample 13F info table XML for testing
+SAMPLE_13F_XML = b"""<?xml version="1.0" encoding="UTF-8"?>
+<informationTable xmlns="http://www.sec.gov/edgar/document/thirteenf/informationtable">
+    <infoTable>
+        <nameOfIssuer>APPLE INC</nameOfIssuer>
+        <titleOfClass>COM</titleOfClass>
+        <cusip>037833100</cusip>
+        <value>153714</value>
+        <shrsOrPrnAmt>
+            <sshPrnamt>692000</sshPrnamt>
+            <sshPrnamtType>SH</sshPrnamtType>
+        </shrsOrPrnAmt>
+        <investmentDiscretion>SOLE</investmentDiscretion>
+        <votingAuthority>
+            <Sole>692000</Sole>
+            <Shared>0</Shared>
+            <None>0</None>
+        </votingAuthority>
+    </infoTable>
+    <infoTable>
+        <nameOfIssuer>MICROSOFT CORP</nameOfIssuer>
+        <titleOfClass>COM</titleOfClass>
+        <cusip>594918104</cusip>
+        <value>50000</value>
+        <shrsOrPrnAmt>
+            <sshPrnamt>100000</sshPrnamt>
+            <sshPrnamtType>SH</sshPrnamtType>
+        </shrsOrPrnAmt>
+        <investmentDiscretion>SOLE</investmentDiscretion>
+        <votingAuthority>
+            <Sole>100000</Sole>
+            <Shared>0</Shared>
+            <None>0</None>
+        </votingAuthority>
+    </infoTable>
+</informationTable>"""
+
+
+def _make_efts_hit(
+    filer_name: str, cik: str, adsh: str, filename: str,
+    period: str, file_date: str,
+) -> dict:
+    """Helper to create a mock EFTS search-index hit."""
+    return {
+        "_id": f"{adsh}:{filename}",
+        "_source": {
+            "ciks": [cik],
+            "adsh": adsh,
+            "display_names": [f"{filer_name}  (CIK {cik})"],
+            "file_date": file_date,
+            "period_ending": period,
+            "file_type": "INFORMATION TABLE",
+        },
+    }
+
+
+class TestEdgarClient13F:
+    """Tests for 13F institutional holders."""
+
+    @patch("app.services.edgar_client.requests.Session.get")
+    def test_institutional_holders_returns_list_with_data(self, mock_get: MagicMock):
+        # 1st call: CIK lookup (company_tickers.json)
+        mock_cik_resp = MagicMock()
+        mock_cik_resp.status_code = 200
+        mock_cik_resp.raise_for_status = MagicMock()
+        mock_cik_resp.json.return_value = {
+            "0": {"cik_str": 320193, "ticker": "AAPL", "title": "Apple Inc."}
+        }
+
+        # 2nd call: EFTS search
+        mock_search_resp = MagicMock()
+        mock_search_resp.status_code = 200
+        mock_search_resp.json.return_value = {
+            "hits": {
+                "hits": [
+                    _make_efts_hit("VANGUARD GROUP", "0001067983", "0001067983-25-000001", "infotable.xml", "2025-03-31", "2025-05-15"),
+                    _make_efts_hit("BLACKROCK INC", "0001364742", "0001364742-25-000001", "infotable.xml", "2025-03-31", "2025-05-14"),
+                ]
+            }
+        }
+
+        # 3rd & 4th calls: info table XML fetches
+        mock_xml_resp = MagicMock()
+        mock_xml_resp.status_code = 200
+        mock_xml_resp.content = SAMPLE_13F_XML
+
+        mock_get.side_effect = [mock_cik_resp, mock_search_resp, mock_xml_resp, mock_xml_resp]
+
+        client = EdgarClient()
+        result = client.get_institutional_holders("AAPL")
+
+        assert result is not None
+        assert isinstance(result, list)
+        assert len(result) == 2
+        # Both should have real shares/value from the parsed XML
+        assert result[0]["shares_held"] == 692000
+        assert result[0]["value"] == 153714
+        assert result[0]["report_date"] == "2025-03-31"
+
+    @patch("app.services.edgar_client.requests.Session.get")
+    def test_institutional_holders_deduplicates(self, mock_get: MagicMock):
+        mock_cik_resp = MagicMock()
+        mock_cik_resp.status_code = 200
+        mock_cik_resp.raise_for_status = MagicMock()
+        mock_cik_resp.json.return_value = {
+            "0": {"cik_str": 320193, "ticker": "AAPL", "title": "Apple Inc."}
+        }
+
+        mock_search_resp = MagicMock()
+        mock_search_resp.status_code = 200
+        mock_search_resp.json.return_value = {
+            "hits": {
+                "hits": [
+                    _make_efts_hit("VANGUARD GROUP", "0001067983", "0001067983-25-000001", "infotable.xml", "2025-03-31", "2025-05-15"),
+                    _make_efts_hit("VANGUARD GROUP", "0001067983", "0001067983-25-000002", "infotable.xml", "2024-12-31", "2025-02-14"),
+                    _make_efts_hit("BLACKROCK INC", "0001364742", "0001364742-25-000001", "infotable.xml", "2025-03-31", "2025-05-14"),
+                ]
+            }
+        }
+
+        mock_xml_resp = MagicMock()
+        mock_xml_resp.status_code = 200
+        mock_xml_resp.content = SAMPLE_13F_XML
+
+        mock_get.side_effect = [mock_cik_resp, mock_search_resp, mock_xml_resp, mock_xml_resp]
+
+        client = EdgarClient()
+        result = client.get_institutional_holders("AAPL")
+
+        assert result is not None
+        assert len(result) == 2  # Duplicate VANGUARD GROUP removed
+
+    @patch("app.services.edgar_client.requests.Session.get")
+    def test_institutional_holders_caching(self, mock_get: MagicMock):
+        mock_cik_resp = MagicMock()
+        mock_cik_resp.status_code = 200
+        mock_cik_resp.raise_for_status = MagicMock()
+        mock_cik_resp.json.return_value = {}
+
+        mock_search_resp = MagicMock()
+        mock_search_resp.status_code = 200
+        mock_search_resp.json.return_value = {"hits": {"hits": []}}
+
+        mock_get.side_effect = [mock_cik_resp, mock_search_resp]
+
+        client = EdgarClient()
+        client.get_institutional_holders("AAPL")
+        call_count_after_first = mock_get.call_count
+        client.get_institutional_holders("AAPL")  # should hit cache
+        assert mock_get.call_count == call_count_after_first

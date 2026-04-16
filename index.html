@@ -125,6 +125,36 @@
         </div>
       </div>
 
+      <!-- Date Range -->
+      <div class="sidebar-section">
+        <span class="sidebar-label">Date Range</span>
+        <div class="date-range-wrap">
+          <div class="date-range-row">
+            <label class="date-range-label" for="date-from">From</label>
+            <input type="date" class="date-input" id="date-from">
+          </div>
+          <div class="date-range-row">
+            <label class="date-range-label" for="date-to">To</label>
+            <input type="date" class="date-input" id="date-to">
+          </div>
+          <button class="btn-clear-dates" id="btn-clear-dates">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+              <line x1="18" y1="6" x2="6" y2="18"/>
+              <line x1="6" y1="6" x2="18" y2="18"/>
+            </svg>
+            Clear dates
+          </button>
+        </div>
+      </div>
+
+      <!-- Duplicates Toggle -->
+      <div class="sidebar-section">
+        <label class="source-item">
+          <input type="checkbox" id="hide-duplicates">
+          <span>Hide duplicates</span>
+        </label>
+      </div>
+
       <!-- Sentiment Filter -->
       <div class="sidebar-section">
         <span class="sidebar-label">Sentiment</span>
@@ -253,6 +283,8 @@
               <dt>source</dt><dd>Filter by source name (default "all")</dd>
               <dt>sentiment</dt><dd>Filter: bullish, bearish, neutral (default "all")</dd>
               <dt>q</dt><dd>Keyword search in title and summary</dd>
+              <dt>from</dt><dd>Filter from date (ISO 8601, e.g. "2026-03-01")</dd>
+              <dt>to</dt><dd>Filter to date (ISO 8601, e.g. "2026-03-02")</dd>
             </dl>
             <div class="api-curl">curl "<span class="api-base-url"></span>/api.py/news?limit=10&amp;sentiment=bullish"</div>
           </div>

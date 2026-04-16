@@ -1,0 +1,71 @@
+## US-006 Test Evidence — Dynamic Column Toggle and Visibility
+
+### Assertion 1: Vite build exits 0
+- Command: `cd frontend && npx vite build`
+- Result: PASS — 29 modules transformed, 0 errors, exit code 0
+- Artifact: vite_build.log
+
+### Assertion 2: Click settings icon — column panel appears
+- Action: Clicked "Columns" button (sliders icon, ref=e44) in terminal header
+- Result: PASS — Panel opened with class "column-settings-panel open", display: block
+- All 9 columns listed: Time, Sentiment, Source, Headline, Summary, Ticker, Confidence, Risk Level, Tradeable
+- Headline marked as required (disabled toggle)
+- Ticker, Confidence, Risk Level, Tradeable default to unchecked (defaultVisible: false)
+- Artifact: screenshot-column-panel-open.png
+
+### Assertion 3: Toggle Summary off — column disappears
+- Action: Clicked Summary toggle checkbox (data-col-id="summary")
+- Before: [Time, Sentiment, Source, Headline, Summary]
+- After: [Time, Sentiment, Source, Headline]
+- Result: PASS — Summary column immediately removed from table
+- Artifact: screenshot-summary-off.png
+
+### Assertion 4: Toggle Summary on — column reappears
+- Action: Clicked Summary toggle checkbox again
+- Before: [Time, Sentiment, Source, Headline]
+- After: [Time, Sentiment, Source, Headline, Summary]
+- Result: PASS — Summary column immediately reappears
+
+### Assertion 5: Reload page — column state preserved
+- Setup: Toggled Summary off, verified localStorage: {"time":true,"sentiment":true,"source":true,"headline":true,"summary":false,"ticker":false,"confidence":false,"risk":false,"tradeable":false}
+- Action: Navigated to http://localhost:8000/terminal (full page reload)
+- After reload: Table shows [Time, Sentiment, Source, Headline] — Summary still hidden
+- localStorage still contains summary: false
+- Summary toggle in panel shows unchecked after reopening
+- Result: PASS
+- Artifact: screenshot-persistence-after-reload.png
+
+### Assertion 6: Free-tier user — lock icons and disabled toggles
+- Setup: Used Playwright addInitScript to:
+  1. Override window.SignalAuth via Object.defineProperty setter
+  2. Mock SignalAuth.getUser() to return { uid: 'test-free', email: 'free@test.com' }
+  3. Mock SignalAuth.isAuthenticated() to return true
+  4. Intercept SignalAuth.fetch('/api/auth/tier') to return Free-tier features
+- Result: PASS — After page load with intercepted Free-tier response:
+  - Time: checked, enabled, NO lock
+  - Sentiment: unchecked, DISABLED, HAS LOCK (requires sentiment_filter)
+  - Source: checked, enabled, NO lock
+  - Headline: checked, DISABLED, no lock (required column)
+  - Summary: checked, enabled, NO lock
+  - Ticker: unchecked, DISABLED, HAS LOCK (requires ai_ticker_recommendations)
+  - Confidence: unchecked, DISABLED, HAS LOCK (requires ai_ticker_recommendations)
+  - Risk Level: unchecked, DISABLED, HAS LOCK (requires ai_ticker_recommendations)
+  - Tradeable: unchecked, DISABLED, HAS LOCK (requires ai_ticker_recommendations)
+- Visible table columns with Free tier: [Time, Source, Headline, Summary] — locked columns hidden
+- Artifact: screenshot-free-tier-locks.png
+
+### Additional Acceptance Criteria Verified:
+- AC4 (Headline cannot toggle off): headlineCheckbox.disabled=true, click has no effect, stays checked=true
+- AC6 (Locked columns hidden from table): Free-tier visible columns are [Time, Source, Headline, Summary]
+- AC8 (Typecheck): Vite build clean (0 errors), mypy clean (2 Python files)
+
+### Quality Checks:
+- pytest: 86 passed, 8 failed (all pre-existing in test_tiers.py/test_rate_limit.py — stale tier config values)
+- mypy (app/models.py, app/routes/news.py): Success, no issues found in 2 source files
+- Vite build: 29 modules, 0 errors
+
+### Screenshots:
+1. screenshot-column-panel-open.png — Panel with all 9 columns, toggles visible
+2. screenshot-summary-off.png — Summary toggled off, 4 columns visible
+3. screenshot-persistence-after-reload.png — After reload, Summary still off
+4. screenshot-free-tier-locks.png — Lock icons on Sentiment, Ticker, Confidence, Risk Level, Tradeable

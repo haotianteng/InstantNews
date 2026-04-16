@@ -1,0 +1,706 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - banner [ref=e3]:
+      - generic [ref=e4]:
+        - generic [ref=e5]:
+          - img [ref=e7]
+          - generic [ref=e10]: InstNews SIGNAL
+        - generic [ref=e12]: Mon, Apr 13, 2026 05:45:20
+        - generic [ref=e16]: LIVE
+      - generic [ref=e17]:
+        - generic [ref=e18]:
+          - generic [ref=e19]: Items
+          - generic [ref=e20]: "33003"
+        - generic [ref=e21]:
+          - generic [ref=e22]: Feeds
+          - generic [ref=e23]: "15"
+        - generic [ref=e24]:
+          - generic [ref=e25]: Avg Sent
+          - generic [ref=e26]: "--"
+        - button "Sound" [ref=e27] [cursor=pointer]:
+          - img [ref=e28]
+          - generic [ref=e32]: Sound
+        - button "Refresh" [ref=e33] [cursor=pointer]:
+          - img [ref=e34]
+          - generic [ref=e37]: Refresh
+        - button "API Docs" [ref=e38] [cursor=pointer]:
+          - img [ref=e39]
+          - generic [ref=e42]: API Docs
+        - button "Sign In" [ref=e44] [cursor=pointer]:
+          - img [ref=e45]
+          - generic [ref=e48]: Sign In
+    - complementary [ref=e49]:
+      - generic [ref=e50]:
+        - generic [ref=e51]: Search
+        - generic [ref=e52]:
+          - img
+          - textbox "Filter headlines..." [ref=e53]
+          - generic: F
+      - generic [ref=e54]:
+        - generic [ref=e55]: Date Range
+        - generic [ref=e56]:
+          - generic [ref=e57]:
+            - generic [ref=e58]: From
+            - textbox "From" [ref=e59]
+          - generic [ref=e60]:
+            - generic [ref=e61]: To
+            - textbox "To" [ref=e62]
+          - button "Clear dates" [ref=e63] [cursor=pointer]:
+            - img [ref=e64]
+            - text: Clear dates
+      - generic [ref=e68] [cursor=pointer]:
+        - checkbox "Hide duplicates" [ref=e69]
+        - generic [ref=e70]: Hide duplicates
+      - generic [ref=e71]:
+        - generic [ref=e72]: Sentiment
+        - generic [ref=e73]:
+          - button "All 50 1" [ref=e74] [cursor=pointer]:
+            - text: All
+            - generic [ref=e76]: "50"
+            - generic [ref=e77]: "1"
+          - button "Bullish 0 2" [ref=e78] [cursor=pointer]:
+            - text: Bullish
+            - generic [ref=e80]: "0"
+            - generic [ref=e81]: "2"
+          - button "Bearish 0 3" [ref=e82] [cursor=pointer]:
+            - text: Bearish
+            - generic [ref=e84]: "0"
+            - generic [ref=e85]: "3"
+          - button "Neutral 0 4" [ref=e86] [cursor=pointer]:
+            - text: Neutral
+            - generic [ref=e88]: "0"
+            - generic [ref=e89]: "4"
+      - generic [ref=e90]:
+        - generic [ref=e91]: Sources
+        - generic [ref=e92]:
+          - generic [ref=e93] [cursor=pointer]:
+            - checkbox "CNBC 875" [checked] [ref=e94]
+            - generic [ref=e95]: CNBC
+            - generic [ref=e96]: "875"
+          - generic [ref=e97] [cursor=pointer]:
+            - checkbox "CNBC World 290" [checked] [ref=e98]
+            - generic [ref=e99]: CNBC World
+            - generic [ref=e100]: "290"
+          - generic [ref=e101] [cursor=pointer]:
+            - checkbox "Reuters Business 0" [checked] [ref=e102]
+            - generic [ref=e103]: Reuters Business
+            - generic [ref=e104]: "0"
+          - generic [ref=e105] [cursor=pointer]:
+            - checkbox "MarketWatch 575" [checked] [ref=e106]
+            - generic [ref=e107]: MarketWatch
+            - generic [ref=e108]: "575"
+          - generic [ref=e109] [cursor=pointer]:
+            - checkbox "MarketWatch Markets 32" [checked] [ref=e110]
+            - generic [ref=e111]: MarketWatch Markets
+            - generic [ref=e112]: "32"
+          - generic [ref=e113] [cursor=pointer]:
+            - checkbox "Investing com 8338" [checked] [ref=e114]
+            - generic [ref=e115]: Investing com
+            - generic [ref=e116]: "8338"
+          - generic [ref=e117] [cursor=pointer]:
+            - checkbox "Yahoo Finance 10847" [checked] [ref=e118]
+            - generic [ref=e119]: Yahoo Finance
+            - generic [ref=e120]: "10847"
+          - generic [ref=e121] [cursor=pointer]:
+            - checkbox "Nasdaq 4228" [checked] [ref=e122]
+            - generic [ref=e123]: Nasdaq
+            - generic [ref=e124]: "4228"
+          - generic [ref=e125] [cursor=pointer]:
+            - checkbox "SeekingAlpha 5047" [checked] [ref=e126]
+            - generic [ref=e127]: SeekingAlpha
+            - generic [ref=e128]: "5047"
+          - generic [ref=e129] [cursor=pointer]:
+            - checkbox "Benzinga 0" [checked] [ref=e130]
+            - generic [ref=e131]: Benzinga
+            - generic [ref=e132]: "0"
+          - generic [ref=e133] [cursor=pointer]:
+            - checkbox "AP News 0" [checked] [ref=e134]
+            - generic [ref=e135]: AP News
+            - generic [ref=e136]: "0"
+          - generic [ref=e137] [cursor=pointer]:
+            - checkbox "Bloomberg Business 0" [checked] [ref=e138]
+            - generic [ref=e139]: Bloomberg Business
+            - generic [ref=e140]: "0"
+          - generic [ref=e141] [cursor=pointer]:
+            - checkbox "Bloomberg Markets 0" [checked] [ref=e142]
+            - generic [ref=e143]: Bloomberg Markets
+            - generic [ref=e144]: "0"
+          - generic [ref=e145] [cursor=pointer]:
+            - checkbox "BBC Business 246" [checked] [ref=e146]
+            - generic [ref=e147]: BBC Business
+            - generic [ref=e148]: "246"
+          - generic [ref=e149] [cursor=pointer]:
+            - checkbox "Google News Business 2525" [checked] [ref=e150]
+            - generic [ref=e151]: Google News Business
+            - generic [ref=e152]: "2525"
+      - generic [ref=e153]:
+        - generic [ref=e154]: Refresh Interval
+        - combobox [ref=e155] [cursor=pointer]:
+          - option "3 seconds"
+          - option "5 seconds" [selected]
+          - option "10 seconds"
+          - option "15 seconds"
+          - option "30 seconds"
+          - option "60 seconds"
+      - generic [ref=e156]: R Refresh F Search 1-4 Sentiment
+    - main [ref=e157]:
+      - table [ref=e158]:
+        - rowgroup [ref=e159]:
+          - row "Time Sentiment Source Headline" [ref=e160]:
+            - columnheader "Time" [ref=e161]
+            - columnheader "Sentiment" [ref=e162]
+            - columnheader "Source" [ref=e163]
+            - columnheader "Headline" [ref=e164]
+        - rowgroup [ref=e165]:
+          - row "04:32:00 undefined Nasdaq Tesla Stock Investors Just Got Good News From Wall Street Analysts About Robotaxis" [ref=e166] [cursor=pointer]:
+            - cell "04:32:00" [ref=e167]
+            - cell "undefined" [ref=e168]:
+              - generic [ref=e169]: undefined
+            - cell "Nasdaq" [ref=e171]:
+              - generic [ref=e172]: Nasdaq
+            - cell "Tesla Stock Investors Just Got Good News From Wall Street Analysts About Robotaxis" [ref=e173]:
+              - link "Tesla Stock Investors Just Got Good News From Wall Street Analysts About Robotaxis" [ref=e174]:
+                - /url: https://www.nasdaq.com/articles/tesla-stock-investors-just-got-good-news-wall-street-analysts-about-robotaxis
+          - row "04:26:00 undefined Nasdaq The Likelihood of a Stock Market Crash Taking Shape Under President Donald Trump Is Rising -- and There's a Clear Reason Why" [ref=e175] [cursor=pointer]:
+            - cell "04:26:00" [ref=e176]
+            - cell "undefined" [ref=e177]:
+              - generic [ref=e178]: undefined
+            - cell "Nasdaq" [ref=e180]:
+              - generic [ref=e181]: Nasdaq
+            - cell "The Likelihood of a Stock Market Crash Taking Shape Under President Donald Trump Is Rising -- and There's a Clear Reason Why" [ref=e182]:
+              - link "The Likelihood of a Stock Market Crash Taking Shape Under President Donald Trump Is Rising -- and There's a Clear Reason Why" [ref=e183]:
+                - /url: https://www.nasdaq.com/articles/likelihood-stock-market-crash-taking-shape-under-president-donald-trump-rising-and-theres
+          - row "04:25:00 undefined Nasdaq 1 No-Brainer Dividend Stock to Buy if the Market Falls Again" [ref=e184] [cursor=pointer]:
+            - cell "04:25:00" [ref=e185]
+            - cell "undefined" [ref=e186]:
+              - generic [ref=e187]: undefined
+            - cell "Nasdaq" [ref=e189]:
+              - generic [ref=e190]: Nasdaq
+            - cell "1 No-Brainer Dividend Stock to Buy if the Market Falls Again" [ref=e191]:
+              - link "1 No-Brainer Dividend Stock to Buy if the Market Falls Again" [ref=e192]:
+                - /url: https://www.nasdaq.com/articles/1-no-brainer-dividend-stock-buy-if-market-falls-again
+          - row "04:12:28 undefined Investing_com Factbox-What are the main talking points at the US-Iran negotiations in Pakistan?" [ref=e193] [cursor=pointer]:
+            - cell "04:12:28" [ref=e194]
+            - cell "undefined" [ref=e195]:
+              - generic [ref=e196]: undefined
+            - cell "Investing_com" [ref=e198]:
+              - generic [ref=e199]: Investing_com
+            - cell "Factbox-What are the main talking points at the US-Iran negotiations in Pakistan?" [ref=e200]:
+              - link "Factbox-What are the main talking points at the US-Iran negotiations in Pakistan?" [ref=e201]:
+                - /url: https://www.investing.com/news/world-news/factboxwhat-are-the-main-talking-points-at-the-usiran-negotiations-in-pakistan-4608973
+          - row "04:10:00 undefined Nasdaq Got $1,000? The Best Cybersecurity Growth Stock to Buy as Agentic AI Expands the Attack Surface." [ref=e202] [cursor=pointer]:
+            - cell "04:10:00" [ref=e203]
+            - cell "undefined" [ref=e204]:
+              - generic [ref=e205]: undefined
+            - cell "Nasdaq" [ref=e207]:
+              - generic [ref=e208]: Nasdaq
+            - cell "Got $1,000? The Best Cybersecurity Growth Stock to Buy as Agentic AI Expands the Attack Surface." [ref=e209]:
+              - link "Got $1,000? The Best Cybersecurity Growth Stock to Buy as Agentic AI Expands the Attack Surface." [ref=e210]:
+                - /url: https://www.nasdaq.com/articles/got-1000-best-cybersecurity-growth-stock-buy-agentic-ai-expands-attack-surface
+          - row "04:08:00 undefined Nasdaq Want to Own SpaceX Stock Before Its Blockbuster IPO? Here Are 3 Ways Investors Can Buy Right Now." [ref=e211] [cursor=pointer]:
+            - cell "04:08:00" [ref=e212]
+            - cell "undefined" [ref=e213]:
+              - generic [ref=e214]: undefined
+            - cell "Nasdaq" [ref=e216]:
+              - generic [ref=e217]: Nasdaq
+            - cell "Want to Own SpaceX Stock Before Its Blockbuster IPO? Here Are 3 Ways Investors Can Buy Right Now." [ref=e218]:
+              - link "Want to Own SpaceX Stock Before Its Blockbuster IPO? Here Are 3 Ways Investors Can Buy Right Now." [ref=e219]:
+                - /url: https://www.nasdaq.com/articles/want-own-spacex-stock-its-blockbuster-ipo-here-are-3-ways-investors-can-buy-right-now
+          - 'row "03:59:12 undefined Investing_com Apple MacBook Neo opens the door to $32bn TAM: BofA" [ref=e220] [cursor=pointer]':
+            - cell "03:59:12" [ref=e221]
+            - cell "undefined" [ref=e222]:
+              - generic [ref=e223]: undefined
+            - cell "Investing_com" [ref=e225]:
+              - generic [ref=e226]: Investing_com
+            - 'cell "Apple MacBook Neo opens the door to $32bn TAM: BofA" [ref=e227]':
+              - 'link "Apple MacBook Neo opens the door to $32bn TAM: BofA" [ref=e228]':
+                - /url: https://www.investing.com/news/company-news/apple-macbook-neo-opens-the-door-to-32bn-tam-bofa-4608971
+          - row "03:59:00 undefined Nasdaq These Industrial Stocks Don't Come on Sale Often. Now Is the Time to Buy." [ref=e229] [cursor=pointer]:
+            - cell "03:59:00" [ref=e230]
+            - cell "undefined" [ref=e231]:
+              - generic [ref=e232]: undefined
+            - cell "Nasdaq" [ref=e234]:
+              - generic [ref=e235]: Nasdaq
+            - cell "These Industrial Stocks Don't Come on Sale Often. Now Is the Time to Buy." [ref=e236]:
+              - link "These Industrial Stocks Don't Come on Sale Often. Now Is the Time to Buy." [ref=e237]:
+                - /url: https://www.nasdaq.com/articles/these-industrial-stocks-dont-come-sale-often-now-time-buy
+          - row "03:25:00 undefined Nasdaq With Volatility Spiking, These Are the Smartest Dividend Stocks to Buy Today" [ref=e238] [cursor=pointer]:
+            - cell "03:25:00" [ref=e239]
+            - cell "undefined" [ref=e240]:
+              - generic [ref=e241]: undefined
+            - cell "Nasdaq" [ref=e243]:
+              - generic [ref=e244]: Nasdaq
+            - cell "With Volatility Spiking, These Are the Smartest Dividend Stocks to Buy Today" [ref=e245]:
+              - link "With Volatility Spiking, These Are the Smartest Dividend Stocks to Buy Today" [ref=e246]:
+                - /url: https://www.nasdaq.com/articles/volatility-spiking-these-are-smartest-dividend-stocks-buy-today
+          - row "03:24:37 undefined Investing_com Mystery surrounds Iran’s new Supreme Leader as \"disfiguring\" injuries confirmed" [ref=e247] [cursor=pointer]:
+            - cell "03:24:37" [ref=e248]
+            - cell "undefined" [ref=e249]:
+              - generic [ref=e250]: undefined
+            - cell "Investing_com" [ref=e252]:
+              - generic [ref=e253]: Investing_com
+            - cell "Mystery surrounds Iran’s new Supreme Leader as \"disfiguring\" injuries confirmed" [ref=e254]:
+              - link "Mystery surrounds Iran’s new Supreme Leader as \"disfiguring\" injuries confirmed" [ref=e255]:
+                - /url: https://www.investing.com/news/economy-news/mystery-surrounds-irans-new-supreme-leader-as-disfiguring-injuries-confirmed-4608970
+          - row "02:57:00 undefined Nasdaq This $500 Stock Could Be Your Ticket to Generational Wealth" [ref=e256] [cursor=pointer]:
+            - cell "02:57:00" [ref=e257]
+            - cell "undefined" [ref=e258]:
+              - generic [ref=e259]: undefined
+            - cell "Nasdaq" [ref=e261]:
+              - generic [ref=e262]: Nasdaq
+            - cell "This $500 Stock Could Be Your Ticket to Generational Wealth" [ref=e263]:
+              - link "This $500 Stock Could Be Your Ticket to Generational Wealth" [ref=e264]:
+                - /url: https://www.nasdaq.com/articles/500-stock-could-be-your-ticket-generational-wealth
+          - row "02:55:00 undefined Nasdaq JPMorgan CEO Jamie Dimon Just Echoed Warren Buffett's Warning From 26 Years Ago" [ref=e265] [cursor=pointer]:
+            - cell "02:55:00" [ref=e266]
+            - cell "undefined" [ref=e267]:
+              - generic [ref=e268]: undefined
+            - cell "Nasdaq" [ref=e270]:
+              - generic [ref=e271]: Nasdaq
+            - cell "JPMorgan CEO Jamie Dimon Just Echoed Warren Buffett's Warning From 26 Years Ago" [ref=e272]:
+              - link "JPMorgan CEO Jamie Dimon Just Echoed Warren Buffett's Warning From 26 Years Ago" [ref=e273]:
+                - /url: https://www.nasdaq.com/articles/jpmorgan-ceo-jamie-dimon-just-echoed-warren-buffetts-warning-26-years-ago
+          - 'row "02:42:43 undefined Investing_com AI Job-pocalypse: 5 million jobs at risk in new automated era" [ref=e274] [cursor=pointer]':
+            - cell "02:42:43" [ref=e275]
+            - cell "undefined" [ref=e276]:
+              - generic [ref=e277]: undefined
+            - cell "Investing_com" [ref=e279]:
+              - generic [ref=e280]: Investing_com
+            - 'cell "AI Job-pocalypse: 5 million jobs at risk in new automated era" [ref=e281]':
+              - 'link "AI Job-pocalypse: 5 million jobs at risk in new automated era" [ref=e282]':
+                - /url: https://www.investing.com/news/economy-news/ai-jobpocalypse-5-million-jobs-at-risk-in-new-automated-era-4608969
+          - row "02:36:27 undefined Investing_com US, Iran teams in Pakistan for peace talks amid doubts over Lebanon, sanctions" [ref=e283] [cursor=pointer]:
+            - cell "02:36:27" [ref=e284]
+            - cell "undefined" [ref=e285]:
+              - generic [ref=e286]: undefined
+            - cell "Investing_com" [ref=e288]:
+              - generic [ref=e289]: Investing_com
+            - cell "US, Iran teams in Pakistan for peace talks amid doubts over Lebanon, sanctions" [ref=e290]:
+              - link "US, Iran teams in Pakistan for peace talks amid doubts over Lebanon, sanctions" [ref=e291]:
+                - /url: https://www.investing.com/news/world-news/us-iran-teams-in-pakistan-for-peace-talks-amid-doubts-over-lebanon-sanctions-4608968
+          - row "02:25:00 undefined Nasdaq VinFast Auto Makes a Big Splash but Might Be More of a Sell Than Ever" [ref=e292] [cursor=pointer]:
+            - cell "02:25:00" [ref=e293]
+            - cell "undefined" [ref=e294]:
+              - generic [ref=e295]: undefined
+            - cell "Nasdaq" [ref=e297]:
+              - generic [ref=e298]: Nasdaq
+            - cell "VinFast Auto Makes a Big Splash but Might Be More of a Sell Than Ever" [ref=e299]:
+              - link "VinFast Auto Makes a Big Splash but Might Be More of a Sell Than Ever" [ref=e300]:
+                - /url: https://www.nasdaq.com/articles/vinfast-auto-makes-big-splash-might-be-more-sell-ever
+          - row "02:24:26 undefined Investing_com US, Iran teams in Pakistan for peace talks but doubts emerge over Lebanon, sanctions" [ref=e301] [cursor=pointer]:
+            - cell "02:24:26" [ref=e302]
+            - cell "undefined" [ref=e303]:
+              - generic [ref=e304]: undefined
+            - cell "Investing_com" [ref=e306]:
+              - generic [ref=e307]: Investing_com
+            - cell "US, Iran teams in Pakistan for peace talks but doubts emerge over Lebanon, sanctions" [ref=e308]:
+              - link "US, Iran teams in Pakistan for peace talks but doubts emerge over Lebanon, sanctions" [ref=e309]:
+                - /url: https://www.investing.com/news/world-news/us-iran-set-for-peace-talks-but-doubts-emerge-over-lebanon-sanctions-4608954
+          - row "02:20:00 undefined Nasdaq The AI Stock Wall Street Can't Stop Talking About in 2026" [ref=e310] [cursor=pointer]:
+            - cell "02:20:00" [ref=e311]
+            - cell "undefined" [ref=e312]:
+              - generic [ref=e313]: undefined
+            - cell "Nasdaq" [ref=e315]:
+              - generic [ref=e316]: Nasdaq
+            - cell "The AI Stock Wall Street Can't Stop Talking About in 2026" [ref=e317]:
+              - link "The AI Stock Wall Street Can't Stop Talking About in 2026" [ref=e318]:
+                - /url: https://www.nasdaq.com/articles/ai-stock-wall-street-cant-stop-talking-about-2026
+          - row "02:09:37 undefined Investing_com Bitcoin hits $73,000 on Middle East geopolitical relief and $350M ETF inflow" [ref=e319] [cursor=pointer]:
+            - cell "02:09:37" [ref=e320]
+            - cell "undefined" [ref=e321]:
+              - generic [ref=e322]: undefined
+            - cell "Investing_com" [ref=e324]:
+              - generic [ref=e325]: Investing_com
+            - cell "Bitcoin hits $73,000 on Middle East geopolitical relief and $350M ETF inflow" [ref=e326]:
+              - link "Bitcoin hits $73,000 on Middle East geopolitical relief and $350M ETF inflow" [ref=e327]:
+                - /url: https://www.investing.com/news/cryptocurrency-news/bitcoin-hits-73000-on-middle-east-geopolitical-relief-and-350m-etf-inflow-4608965
+          - row "02:06:24 undefined Investing_com Iran’s new supreme leader has severe and disfiguring wounds, sources say" [ref=e328] [cursor=pointer]:
+            - cell "02:06:24" [ref=e329]
+            - cell "undefined" [ref=e330]:
+              - generic [ref=e331]: undefined
+            - cell "Investing_com" [ref=e333]:
+              - generic [ref=e334]: Investing_com
+            - cell "Iran’s new supreme leader has severe and disfiguring wounds, sources say" [ref=e335]:
+              - link "Iran’s new supreme leader has severe and disfiguring wounds, sources say" [ref=e336]:
+                - /url: https://www.investing.com/news/world-news/irans-new-supreme-leader-has-severe-and-disfiguring-wounds-sources-say-4608967
+          - row "02:05:00 undefined Nasdaq Could Investing $10,000 in SCHB Make You a Millionaire?" [ref=e337] [cursor=pointer]:
+            - cell "02:05:00" [ref=e338]
+            - cell "undefined" [ref=e339]:
+              - generic [ref=e340]: undefined
+            - cell "Nasdaq" [ref=e342]:
+              - generic [ref=e343]: Nasdaq
+            - cell "Could Investing $10,000 in SCHB Make You a Millionaire?" [ref=e344]:
+              - link "Could Investing $10,000 in SCHB Make You a Millionaire?" [ref=e345]:
+                - /url: https://www.nasdaq.com/articles/could-investing-10000-schb-make-you-millionaire
+          - row "02:00:32 undefined Investing_com Japan approves additional $4 billion for chipmaker Rapidus" [ref=e346] [cursor=pointer]:
+            - cell "02:00:32" [ref=e347]
+            - cell "undefined" [ref=e348]:
+              - generic [ref=e349]: undefined
+            - cell "Investing_com" [ref=e351]:
+              - generic [ref=e352]: Investing_com
+            - cell "Japan approves additional $4 billion for chipmaker Rapidus" [ref=e353]:
+              - link "Japan approves additional $4 billion for chipmaker Rapidus" [ref=e354]:
+                - /url: https://www.investing.com/news/economy-news/japan-approves-additional-4-billion-for-chipmaker-rapidus-4608966
+          - row "01:58:00 undefined Nasdaq 2 AI Stocks I'd Buy Before Sandisk -- Even After Its Stock Has Surged More Than 2,200% in the Past Year" [ref=e355] [cursor=pointer]:
+            - cell "01:58:00" [ref=e356]
+            - cell "undefined" [ref=e357]:
+              - generic [ref=e358]: undefined
+            - cell "Nasdaq" [ref=e360]:
+              - generic [ref=e361]: Nasdaq
+            - cell "2 AI Stocks I'd Buy Before Sandisk -- Even After Its Stock Has Surged More Than 2,200% in the Past Year" [ref=e362]:
+              - link "2 AI Stocks I'd Buy Before Sandisk -- Even After Its Stock Has Surged More Than 2,200% in the Past Year" [ref=e363]:
+                - /url: https://www.nasdaq.com/articles/2-ai-stocks-id-buy-sandisk-even-after-its-stock-has-surged-more-2200-past-year
+          - row "01:36:24 undefined Investing_com US plane carrying team for talks with Iran lands in Islamabad, two Pakistani sources say" [ref=e364] [cursor=pointer]:
+            - cell "01:36:24" [ref=e365]
+            - cell "undefined" [ref=e366]:
+              - generic [ref=e367]: undefined
+            - cell "Investing_com" [ref=e369]:
+              - generic [ref=e370]: Investing_com
+            - cell "US plane carrying team for talks with Iran lands in Islamabad, two Pakistani sources say" [ref=e371]:
+              - link "US plane carrying team for talks with Iran lands in Islamabad, two Pakistani sources say" [ref=e372]:
+                - /url: https://www.investing.com/news/world-news/us-plane-carrying-team-for-talks-with-iran-lands-in-islamabad-two-pakistani-sources-say-4608964
+          - row "00:36:47 undefined Investing_com Taiwan spotted Chinese warplanes as Xi met opposition leader in Beijing" [ref=e373] [cursor=pointer]:
+            - cell "00:36:47" [ref=e374]
+            - cell "undefined" [ref=e375]:
+              - generic [ref=e376]: undefined
+            - cell "Investing_com" [ref=e378]:
+              - generic [ref=e379]: Investing_com
+            - cell "Taiwan spotted Chinese warplanes as Xi met opposition leader in Beijing" [ref=e380]:
+              - link "Taiwan spotted Chinese warplanes as Xi met opposition leader in Beijing" [ref=e381]:
+                - /url: https://www.investing.com/news/world-news/taiwan-spotted-chinese-warplanes-as-xi-met-opposition-leader-in-beijing-4608962
+          - row "00:36:30 undefined Investing_com US intelligence indicates China preparing weapons shipment to Iran, CNN reports" [ref=e382] [cursor=pointer]:
+            - cell "00:36:30" [ref=e383]
+            - cell "undefined" [ref=e384]:
+              - generic [ref=e385]: undefined
+            - cell "Investing_com" [ref=e387]:
+              - generic [ref=e388]: Investing_com
+            - cell "US intelligence indicates China preparing weapons shipment to Iran, CNN reports" [ref=e389]:
+              - link "US intelligence indicates China preparing weapons shipment to Iran, CNN reports" [ref=e390]:
+                - /url: https://www.investing.com/news/world-news/us-intelligence-indicates-china-preparing-weapons-shipment-to-iran-cnn-reports-4608961
+          - 'row "00:30:40 undefined Investing_com Tesla stock: This is the most important catalyst this year" [ref=e391] [cursor=pointer]':
+            - cell "00:30:40" [ref=e392]
+            - cell "undefined" [ref=e393]:
+              - generic [ref=e394]: undefined
+            - cell "Investing_com" [ref=e396]:
+              - generic [ref=e397]: Investing_com
+            - 'cell "Tesla stock: This is the most important catalyst this year" [ref=e398]':
+              - 'link "Tesla stock: This is the most important catalyst this year" [ref=e399]':
+                - /url: https://www.investing.com/news/company-news/tesla-stock-this-is-the-most-important-catalyst-this-year-4608960
+          - row "00:22:43 undefined Google_News_Business FCC Router Ban Is Bad News for These Brands. Is Yours on the List? - PCMag" [ref=e400] [cursor=pointer]:
+            - cell "00:22:43" [ref=e401]
+            - cell "undefined" [ref=e402]:
+              - generic [ref=e403]: undefined
+            - cell "Google_News_Business" [ref=e405]:
+              - generic [ref=e406]: Google_News_Business
+            - cell "FCC Router Ban Is Bad News for These Brands. Is Yours on the List? - PCMag" [ref=e407]:
+              - link "FCC Router Ban Is Bad News for These Brands. Is Yours on the List? - PCMag" [ref=e408]:
+                - /url: https://news.google.com/rss/articles/CBMilgFBVV95cUxQdjNyTF9GWjNqRkp2X3pnTEVlUEE2cGt4anltcUVwN1pXeWxPaFhNVW9OZ0xlMTMxRnBrSTNCdmt3cTdHSHVUMFJBVXZaRUNnQ2Q2b3hiaS1QTWlSdGE5QWZUcV9qWUpEX0RHRHFJRmN2ejg3WjRkaDdkNTY4QVdndnNlYV9QQnJEcG5aNXRONVFma2FXRFE?oc=5
+          - row "00:02:23 undefined Investing_com Foreign investors dump Indian equities at record pace on energy shock" [ref=e409] [cursor=pointer]:
+            - cell "00:02:23" [ref=e410]
+            - cell "undefined" [ref=e411]:
+              - generic [ref=e412]: undefined
+            - cell "Investing_com" [ref=e414]:
+              - generic [ref=e415]: Investing_com
+            - cell "Foreign investors dump Indian equities at record pace on energy shock" [ref=e416]:
+              - link "Foreign investors dump Indian equities at record pace on energy shock" [ref=e417]:
+                - /url: https://www.investing.com/news/economy-news/foreign-investors-dump-indian-equities-at-record-pace-on-energy-shock-4608959
+          - row "23:42:24 undefined Investing_com US DHS calls furloughed staff back to work despite shutdown" [ref=e418] [cursor=pointer]:
+            - cell "23:42:24" [ref=e419]
+            - cell "undefined" [ref=e420]:
+              - generic [ref=e421]: undefined
+            - cell "Investing_com" [ref=e423]:
+              - generic [ref=e424]: Investing_com
+            - cell "US DHS calls furloughed staff back to work despite shutdown" [ref=e425]:
+              - link "US DHS calls furloughed staff back to work despite shutdown" [ref=e426]:
+                - /url: https://www.investing.com/news/world-news/us-dhs-calls-furloughed-staff-back-to-work-despite-shutdown-4608958
+          - row "23:18:25 undefined Investing_com Exclusive-Third Point won’t run proxy fight at CoStar, exits position, letter says" [ref=e427] [cursor=pointer]:
+            - cell "23:18:25" [ref=e428]
+            - cell "undefined" [ref=e429]:
+              - generic [ref=e430]: undefined
+            - cell "Investing_com" [ref=e432]:
+              - generic [ref=e433]: Investing_com
+            - cell "Exclusive-Third Point won’t run proxy fight at CoStar, exits position, letter says" [ref=e434]:
+              - link "Exclusive-Third Point won’t run proxy fight at CoStar, exits position, letter says" [ref=e435]:
+                - /url: https://www.investing.com/news/stock-market-news/exclusivethird-point-wont-run-proxy-fight-at-costar-exits-position-letter-says-4608956
+          - row "22:46:01 undefined Investing_com Kalshi secures temporary halt to Arizona criminal case after CFTC intervention" [ref=e436] [cursor=pointer]:
+            - cell "22:46:01" [ref=e437]
+            - cell "undefined" [ref=e438]:
+              - generic [ref=e439]: undefined
+            - cell "Investing_com" [ref=e441]:
+              - generic [ref=e442]: Investing_com
+            - cell "Kalshi secures temporary halt to Arizona criminal case after CFTC intervention" [ref=e443]:
+              - link "Kalshi secures temporary halt to Arizona criminal case after CFTC intervention" [ref=e444]:
+                - /url: https://www.investing.com/news/economy-news/kalshi-secures-temporary-halt-to-arizona-criminal-case-after-cftc-intervention-4608955
+          - row "22:25:00 undefined Nasdaq Stanley Druckenmiller Says Stablecoins Will Dominate Global Payments Within 15 Years. Are Visa and Mastercard Stock in Trouble?" [ref=e445] [cursor=pointer]:
+            - cell "22:25:00" [ref=e446]
+            - cell "undefined" [ref=e447]:
+              - generic [ref=e448]: undefined
+            - cell "Nasdaq" [ref=e450]:
+              - generic [ref=e451]: Nasdaq
+            - cell "Stanley Druckenmiller Says Stablecoins Will Dominate Global Payments Within 15 Years. Are Visa and Mastercard Stock in Trouble?" [ref=e452]:
+              - link "Stanley Druckenmiller Says Stablecoins Will Dominate Global Payments Within 15 Years. Are Visa and Mastercard Stock in Trouble?" [ref=e453]:
+                - /url: https://www.nasdaq.com/articles/stanley-druckenmiller-says-stablecoins-will-dominate-global-payments-within-15-years-are
+          - row "22:11:00 undefined Nasdaq Oracle's Credit Risk Is At an All-Time High, Due to Heavy Investment in AI. Should Investors Be Concerned?" [ref=e454] [cursor=pointer]:
+            - cell "22:11:00" [ref=e455]
+            - cell "undefined" [ref=e456]:
+              - generic [ref=e457]: undefined
+            - cell "Nasdaq" [ref=e459]:
+              - generic [ref=e460]: Nasdaq
+            - cell "Oracle's Credit Risk Is At an All-Time High, Due to Heavy Investment in AI. Should Investors Be Concerned?" [ref=e461]:
+              - link "Oracle's Credit Risk Is At an All-Time High, Due to Heavy Investment in AI. Should Investors Be Concerned?" [ref=e462]:
+                - /url: https://www.nasdaq.com/articles/oracles-credit-risk-all-time-high-due-heavy-investment-ai-should-investors-be-concerned
+          - row "22:06:48 undefined Investing_com OpenAI identifies security issue involving third-party tool, says user data was not accessed" [ref=e463] [cursor=pointer]:
+            - cell "22:06:48" [ref=e464]
+            - cell "undefined" [ref=e465]:
+              - generic [ref=e466]: undefined
+            - cell "Investing_com" [ref=e468]:
+              - generic [ref=e469]: Investing_com
+            - cell "OpenAI identifies security issue involving third-party tool, says user data was not accessed" [ref=e470]:
+              - link "OpenAI identifies security issue involving third-party tool, says user data was not accessed" [ref=e471]:
+                - /url: https://www.investing.com/news/stock-market-news/openai-identifies-security-issue-involving-thirdparty-tool-says-user-data-was-not-accessed-4608953
+          - row "22:06:32 undefined Investing_com FAA, Pentagon sign agreement on anti-drone laser system near Mexico" [ref=e472] [cursor=pointer]:
+            - cell "22:06:32" [ref=e473]
+            - cell "undefined" [ref=e474]:
+              - generic [ref=e475]: undefined
+            - cell "Investing_com" [ref=e477]:
+              - generic [ref=e478]: Investing_com
+            - cell "FAA, Pentagon sign agreement on anti-drone laser system near Mexico" [ref=e479]:
+              - link "FAA, Pentagon sign agreement on anti-drone laser system near Mexico" [ref=e480]:
+                - /url: https://www.investing.com/news/stock-market-news/faa-pentagon-sign-agreement-on-deploying-antidrone-laser-system-near-mexico-4608543
+          - row "21:55:25 undefined Investing_com Can the MATCH Act trap China’s semiconductor ambitions?" [ref=e481] [cursor=pointer]:
+            - cell "21:55:25" [ref=e482]
+            - cell "undefined" [ref=e483]:
+              - generic [ref=e484]: undefined
+            - cell "Investing_com" [ref=e486]:
+              - generic [ref=e487]: Investing_com
+            - cell "Can the MATCH Act trap China’s semiconductor ambitions?" [ref=e488]:
+              - link "Can the MATCH Act trap China’s semiconductor ambitions?" [ref=e489]:
+                - /url: https://www.investing.com/news/economy-news/can-the-match-act-trap-chinas-semiconductor-ambitions-4608952
+          - row "21:40:04 undefined Investing_com Coreweave CSO Venturo sells $5.5m in class a common stock" [ref=e490] [cursor=pointer]:
+            - cell "21:40:04" [ref=e491]
+            - cell "undefined" [ref=e492]:
+              - generic [ref=e493]: undefined
+            - cell "Investing_com" [ref=e495]:
+              - generic [ref=e496]: Investing_com
+            - cell "Coreweave CSO Venturo sells $5.5m in class a common stock" [ref=e497]:
+              - link "Coreweave CSO Venturo sells $5.5m in class a common stock" [ref=e498]:
+                - /url: https://www.investing.com/news/insider-trading-news/coreweave-cso-venturo-sells-55m-in-class-a-common-stock-93CH-4608951
+          - row "21:40:03 undefined Investing_com Coreweave COO Jain sells $363,676 in shares" [ref=e499] [cursor=pointer]:
+            - cell "21:40:03" [ref=e500]
+            - cell "undefined" [ref=e501]:
+              - generic [ref=e502]: undefined
+            - cell "Investing_com" [ref=e504]:
+              - generic [ref=e505]: Investing_com
+            - cell "Coreweave COO Jain sells $363,676 in shares" [ref=e506]:
+              - link "Coreweave COO Jain sells $363,676 in shares" [ref=e507]:
+                - /url: https://www.investing.com/news/insider-trading-news/coreweave-coo-jain-sells-363676-in-shares-93CH-4608950
+          - row "21:37:13 undefined Investing_com Coreweave EVP Goldberg Chen sells $897k in stock" [ref=e508] [cursor=pointer]:
+            - cell "21:37:13" [ref=e509]
+            - cell "undefined" [ref=e510]:
+              - generic [ref=e511]: undefined
+            - cell "Investing_com" [ref=e513]:
+              - generic [ref=e514]: Investing_com
+            - cell "Coreweave EVP Goldberg Chen sells $897k in stock" [ref=e515]:
+              - link "Coreweave EVP Goldberg Chen sells $897k in stock" [ref=e516]:
+                - /url: https://www.investing.com/news/insider-trading-news/coreweave-evp-goldberg-chen-sells-897k-in-stock-93CH-4608949
+          - row "21:37:09 undefined Investing_com Coreweave CEO Intrator sells $5.5m in class a common stock" [ref=e517] [cursor=pointer]:
+            - cell "21:37:09" [ref=e518]
+            - cell "undefined" [ref=e519]:
+              - generic [ref=e520]: undefined
+            - cell "Investing_com" [ref=e522]:
+              - generic [ref=e523]: Investing_com
+            - cell "Coreweave CEO Intrator sells $5.5m in class a common stock" [ref=e524]:
+              - link "Coreweave CEO Intrator sells $5.5m in class a common stock" [ref=e525]:
+                - /url: https://www.investing.com/news/insider-trading-news/coreweave-ceo-intrator-sells-55m-in-class-a-common-stock-93CH-4608948
+          - row "21:36:29 undefined Investing_com Eric Swalwell, candidate for California governor, denies sexual assault allegations" [ref=e526] [cursor=pointer]:
+            - cell "21:36:29" [ref=e527]
+            - cell "undefined" [ref=e528]:
+              - generic [ref=e529]: undefined
+            - cell "Investing_com" [ref=e531]:
+              - generic [ref=e532]: Investing_com
+            - cell "Eric Swalwell, candidate for California governor, denies sexual assault allegations" [ref=e533]:
+              - link "Eric Swalwell, candidate for California governor, denies sexual assault allegations" [ref=e534]:
+                - /url: https://www.investing.com/news/politics-news/eric-swalwell-candidate-for-california-governor-denies-sexual-assault-allegations-4608947
+          - row "21:34:15 undefined Investing_com Agrawal, CoreWeave CFO, sells $1288 in class a common stock" [ref=e535] [cursor=pointer]:
+            - cell "21:34:15" [ref=e536]
+            - cell "undefined" [ref=e537]:
+              - generic [ref=e538]: undefined
+            - cell "Investing_com" [ref=e540]:
+              - generic [ref=e541]: Investing_com
+            - cell "Agrawal, CoreWeave CFO, sells $1288 in class a common stock" [ref=e542]:
+              - link "Agrawal, CoreWeave CFO, sells $1288 in class a common stock" [ref=e543]:
+                - /url: https://www.investing.com/news/insider-trading-news/agrawal-coreweave-cfo-sells-1288-in-class-a-common-stock-93CH-4608946
+          - row "21:28:35 undefined Investing_com Aehr test systems exec VP Rogers sells $762k in stock" [ref=e544] [cursor=pointer]:
+            - cell "21:28:35" [ref=e545]
+            - cell "undefined" [ref=e546]:
+              - generic [ref=e547]: undefined
+            - cell "Investing_com" [ref=e549]:
+              - generic [ref=e550]: Investing_com
+            - cell "Aehr test systems exec VP Rogers sells $762k in stock" [ref=e551]:
+              - link "Aehr test systems exec VP Rogers sells $762k in stock" [ref=e552]:
+                - /url: https://www.investing.com/news/insider-trading-news/aehr-test-systems-exec-vp-rogers-sells-762k-in-stock-93CH-4608945
+          - 'row "21:22:04 undefined Investing_com Aehr test systems (AEHR): COO engineer sells $892k in stock" [ref=e553] [cursor=pointer]':
+            - cell "21:22:04" [ref=e554]
+            - cell "undefined" [ref=e555]:
+              - generic [ref=e556]: undefined
+            - cell "Investing_com" [ref=e558]:
+              - generic [ref=e559]: Investing_com
+            - 'cell "Aehr test systems (AEHR): COO engineer sells $892k in stock" [ref=e560]':
+              - 'link "Aehr test systems (AEHR): COO engineer sells $892k in stock" [ref=e561]':
+                - /url: https://www.investing.com/news/insider-trading-news/aehr-test-systems-aehr-coo-engineer-sells-892k-in-stock-93CH-4608943
+          - row "20:41:03 undefined Investing_com Lost mines in Strait of Hormuz block \"full safe reopening\" ceasefire terms" [ref=e562] [cursor=pointer]:
+            - cell "20:41:03" [ref=e563]
+            - cell "undefined" [ref=e564]:
+              - generic [ref=e565]: undefined
+            - cell "Investing_com" [ref=e567]:
+              - generic [ref=e568]: Investing_com
+            - cell "Lost mines in Strait of Hormuz block \"full safe reopening\" ceasefire terms" [ref=e569]:
+              - link "Lost mines in Strait of Hormuz block \"full safe reopening\" ceasefire terms" [ref=e570]:
+                - /url: https://www.investing.com/news/economy-news/lost-mines-in-strait-of-hormuz-block-full-safe-reopening-ceasefire-terms-4608938
+          - 'row "20:39:29 undefined Investing_com Form 13D/A Bristow Group Inc. For: 10 April" [ref=e571] [cursor=pointer]':
+            - cell "20:39:29" [ref=e572]
+            - cell "undefined" [ref=e573]:
+              - generic [ref=e574]: undefined
+            - cell "Investing_com" [ref=e576]:
+              - generic [ref=e577]: Investing_com
+            - 'cell "Form 13D/A Bristow Group Inc. For: 10 April" [ref=e578]':
+              - 'link "Form 13D/A Bristow Group Inc. For: 10 April" [ref=e579]':
+                - /url: https://www.investing.com/news/filings/form-13da-bristow-group-inc-for-10-april-93CH-4608937
+          - row "20:34:13 undefined Investing_com Naixi Wu, Indie Semiconductor CFO, sells $154,560 in INDI stock" [ref=e580] [cursor=pointer]:
+            - cell "20:34:13" [ref=e581]
+            - cell "undefined" [ref=e582]:
+              - generic [ref=e583]: undefined
+            - cell "Investing_com" [ref=e585]:
+              - generic [ref=e586]: Investing_com
+            - cell "Naixi Wu, Indie Semiconductor CFO, sells $154,560 in INDI stock" [ref=e587]:
+              - link "Naixi Wu, Indie Semiconductor CFO, sells $154,560 in INDI stock" [ref=e588]:
+                - /url: https://www.investing.com/news/insider-trading-news/naixi-wu-indie-semiconductor-cfo-sells-154560-in-indi-stock-93CH-4608936
+          - 'row "20:33:13 undefined Investing_com Form 13D/A Adicet Bio For: 10 April" [ref=e589] [cursor=pointer]':
+            - cell "20:33:13" [ref=e590]
+            - cell "undefined" [ref=e591]:
+              - generic [ref=e592]: undefined
+            - cell "Investing_com" [ref=e594]:
+              - generic [ref=e595]: Investing_com
+            - 'cell "Form 13D/A Adicet Bio For: 10 April" [ref=e596]':
+              - 'link "Form 13D/A Adicet Bio For: 10 April" [ref=e597]':
+                - /url: https://www.investing.com/news/filings/form-13da-adicet-bio-for-10-april-93CH-4608935
+          - 'row "20:31:45 undefined Investing_com Form 13G SPROTT FUNDS TRUST For: 10 April" [ref=e598] [cursor=pointer]':
+            - cell "20:31:45" [ref=e599]
+            - cell "undefined" [ref=e600]:
+              - generic [ref=e601]: undefined
+            - cell "Investing_com" [ref=e603]:
+              - generic [ref=e604]: Investing_com
+            - 'cell "Form 13G SPROTT FUNDS TRUST For: 10 April" [ref=e605]':
+              - 'link "Form 13G SPROTT FUNDS TRUST For: 10 April" [ref=e606]':
+                - /url: https://www.investing.com/news/filings/form-13g-sprott-funds-trust-for-10-april-93CH-4608934
+          - row "20:30:27 undefined Investing_com Rio Tinto’s US boron assets draw interest from bidders, Bloomberg News reports" [ref=e607] [cursor=pointer]:
+            - cell "20:30:27" [ref=e608]
+            - cell "undefined" [ref=e609]:
+              - generic [ref=e610]: undefined
+            - cell "Investing_com" [ref=e612]:
+              - generic [ref=e613]: Investing_com
+            - cell "Rio Tinto’s US boron assets draw interest from bidders, Bloomberg News reports" [ref=e614]:
+              - link "Rio Tinto’s US boron assets draw interest from bidders, Bloomberg News reports" [ref=e615]:
+                - /url: https://www.investing.com/news/stock-market-news/rio-tintos-california-boron-assets-draw-interest-from-bidders-bloomberg-news-reports-4608601
+    - contentinfo [ref=e616]:
+      - generic [ref=e617]:
+        - generic [ref=e618]:
+          - text: "Last refresh:"
+          - generic [ref=e619]: 05:45:20
+        - generic [ref=e620]:
+          - text: "Rate:"
+          - generic [ref=e621]: "543.5"
+          - text: items/s
+      - generic [ref=e622]:
+        - generic [ref=e623]:
+          - link "Pricing" [ref=e624] [cursor=pointer]:
+            - /url: /pricing
+          - link "Privacy Policy" [ref=e625] [cursor=pointer]:
+            - /url: /privacy
+          - link "Terms of Service" [ref=e626] [cursor=pointer]:
+            - /url: /terms
+        - generic "Click to copy API endpoint" [ref=e627] [cursor=pointer]: /api/news
+  - generic:
+    - generic:
+      - generic:
+        - heading "// API Documentation" [level=2]
+        - button "Close":
+          - img
+      - generic:
+        - paragraph:
+          - text: "REST API for programmatic access. All responses are JSON. Base URL:"
+          - code: http://localhost:8000
+          - text: /api
+        - generic:
+          - generic:
+            - generic: GET
+            - generic: /news
+          - generic:
+            - paragraph: Returns latest news items with sentiment scoring.
+            - generic:
+              - term: limit
+              - definition: Number of items (default 50, max 500)
+              - term: source
+              - definition: Filter by source name (default "all")
+              - term: sentiment
+              - definition: "Filter: bullish, bearish, neutral (default \"all\")"
+              - term: q
+              - definition: Keyword search in title and summary
+              - term: from
+              - definition: Filter from date (ISO 8601, e.g. "2026-03-01")
+              - term: to
+              - definition: Filter to date (ISO 8601, e.g. "2026-03-02")
+            - generic:
+              - text: curl "
+              - text: /api/news?limit=10&sentiment=bullish"
+        - generic:
+          - generic:
+            - generic: GET
+            - generic: /sources
+          - generic:
+            - paragraph: Returns all active feed sources with item counts and status.
+            - generic:
+              - text: curl "
+              - text: /api/sources"
+        - generic:
+          - generic:
+            - generic: GET
+            - generic: /stats
+          - generic:
+            - paragraph: "Returns aggregated statistics: total items, by source, by sentiment, average score."
+            - generic:
+              - text: curl "
+              - text: /api/stats"
+        - generic:
+          - generic:
+            - generic: POST
+            - generic: /refresh
+          - generic:
+            - paragraph: Force refresh all feeds immediately. Returns count of new items found.
+            - generic:
+              - text: curl -X POST "
+              - text: /api/refresh"
+        - generic:
+          - generic:
+            - generic: GET
+            - generic: /docs
+          - generic:
+            - paragraph: Returns this API documentation as JSON.
+            - generic:
+              - text: curl "
+              - text: /api/docs"
+  - generic:
+    - generic:
+      - generic:
+        - heading "// Ticker Recommendation" [level=2]
+        - button "Close":
+          - img
+  - generic [ref=e629]:
+    - img "InstNews" [ref=e630]
+    - heading "Sign in to access SIGNAL" [level=2] [ref=e631]
+    - paragraph [ref=e632]: Create a free account to access the real-time news terminal. No credit card required.
+    - button "Sign in with Google" [ref=e633] [cursor=pointer]:
+      - img [ref=e634]
+      - text: Sign in with Google
+    - link "← Back to home" [ref=e639] [cursor=pointer]:
+      - /url: /

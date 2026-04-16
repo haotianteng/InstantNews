@@ -1,0 +1,25 @@
+============================= test session starts ==============================
+platform linux -- Python 3.10.20, pytest-9.0.2, pluggy-1.6.0 -- /home/haotiant/conda/envs/instnews/bin/python
+cachedir: .pytest_cache
+rootdir: /home/haotiant/Projects/Personal/InstantNews
+configfile: pyproject.toml
+plugins: typeguard-2.13.3, anyio-4.13.0
+collecting ... collected 108 items / 94 deselected / 14 selected
+
+tests/test_market_data.py::TestPolygonClientDisabled::test_disabled_when_no_api_key PASSED [  7%]
+tests/test_market_data.py::TestPolygonClientDisabled::test_snapshot_returns_none_when_disabled PASSED [ 14%]
+tests/test_market_data.py::TestPolygonClientDisabled::test_details_returns_none_when_disabled PASSED [ 21%]
+tests/test_market_data.py::TestPolygonClientEnabled::test_enabled_with_api_key PASSED [ 28%]
+tests/test_market_data.py::TestPolygonClientEnabled::test_snapshot_success PASSED [ 35%]
+tests/test_market_data.py::TestPolygonClientEnabled::test_snapshot_caching PASSED [ 42%]
+tests/test_market_data.py::TestPolygonClientEnabled::test_snapshot_normalizes_symbol PASSED [ 50%]
+tests/test_market_data.py::TestPolygonClientEnabled::test_snapshot_http_error PASSED [ 57%]
+tests/test_market_data.py::TestPolygonClientEnabled::test_snapshot_404 PASSED [ 64%]
+tests/test_market_data.py::TestPolygonClientEnabled::test_details_success PASSED [ 71%]
+tests/test_market_data.py::TestPolygonClientEnabled::test_details_caching PASSED [ 78%]
+tests/test_market_data.py::TestPolygonClientEnabled::test_details_not_found PASSED [ 85%]
+tests/test_market_data.py::TestPolygonClientEnabled::test_details_network_error PASSED [ 92%]
+tests/test_market_data.py::TestPolygonClientEnabled::test_clear_cache PASSED [100%]
+
+====================== 14 passed, 94 deselected in 0.08s =======================
+EXIT: 0

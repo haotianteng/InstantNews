@@ -1,0 +1,53 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: signal-postgres
+    environment:
+      POSTGRES_USER: signal
+      POSTGRES_PASSWORD: signal
+      POSTGRES_DB: signal_news
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U signal"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  signal:
+    build: .
+    container_name: signal-news
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=postgresql://signal:signal@postgres:5432/signal_news
+      - PORT=8000
+      - STALE_SECONDS=30
+      - FETCH_TIMEOUT=5
+      - WORKER_ENABLED=true
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/stats"]
+      interval: 60s
+      timeout: 10s
+      retries: 3
+
+  feed-worker:
+    build: .
+    container_name: signal-feed-worker
+    command: ["python", "-m", "app.worker"]
+    environment:
+      - DATABASE_URL=postgresql://signal:signal@postgres:5432/signal_news
+      - STALE_SECONDS=30
+      - FETCH_TIMEOUT=5
+      - WORKER_INTERVAL_SECONDS=30
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+
+volumes:
+  postgres-data:

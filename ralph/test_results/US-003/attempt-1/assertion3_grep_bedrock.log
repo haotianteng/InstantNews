@@ -1,0 +1,2 @@
+app/worker.py:35:        "detail": f"interval={interval}s, BEDROCK_ENABLED={config.BEDROCK_ENABLED}",
+app/config.py:50:    BEDROCK_ENABLED = os.environ.get("BEDROCK_ENABLED", "true").lower() == "true"
