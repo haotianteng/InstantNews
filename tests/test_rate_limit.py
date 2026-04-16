@@ -18,15 +18,15 @@ class TestRateLimitConfig:
 
     def test_free_tier_rate_limit(self):
         rate = get_limit("free", "api_rate_per_minute")
-        assert rate == 10
+        assert rate == 30
 
     def test_pro_tier_rate_limit(self):
         rate = get_limit("pro", "api_rate_per_minute")
-        assert rate == 60
+        assert rate == 300
 
     def test_max_tier_rate_limit(self):
         rate = get_limit("max", "api_rate_per_minute")
-        assert rate == 120
+        assert rate == 1000
 
 
 class TestRateLimitHeaders:
