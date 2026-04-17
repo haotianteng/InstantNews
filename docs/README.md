@@ -4,9 +4,12 @@
 
 | Doc | Description |
 |-----|-------------|
-| [**Deployment Guide**](deployment.md) | CI/CD pipeline, Docker, ECR, ECS, secrets, troubleshooting |
+| [**Deployment Guide**](deployment.md) | GitHub Actions CI/CD + CDK deploy, Docker, ECR, ECS, secrets, troubleshooting |
+| [**Terminal Features**](terminal-features.md) | Current feature set: panel, asset icons, live prices, cache, downgrade flow |
 | [**Database Migrations**](database-migrations.md) | Alembic usage, creating migrations, testing against PostgreSQL |
 | [**Architecture**](architecture.md) | System design, file structure, data flow |
+| [**Billing**](BILLING.md) | Stripe integration, webhooks, plan configuration |
+| [**Feature Gates**](FEATURE_GATES.md) | Tier → feature matrix, audit report |
 
 ## Feature Implementation History
 
