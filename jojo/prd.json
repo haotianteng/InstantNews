@@ -373,10 +373,13 @@
         "Playwright: click EDGAR tile; assert opens new tab to console.aws.amazon.com/cloudwatch/home?... containing 'edgar' in URL",
         "cd frontend && npm run build exits 0"
       ],
-      "status": "REQUIRE_IMPLEMENT",
+      "status": "READY_FOR_TEST",
       "passes": false,
-      "implementation_notes": null,
-      "files_changed": [],
+      "implementation_notes": "Added upstream APIs panel in `frontend/src/admin-monitoring.js`. `.panel--upstream` now contains four tiles: `.meter--x-api` (horizontal bar filled `((450 - min_remaining) / 450) * 100%`; threshold classes `meter--ok` <50%, `meter--warn` 50-80%, `meter--danger` >80%; `title` attr set to 'Window: 15 min rolling' on the bar wrap — we don't yet emit a rate-limit-reset EMF value so the tooltip shows the window instead); `.tile--polygon`, `.tile--edgar`, `.tile--stripe` — all three rendered as `<a target='_blank' rel='noopener'>` links to a CloudWatch Logs Insights URL with a filterPattern containing the service name, as Polygon/EDGAR/Stripe-webhook are not yet EMF-instrumented (shows 'Pending instrumentation' italic placeholder). Data source: single POST to `/admin/api/metrics/cloudwatch` with one query — `InstantNews/Twitter.RateLimitRemaining` Minimum over the selected range, with Endpoint=search_recent dimension (matches the emit site in `app/services/twitter_source.py`). On null data the meter stays at 0% width with '– / 450' text and data-status='ok'. CSS additions: `.upstream-grid`, `.tile`, `.tile--*` link-style hover, `.meter-bar-wrap`, `.meter-bar`, `.meter--ok/warn/danger` variants. Build exits 0; selectors all present in bundle. Tester mock recipe: stub `fetchMetrics` to resolve with `{xrl: {values: [50]}}` (50 remaining → used=400 → pct≈88.9% → meter--danger). `{xrl: {values: [300]}}` (used=150 → 33% → meter--ok). `{xrl: {values: [200]}}` (used=250 → 55% → meter--warn).",
+      "files_changed": [
+        "frontend/src/admin-monitoring.js",
+        "frontend/src/styles/admin-monitoring.css"
+      ],
       "failure_reason": null,
       "test_evidence": null,
       "test_report": null,

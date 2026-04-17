@@ -19,6 +19,7 @@ import {
   sparklineSvg,
   sumSeries,
   maxSeries,
+  minSeries,
   escapeHtml,
 } from './admin-monitoring-helpers.js';
 
@@ -612,6 +613,95 @@ async function _refreshAI(range) {
   }
 }
 
+// ── US-011: Upstream APIs panel ───────────────────────────────────────
+function _upstreamPanelBody() {
+  return document.querySelector('.panel--upstream .panel__body');
+}
+
+function _renderUpstreamSkeleton() {
+  const body = _upstreamPanelBody();
+  if (!body) return;
+  if (body.querySelector('.upstream-grid')) return;
+  body.innerHTML = `
+    <div class="upstream-grid">
+      <div class="tile meter--x-api" data-status="ok">
+        <div class="tile__label">X API rate-limit</div>
+        <div class="tile__value">
+          <span class="meter-bar-wrap" title="Window: 15 min rolling">
+            <span class="meter-bar" style="width:0%"></span>
+          </span>
+          <span class="tile__num num" data-numeric>– / 450</span>
+        </div>
+        <div class="tile__hint">search_recent</div>
+      </div>
+      <a class="tile tile--polygon" target="_blank" rel="noopener"
+         href="https://console.aws.amazon.com/cloudwatch/home?region=us-east-1#logsV2:log-groups/log-group/$252Fecs$252Finstantnews-worker$253FfilterPattern$253D%2522polygon%2522">
+        <div class="tile__label">Polygon</div>
+        <div class="tile__placeholder">Pending instrumentation</div>
+        <div class="tile__hint">Open CloudWatch logs</div>
+      </a>
+      <a class="tile tile--edgar" target="_blank" rel="noopener"
+         href="https://console.aws.amazon.com/cloudwatch/home?region=us-east-1#logsV2:log-groups/log-group/$252Fecs$252Finstantnews-worker$253FfilterPattern$253D%2522edgar%2522">
+        <div class="tile__label">EDGAR</div>
+        <div class="tile__placeholder">Pending instrumentation</div>
+        <div class="tile__hint">Open CloudWatch logs</div>
+      </a>
+      <a class="tile tile--stripe" target="_blank" rel="noopener"
+         href="https://console.aws.amazon.com/cloudwatch/home?region=us-east-1#logsV2:log-groups/log-group/$252Fecs$252Finstantnews-web$253FfilterPattern$253D%2522stripe_webhook%2522">
+        <div class="tile__label">Stripe webhook</div>
+        <div class="tile__placeholder">Pending instrumentation</div>
+        <div class="tile__hint">Open CloudWatch logs</div>
+      </a>
+    </div>
+  `;
+}
+
+async function _refreshUpstream(range) {
+  const body = _upstreamPanelBody();
+  if (!body) return;
+  _renderUpstreamSkeleton();
+
+  let series = {};
+  try {
+    series = await fetchMetrics([
+      { id: 'xrl', namespace: 'InstantNews/Twitter', metric: 'RateLimitRemaining',
+        dimensions: { Endpoint: 'search_recent' }, stat: 'Minimum' },
+    ], range);
+  } catch (err) {
+    console.warn('[monitoring] upstream fetchMetrics failed', err);
+    return;
+  }
+
+  const remainingMin = minSeries((series.xrl || {}).values);
+  const meter = body.querySelector('.meter--x-api');
+  const bar = body.querySelector('.meter--x-api .meter-bar');
+  const numEl = body.querySelector('.meter--x-api .tile__num');
+
+  if (meter && bar && numEl) {
+    // Quota for search_recent on Basic tier is 450 per 15min window.
+    const quota = 450;
+    if (remainingMin == null) {
+      bar.style.width = '0%';
+      numEl.textContent = '– / 450';
+      meter.setAttribute('data-status', 'ok');
+      meter.classList.remove('meter--ok', 'meter--warn', 'meter--danger');
+      meter.classList.add('meter--ok');
+    } else {
+      const used = Math.max(0, quota - remainingMin);
+      const pct = Math.max(0, Math.min(100, (used / quota) * 100));
+      bar.style.width = `${pct.toFixed(1)}%`;
+      numEl.textContent = `${used} / ${quota}`;
+      meter.classList.remove('meter--ok', 'meter--warn', 'meter--danger');
+      let cls = 'meter--ok';
+      if (pct > 80) cls = 'meter--danger';
+      else if (pct >= 50) cls = 'meter--warn';
+      meter.classList.add(cls);
+      meter.setAttribute('data-status',
+        cls === 'meter--danger' ? 'crit' : (cls === 'meter--warn' ? 'warn' : 'ok'));
+    }
+  }
+}
+
 // ── Public interface (window.__monitoring__) ──────────────────────────
 window.__monitoring__ = {
   state,
@@ -628,6 +718,7 @@ window.__monitoring__ = {
   THRESHOLDS,
   refreshIngestion: _refreshIngestion,
   refreshAI: _refreshAI,
+  refreshUpstream: _refreshUpstream,
   _helpers: { classifyStatus, formatSeconds, formatNumber, sparklineSvg },
 };
 
@@ -646,6 +737,7 @@ function boot() {
 
   registerPanel('ingestion', _refreshIngestion);
   registerPanel('ai', _refreshAI);
+  registerPanel('upstream', _refreshUpstream);
 
   setRange(state.range);
   updateSummary(0, 0);
