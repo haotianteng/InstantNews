@@ -121,10 +121,14 @@
         "Post-deploy: aws cloudwatch get-metric-statistics --namespace InstantNews/AIPipeline --metric-name QueueDepth --start-time ... --statistics Maximum returns datapoints",
         "mypy app/services/ai_pipeline.py app/services/bedrock_analysis.py exits 0"
       ],
-      "status": "REQUIRE_IMPLEMENT",
+      "status": "READY_FOR_TEST",
       "passes": false,
-      "implementation_notes": null,
-      "files_changed": [],
+      "implementation_notes": "Instrumented three emission points — all under namespace `InstantNews/AIPipeline`. **(1) QueueDepth in `_dispatcher_loop`**: emitted at the top of each outer loop iteration via `emit_metric('InstantNews/AIPipeline', 'QueueDepth', _queue.qsize(), 'Count', dimensions=None)` (no dimensions — it's a singleton gauge). Rate-limited by a local `last_queue_depth_emit` float: subsequent emissions are skipped until >= 5 s have elapsed since the last one. The default `batch_window_seconds=1.5` would otherwise fire this ~40 times/min per dispatcher; 5 s cap keeps the metric at ~12 emissions/min which is plenty for a 10-s dashboard refresh. **(2) BackendChosen in `_call_model`**: moved into a module-local `_emit_backend_chosen(backend)` helper that emits `BackendChosen=1` with dimension `{Backend: 'minimax'|'claude'|'bedrock'}`. Emission is BEFORE the `return` in each successful branch and NEVER on the failure side of the try/except (the signal is which backend actually served, not which were attempted). Bedrock branch, being the last-resort unconditional call, emits unconditionally after `_call_bedrock()` returns. **(3) BatchSize + BatchDurationMs in `analyze_articles_batch`**: wrapped the ThreadPoolExecutor block in a `time.monotonic()` stopwatch and emitted ONE multi-metric line on completion via `emit_metrics(namespace, metrics=[{BatchSize, Count}, {BatchDurationMs, Milliseconds}], dimensions=None)`. Early-return path (empty articles or BEDROCK_ENABLED=false) stays silent — otherwise every benign startup tick would emit a BatchSize=0 data point. Added `import time` and `from app.services.metrics import emit_metric, emit_metrics` to bedrock_analysis.py; added `from app.services.metrics import emit_metric` to ai_pipeline.py. Module-level constants `_AI_NAMESPACE = 'InstantNews/AIPipeline'` and `_QUEUE_DEPTH_MIN_INTERVAL_SECONDS = 5.0` keep magic strings out of the hot path. Self-validation: `pytest tests/services/test_ai_pipeline_metrics.py -v` → 4 passed (Claude-served on MiniMax-absent, Bedrock-served on both-fail, BatchSize=1 emission shape, empty-batch silence). `mypy --follow-imports=silent app/services/ai_pipeline.py app/services/bedrock_analysis.py` → Success, no issues. Full regression 243 passed 1 skipped (236 baseline + 3 US-003 + 4 US-004). NOTE: `_dispatcher_loop` was NOT unit tested directly because it's a `while not _stop_event.is_set()` loop with module-level globals — exercising it cleanly would need a subprocess or extensive monkeypatching of the module state. The QueueDepth emission is simple enough (single `emit_metric` call with a 5-s rate-limit) that the post-deploy CloudWatch assertion is the cheaper path to validate it.",
+      "files_changed": [
+        "app/services/ai_pipeline.py",
+        "app/services/bedrock_analysis.py",
+        "tests/services/test_ai_pipeline_metrics.py"
+      ],
       "failure_reason": null,
       "test_evidence": null,
       "test_report": null,

@@ -11,6 +11,7 @@ Backend selection priority: ANTHROPIC_API_KEY > AWS_BEARER_TOKEN_BEDROCK > boto3
 import json
 import logging
 import os
+import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 from app.services.bedrock_config import (
@@ -30,8 +31,22 @@ from app.services.bedrock_config import (
     ANTHROPIC_MAX_TOKENS,
     BEDROCK_MAX_TOKENS,
 )
+from app.services.metrics import emit_metric, emit_metrics
 
 logger = logging.getLogger("signal.ai")
+
+_AI_NAMESPACE = "InstantNews/AIPipeline"
+
+
+def _emit_backend_chosen(backend: str) -> None:
+    """Emit a BackendChosen=1 EMF metric with the {Backend} dimension."""
+    emit_metric(
+        namespace=_AI_NAMESPACE,
+        metric_name="BackendChosen",
+        value=1,
+        unit="Count",
+        dimensions={"Backend": backend},
+    )
 
 _minimax_client = None
 _anthropic_client = None
@@ -105,6 +120,11 @@ def _call_model(prompt):
     """Call AI model with fallback chain: MiniMax → Claude → Bedrock.
 
     Tries each configured backend in order. Falls back on any error.
+    Emits one EMF `BackendChosen=1` metric (dimension ``Backend``) after the
+    call succeeds, so the dashboard can chart fallback-chain distribution.
+    Emission happens only on success — a failure that falls through to the
+    next backend does NOT emit (the signal is WHICH backend served, not
+    which backend was tried).
     """
     # 1. Try MiniMax (primary — 160K max tokens)
     minimax = _get_minimax_client()
@@ -113,6 +133,7 @@ def _call_model(prompt):
             result = _call_with_client(minimax, MINIMAX_MODEL_ID, prompt, max_tokens=MINIMAX_MAX_TOKENS)
             if result:
                 logger.debug("AI call succeeded", extra={"backend": "minimax"})
+                _emit_backend_chosen("minimax")
                 return result
         except Exception as e:
             logger.warning("MiniMax failed, falling back to Claude", extra={
@@ -129,6 +150,7 @@ def _call_model(prompt):
             result = _call_with_client(anthropic, ANTHROPIC_MODEL_ID, prompt, max_tokens=ANTHROPIC_MAX_TOKENS)
             if result:
                 logger.debug("AI call succeeded", extra={"backend": "anthropic"})
+                _emit_backend_chosen("claude")
                 return result
         except Exception as e:
             logger.warning("Anthropic failed, falling back to Bedrock", extra={
@@ -139,7 +161,9 @@ def _call_model(prompt):
             })
 
     # 3. Try Bedrock (last resort)
-    return _call_bedrock(prompt, max_tokens=BEDROCK_MAX_TOKENS)
+    result = _call_bedrock(prompt, max_tokens=BEDROCK_MAX_TOKENS)
+    _emit_backend_chosen("bedrock")
+    return result
 
 
 def _parse_response(output_text):
@@ -221,12 +245,17 @@ def analyze_articles_batch(articles):
 
     Returns:
         dict mapping article id -> analysis result (or None on failure)
+
+    Emits one EMF line on completion with BatchSize + BatchDurationMs
+    (namespace InstantNews/AIPipeline, no dimensions) so the dashboard can
+    plot batch throughput over time.
     """
     if not BEDROCK_ENABLED or not articles:
         return {}
 
     results = {}
 
+    batch_start = time.monotonic()
     with ThreadPoolExecutor(max_workers=BEDROCK_MAX_CONCURRENT) as pool:
         futures = {}
         for article in articles:
@@ -249,5 +278,15 @@ def analyze_articles_batch(articles):
                     "error": str(e),
                 })
                 results[article_id] = None
+    elapsed_ms = (time.monotonic() - batch_start) * 1000.0
+
+    emit_metrics(
+        namespace=_AI_NAMESPACE,
+        metrics=[
+            {"name": "BatchSize", "value": len(articles), "unit": "Count"},
+            {"name": "BatchDurationMs", "value": elapsed_ms, "unit": "Milliseconds"},
+        ],
+        dimensions=None,
+    )
 
     return results

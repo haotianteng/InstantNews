@@ -13,7 +13,13 @@ import time
 from queue import Queue, Empty
 from typing import List, Optional
 
+from app.services.metrics import emit_metric
+
 logger = logging.getLogger("signal.ai_pipeline")
+
+_AI_NAMESPACE = "InstantNews/AIPipeline"
+# Rate-limit QueueDepth emission so hot-loop iterations don't flood logs.
+_QUEUE_DEPTH_MIN_INTERVAL_SECONDS = 5.0
 
 _queue: "Queue[int]" = Queue()
 _dispatcher_thread: Optional[threading.Thread] = None
@@ -37,7 +43,22 @@ def _dispatcher_loop(session_factory, batch_size: int = 25, batch_window_seconds
     from app.services.feed_refresh import _run_bedrock_analysis
     logger.info("ai_pipeline dispatcher started batch_size=%d window=%.1fs",
                 batch_size, batch_window_seconds)
+    last_queue_depth_emit = 0.0
     while not _stop_event.is_set():
+        # Emit the QueueDepth gauge at most once every few seconds regardless
+        # of how often the outer loop iterates (default batch_window_seconds
+        # is 1.5s, but operators may tune it lower — protect against log spam).
+        now_mono = time.monotonic()
+        if now_mono - last_queue_depth_emit >= _QUEUE_DEPTH_MIN_INTERVAL_SECONDS:
+            emit_metric(
+                namespace=_AI_NAMESPACE,
+                metric_name="QueueDepth",
+                value=_queue.qsize(),
+                unit="Count",
+                dimensions=None,
+            )
+            last_queue_depth_emit = now_mono
+
         batch: List[int] = []
         try:
             # Block up to batch_window_seconds for the first id
