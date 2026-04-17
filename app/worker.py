@@ -207,6 +207,73 @@ def run_polygon_fundamentals_off_hours() -> Any:
     return _run_with_audit("polygon_fundamentals_off", refresh_fundamentals, tickers)
 
 
+# US-017 — Core S&P 500 ticker refresh.
+#
+# Reads the static seed file ``data/sp500_tickers.txt`` and re-runs the
+# cheap, event-driven legs (fundamentals + Form 4 insider transactions)
+# every 4 hours. The expensive 10-Q/K and 13F legs continue under the
+# US-015 schedule (daily / windowed). This keeps S&P 500 tickers fresher
+# than organic-growth tickers without increasing the upstream load
+# beyond Polygon's 5 req/sec ceiling.
+SP500_TICKERS_PATH = "data/sp500_tickers.txt"
+
+
+def _read_sp500_tickers() -> list[str]:
+    """Load the S&P 500 ticker list from disk; returns ``[]`` if missing.
+
+    Reads each line, uppercases, strips blanks and comment lines so
+    operator edits to the file are tolerated.
+    """
+    import os as _os
+
+    path = _os.path.join(_os.path.dirname(__file__), "..", SP500_TICKERS_PATH)
+    path = _os.path.abspath(path)
+    if not _os.path.exists(path):
+        logger.warning("core_ticker_refresh: %s not found; nothing to do", path)
+        return []
+    out: list[str] = []
+    seen: set[str] = set()
+    try:
+        with open(path, "r", encoding="utf-8") as fh:
+            for line in fh:
+                sym = line.strip().upper()
+                if not sym or sym.startswith("#") or sym in seen:
+                    continue
+                seen.add(sym)
+                out.append(sym)
+    except OSError as e:
+        logger.warning("core_ticker_refresh: failed to read %s: %s", path, e)
+        return []
+    return out
+
+
+def run_core_ticker_refresh() -> Any:
+    """Tighter-cadence refresh for S&P 500 core tickers (US-017).
+
+    Calls :func:`refresh_fundamentals` (Polygon) and
+    :func:`ingest_form4` (EDGAR) on every active S&P 500 ticker. Both
+    are cheap + event-driven; the heavier 10-Q/K and 13F legs stay on
+    their daily / windowed cadence under US-015.
+    """
+    from app.ingestion.edgar_ingester import ingest_form4
+    from app.ingestion.market_data_ingester import refresh_fundamentals
+
+    tickers = _read_sp500_tickers()
+    if not tickers:
+        return None
+
+    def _refresh_both() -> dict[str, Any]:
+        fundamentals = refresh_fundamentals(tickers)
+        form4 = ingest_form4(tickers)
+        return {
+            "tickers": len(tickers),
+            "fundamentals_rows": sum(int(v or 0) for v in fundamentals.values()),
+            "form4_rows": sum(int(v or 0) for v in form4.values()),
+        }
+
+    return _run_with_audit("core_ticker_refresh", _refresh_both)
+
+
 # --------------------------------------------------------------------------- #
 # Scheduler construction (after wrappers — APScheduler resolves callables
 # eagerly when add_job receives a string ref or a function object).
@@ -289,6 +356,15 @@ def _build_scheduler() -> "BackgroundScheduler":
         "interval",
         hours=1,
         id="polygon_fundamentals",
+        replace_existing=True,
+    )
+
+    # ── Core S&P 500 ticker refresh (US-017) ──────────────────────────────
+    sched.add_job(
+        run_core_ticker_refresh,
+        "interval",
+        hours=4,
+        id="core_ticker_refresh",
         replace_existing=True,
     )
 
