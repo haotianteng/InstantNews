@@ -10,7 +10,7 @@ from flask import Blueprint, request, jsonify, current_app, g as flask_g
 from sqlalchemy import func, text
 
 from app.admin.auth import require_admin, require_superadmin
-from app.models import User, Subscription, News, ApiKey, ApiUsage, AuditLog
+from app.models import User, Subscription, News, ApiKey, ApiUsage, AuditLog, CompanyDataCache
 from app.services.feed_parser import utc_iso
 
 logger = logging.getLogger("signal.admin")
@@ -695,3 +695,83 @@ def _audit(db, action, target_user_id=None, details=None):
         ip_address=request.remote_addr,
         created_at=utc_iso(datetime.now(timezone.utc)),
     ))
+
+
+# ── Company Data Cache Inspection (read-only) ─────────────────
+
+@admin_bp.route("/cache/stats")
+@require_admin
+def cache_stats():
+    """Return cache summary: total rows, breakdown by data_type, unique symbols."""
+    db = _get_read_db()
+    try:
+        total = db.query(CompanyDataCache).count()
+        by_type = dict(db.query(
+            CompanyDataCache.data_type,
+            func.count(CompanyDataCache.id),
+        ).group_by(CompanyDataCache.data_type).all())
+        unique_symbols = db.query(func.count(func.distinct(CompanyDataCache.symbol))).scalar() or 0
+        recent = db.query(
+            CompanyDataCache.symbol, CompanyDataCache.data_type,
+            CompanyDataCache.fetched_at, func.length(CompanyDataCache.payload),
+        ).order_by(CompanyDataCache.fetched_at.desc()).limit(20).all()
+        return jsonify({
+            "total_rows": total,
+            "unique_symbols": unique_symbols,
+            "by_data_type": by_type,
+            "recent": [
+                {"symbol": r[0], "data_type": r[1], "fetched_at": r[2], "payload_bytes": r[3]}
+                for r in recent
+            ],
+        })
+    finally:
+        db.close()
+
+
+@admin_bp.route("/cache/<symbol>")
+@require_admin
+def cache_symbol(symbol: str):
+    """Return all cached data types for a specific symbol."""
+    db = _get_read_db()
+    try:
+        rows = db.query(CompanyDataCache).filter(
+            CompanyDataCache.symbol == symbol.upper()
+        ).all()
+        return jsonify({
+            "symbol": symbol.upper(),
+            "count": len(rows),
+            "entries": [
+                {
+                    "data_type": r.data_type,
+                    "fetched_at": r.fetched_at,
+                    "ttl_seconds": r.ttl_seconds,
+                    "payload_bytes": len(r.payload or ""),
+                    "payload": json.loads(r.payload) if r.payload else None,
+                }
+                for r in rows
+            ],
+        })
+    finally:
+        db.close()
+
+
+@admin_bp.route("/cache/<symbol>/<data_type>")
+@require_admin
+def cache_symbol_type(symbol: str, data_type: str):
+    """Return the specific cached payload for a symbol and data_type."""
+    db = _get_read_db()
+    try:
+        row = db.query(CompanyDataCache).filter_by(
+            symbol=symbol.upper(), data_type=data_type
+        ).first()
+        if not row:
+            return jsonify({"error": "Not found"}), 404
+        return jsonify({
+            "symbol": row.symbol,
+            "data_type": row.data_type,
+            "fetched_at": row.fetched_at,
+            "ttl_seconds": row.ttl_seconds,
+            "payload": json.loads(row.payload) if row.payload else None,
+        })
+    finally:
+        db.close()
