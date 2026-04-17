@@ -1,6 +1,64 @@
 # Deployment Guide
 
-## Quick Deploy (TL;DR)
+## TL;DR — Two Deploy Paths
+
+**App code changes (Python, JS, templates):** push to `main` → GitHub Actions auto-deploys.
+
+**Infrastructure changes (ECS task def, secrets, RDS, IAM, SGs):** run `npx cdk deploy` from `infra/`.
+
+---
+
+## Path 1: GitHub Actions (App Code)
+
+Push to `main` and the pipeline at `.github/workflows/deploy.yml` runs automatically:
+
+```
+push to main
+  → run pytest (tests/ must pass)
+  → build Docker image (Dockerfile.prod)
+  → push to ECR (596080539716.dkr.ecr.us-east-1.amazonaws.com/instantnews)
+  → ecs update-service --force-new-deployment (web + worker)
+  → wait for service stability
+```
+
+**Auth:** GitHub OIDC → IAM role `GitHubActionsInstantNews` (no static keys).
+
+**Limitation:** `ecs update-service` uses the **existing task definition** — it only swaps in the new Docker image. Adding a new env var or secret binding requires a CDK deploy first (see Path 2).
+
+**Required secrets** (already configured in `Settings → Secrets`):
+- `AWS_ROLE_ARN` — role to assume via OIDC
+
+**Required GitHub token scope** for pushing workflow file changes: classic PAT with `repo` + `workflow`. Fine-grained tokens do not support workflow-file pushes.
+
+### Manual trigger / retry
+
+Failed deploys can be re-run from the [Actions tab](https://github.com/haotianteng/InstantNews/actions) without a new commit.
+
+---
+
+## Path 2: CDK Deploy (Infrastructure)
+
+Use this when you change **anything that isn't app code**:
+- Add/remove env vars or secret bindings in `infra/stack.py`
+- Resize instances, change subnet groups, change IAM
+- Modify Route 53, ACM certs, VPC, security groups
+- Change auto-scaling targets
+
+```bash
+cd infra
+npx cdk diff       # review changes
+npx cdk deploy --require-approval never
+```
+
+CDK reads your local AWS credentials (IAM user `HaotianTeng` or whatever `aws sts get-caller-identity` returns).
+
+After `cdk deploy` creates a new ECS task definition revision, ECS automatically rolls new containers onto it. The next GitHub Actions deploy then just swaps in the new image (but uses that updated task def).
+
+---
+
+## One-Off Manual Deploy (Rarely Needed)
+
+Use only when GitHub Actions is unavailable:
 
 ```bash
 # From project root
@@ -9,9 +67,21 @@ docker build -f Dockerfile.prod -t instantnews:latest .
 aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 596080539716.dkr.ecr.us-east-1.amazonaws.com
 docker tag instantnews:latest 596080539716.dkr.ecr.us-east-1.amazonaws.com/instantnews:latest
 docker push 596080539716.dkr.ecr.us-east-1.amazonaws.com/instantnews:latest
-aws ecs update-service --cluster instantnews --service InstantNewsStack-WebService5EA589E6-CfUW4VYKPEtz --desired-count 2 --force-new-deployment
-aws ecs update-service --cluster instantnews --service InstantNewsStack-WorkerService99815FA9-b2XWHFz72OWl --desired-count 1 --force-new-deployment
+aws ecs update-service --cluster instantnews --service InstantNewsStack-WebService5EA589E6-CfUW4VYKPEtz --force-new-deployment
+aws ecs update-service --cluster instantnews --service InstantNewsStack-WorkerService99815FA9-b2XWHFz72OWl --force-new-deployment
 ```
+
+---
+
+## Common Failure Modes
+
+| Symptom | Cause | Fix |
+|---|---|---|
+| `403 Not authorized` on Polygon/Stripe | Secret exists in Secrets Manager but not bound in task def | `cdk deploy` — the task def doesn't reference the secret |
+| `POLYGON_API_KEY not set` in logs | Task definition is behind — GitHub Actions can't add new secrets | Run `cdk deploy`, then let the GitHub Actions deploy run |
+| Tests fail in CI, deploy skipped | Test expectations out of sync with code (tier config, API shape) | Fix tests locally, push again |
+| `refusing to allow a Personal Access Token to create or update workflow` | PAT missing `workflow` scope or using a fine-grained token | Use a classic PAT with `repo` + `workflow` scopes |
+| ECS stuck at `Running=X/Y rollout=IN_PROGRESS` | New containers failing health check on `/api/stats` | Check CloudWatch logs: `/ecs/instantnews-web` |
 
 ---
 
