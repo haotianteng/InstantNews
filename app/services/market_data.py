@@ -97,7 +97,7 @@ class PolygonClient:
             prev_day = ticker.get("prevDay", {})
             last_trade = ticker.get("lastTrade", {})
 
-            price = last_trade.get("p") or day.get("c", 0)
+            price = last_trade.get("p") or day.get("c") or prev_day.get("c", 0)
             prev_close = prev_day.get("c", 0)
             change = round(price - prev_close, 4) if price and prev_close else 0
             change_pct = round((change / prev_close) * 100, 4) if prev_close else 0
