@@ -20,6 +20,7 @@ from app.models import (  # noqa: F401 — ensure models are registered
     CompanyFundamentals,
     CompanyFundamentalsHistory,
     CompanyCompetitor,
+    InstitutionalHolder,
 )
 
 config = context.config

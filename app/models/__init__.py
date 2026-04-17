@@ -532,3 +532,44 @@ class CompanyCompetitor(Base):
             "ticker != competitor_ticker", name="ck_competitors_no_self"
         ),
     )
+
+
+class InstitutionalHolder(Base):
+    """One institution's reported holdings of one ticker on one 13F date.
+
+    Mirrors ``migrations/versions/018_add_institutional_holders.py``.
+    Append-only via UNIQUE ``(ticker, institution_cik, report_date)`` —
+    re-ingesting the same 13F row is rejected idempotently at the DB
+    layer.
+    """
+
+    __tablename__ = "institutional_holders"
+
+    id = Column(BigInteger, primary_key=True, autoincrement=True)
+    ticker = Column(String(10), nullable=False)
+    institution_cik = Column(String(10), nullable=True)
+    institution_name = Column(String(255), nullable=True)
+    report_date = Column(Date, nullable=False)
+    shares_held = Column(BigInteger, nullable=True)
+    market_value = Column(BigInteger, nullable=True)
+    pct_of_portfolio = Column(Numeric(6, 4), nullable=True)
+    pct_of_company = Column(Numeric(6, 4), nullable=True)
+    change_shares = Column(BigInteger, nullable=True)
+    filing_date = Column(Date, nullable=True)
+
+    __table_args__ = (
+        ForeignKeyConstraint(
+            ["ticker"],
+            ["companies.ticker"],
+            name="fk_inst_ticker",
+            ondelete="RESTRICT",
+        ),
+        UniqueConstraint(
+            "ticker",
+            "institution_cik",
+            "report_date",
+            name="uq_inst_ticker_cik_date",
+        ),
+        # Indexes idx_inst_ticker_date and idx_inst_by_value are created
+        # with DESC modifiers by the Alembic migration; not duplicated here.
+    )
