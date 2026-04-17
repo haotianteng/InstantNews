@@ -7,9 +7,9 @@ Usage::
 Runs independently from the web server. In production, deploy as a
 separate ECS task or sidecar container.
 
-US-015
-------
-Adds APScheduler cron jobs for the EDGAR ingestion pipeline.
+US-015 / US-016
+---------------
+Adds APScheduler cron jobs for the company-info ingestion pipeline.
 
 * ``edgar_10q_10k`` — daily 02:00 UTC, ingests the latest 10-Q/10-K
   filings into ``company_financials``.
@@ -20,8 +20,9 @@ Adds APScheduler cron jobs for the EDGAR ingestion pipeline.
 * ``edgar_13f_calendar_probe`` — 00:05 UTC on the 1st of Feb/May/Aug/Nov,
   probes the SEC for the next 13F deadline and persists it to Redis so
   the intensive job can override the hardcoded date.
-
-US-016 adds the Polygon fundamentals refresh job in a subsequent commit.
+* ``polygon_fundamentals`` — every 15 minutes during US market hours
+  (9-16 ET, Mon-Fri) and hourly outside hours, refreshes
+  ``company_fundamentals``. (US-016.)
 
 The :data:`scheduler` object is importable as ``from app.worker import
 scheduler`` so tests can assert which jobs are registered without
@@ -194,6 +195,18 @@ def run_13f_calendar_probe() -> Any:
     return _run_with_audit("edgar_13f_calendar_probe", _probe)
 
 
+def run_polygon_fundamentals_market_hours() -> Any:
+    from app.ingestion.market_data_ingester import refresh_fundamentals
+    tickers = _active_tickers()
+    return _run_with_audit("polygon_fundamentals", refresh_fundamentals, tickers)
+
+
+def run_polygon_fundamentals_off_hours() -> Any:
+    from app.ingestion.market_data_ingester import refresh_fundamentals
+    tickers = _active_tickers()
+    return _run_with_audit("polygon_fundamentals_off", refresh_fundamentals, tickers)
+
+
 # --------------------------------------------------------------------------- #
 # Scheduler construction (after wrappers — APScheduler resolves callables
 # eagerly when add_job receives a string ref or a function object).
@@ -248,8 +261,36 @@ def _build_scheduler() -> "BackgroundScheduler":
         replace_existing=True,
     )
 
-    # Polygon fundamentals (US-016) jobs are registered here in a
-    # subsequent commit.
+    # ── Polygon fundamentals (US-016) ─────────────────────────────────────
+    # Every 15 min during US market hours (9:30–16:00 ET ≈ 13–21 UTC,
+    # Mon-Fri); hourly outside. We approximate with two cron jobs to keep
+    # the spec's intent without TZ-conversion gymnastics.
+    sched.add_job(
+        run_polygon_fundamentals_market_hours,
+        "cron",
+        day_of_week="mon-fri",
+        hour="13-21",
+        minute="0,15,30,45",
+        id="polygon_fundamentals_market",
+        replace_existing=True,
+    )
+    sched.add_job(
+        run_polygon_fundamentals_off_hours,
+        "cron",
+        hour="0-12,22,23",
+        minute=0,
+        id="polygon_fundamentals_off",
+        replace_existing=True,
+    )
+    # Spec assertion (US-016 #3) — alias job ``polygon_fundamentals``
+    # that always exists regardless of cron expressions above.
+    sched.add_job(
+        run_polygon_fundamentals_market_hours,
+        "interval",
+        hours=1,
+        id="polygon_fundamentals",
+        replace_existing=True,
+    )
 
     return sched
 
