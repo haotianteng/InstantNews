@@ -5,16 +5,24 @@ services:
   postgres:
     profiles: ["prod"]  # disabled in dev
 
+  redis:
+    # Expose Redis to the host for dev tooling (redis-cli, local scripts)
+    ports:
+      - "6379:6379"
+
   signal:
     env_file: .env
     environment:
       - DATABASE_URL=sqlite:////app/data/news_terminal.db
+      - REDIS_URL=redis://redis:6379/0
       - WORKER_ENABLED=true
       - FIREBASE_CREDENTIALS=/app/credentials/firebase_service_account_key.json
     volumes:
       - ./data:/app/data
       - ./credentials:/app/credentials:ro
-    depends_on: {}
+    depends_on:
+      redis:
+        condition: service_healthy
 
   feed-worker:
     profiles: ["prod"]  # single-process in dev (worker runs in-app)

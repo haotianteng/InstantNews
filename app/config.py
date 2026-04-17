@@ -40,6 +40,7 @@ def _build_database_url():
 
 class Config:
     DATABASE_URL = _build_database_url()
+    REDIS_URL = os.environ.get("REDIS_URL", "redis://localhost:6379/0")
     PORT = int(os.environ.get("PORT", "8000"))
     STALE_SECONDS = int(os.environ.get("STALE_SECONDS", "30"))
     FETCH_TIMEOUT = int(os.environ.get("FETCH_TIMEOUT", "5"))

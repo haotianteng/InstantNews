@@ -1,0 +1,16 @@
+# app/cache/
+
+Redis client + cache helpers for the company-info layer.
+
+## Patterns
+
+- `get_redis()` is a process-wide lazy singleton. **Do not** construct `redis.Redis` directly in repos — always go through this module so the connection pool is shared.
+- `decode_responses=False`. Callers own serialization. Pass `bytes`/bytes-like in, expect `bytes` or `None` back. Downstream repo code should `json.dumps(...).encode()` on write and `json.loads(value)` on read.
+- `reset_redis_client()` is a test-only helper. Production code must never call it.
+- URL resolution order: `Config.REDIS_URL` → `os.environ["REDIS_URL"]` → `redis://localhost:6379/0`. The `Config` import is wrapped in try/except so tooling scripts that run before `create_app()` still work.
+
+## Related
+
+- `/health` endpoint (`app/routes/health.py`) pings the singleton — any changes here should preserve a `.ping()`-compatible surface.
+- Future `BaseRepository` (US-008) will use `get_redis()` for cache-aside.
+- Future `cache_keys.py` module (US-008) will live in this package.

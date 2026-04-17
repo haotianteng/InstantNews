@@ -32,6 +32,7 @@ from aws_cdk import (
     aws_certificatemanager as acm,
     aws_logs as logs,
     aws_elasticloadbalancingv2 as elbv2,
+    aws_elasticache as elasticache,
 )
 
 
@@ -154,6 +155,42 @@ class InstantNewsStack(Stack):
         )
 
         # ---------------------------------------------------------------
+        # ElastiCache Redis — single-node cache.t4g.micro in private subnets
+        # ---------------------------------------------------------------
+        redis_subnet_group = elasticache.CfnSubnetGroup(
+            self, "RedisSubnetGroup",
+            description="InstantNews Redis subnet group (private with egress)",
+            subnet_ids=[s.subnet_id for s in vpc.select_subnets(
+                subnet_type=ec2.SubnetType.PRIVATE_WITH_EGRESS,
+            ).subnets],
+            cache_subnet_group_name="instantnews-redis-subnets",
+        )
+
+        redis_sg = ec2.SecurityGroup(
+            self, "RedisSg",
+            vpc=vpc,
+            description="Allow inbound 6379 from ECS task security groups only",
+            allow_all_outbound=False,
+        )
+
+        redis_cluster = elasticache.CfnCacheCluster(
+            self, "RedisCluster",
+            cache_node_type="cache.t4g.micro",
+            engine="redis",
+            engine_version="7.1",
+            num_cache_nodes=1,
+            cluster_name="instantnews-redis",
+            cache_subnet_group_name=redis_subnet_group.ref,
+            vpc_security_group_ids=[redis_sg.security_group_id],
+            port=6379,
+        )
+        redis_cluster.add_dependency(redis_subnet_group)
+
+        redis_endpoint = redis_cluster.attr_redis_endpoint_address
+        redis_port = redis_cluster.attr_redis_endpoint_port
+        redis_url = f"redis://{redis_endpoint}:{redis_port}/0"
+
+        # ---------------------------------------------------------------
         # Shared env vars and secrets for ECS containers
         # ---------------------------------------------------------------
         shared_env = {
@@ -167,6 +204,7 @@ class InstantNewsStack(Stack):
             "DB_PORT": db.db_instance_endpoint_port,
             "DB_NAME": "signal_news",
             "DB_USER": "signal",
+            "REDIS_URL": redis_url,
         }
 
         shared_secrets = {
@@ -249,6 +287,11 @@ class InstantNewsStack(Stack):
         )
 
         db.connections.allow_from(web_service.service, ec2.Port.tcp(5432))
+        redis_sg.add_ingress_rule(
+            peer=web_service.service.connections.security_groups[0],
+            connection=ec2.Port.tcp(6379),
+            description="Allow Redis from web service",
+        )
 
         # Auto-scaling
         scaling = web_service.service.auto_scale_task_count(min_capacity=2, max_capacity=10)
@@ -316,6 +359,11 @@ class InstantNewsStack(Stack):
 
         db.connections.allow_from(admin_service.service, ec2.Port.tcp(5432))
         db_replica.connections.allow_from(admin_service.service, ec2.Port.tcp(5432))
+        redis_sg.add_ingress_rule(
+            peer=admin_service.service.connections.security_groups[0],
+            connection=ec2.Port.tcp(6379),
+            description="Allow Redis from admin service",
+        )
 
         # Private DNS: admin.instnews.net -> Internal ALB
         route53.ARecord(
@@ -363,6 +411,11 @@ class InstantNewsStack(Stack):
         )
 
         db.connections.allow_from(worker_service, ec2.Port.tcp(5432))
+        redis_sg.add_ingress_rule(
+            peer=worker_service.connections.security_groups[0],
+            connection=ec2.Port.tcp(6379),
+            description="Allow Redis from worker service",
+        )
 
         # ---------------------------------------------------------------
         # AWS Client VPN (for admin panel access)
@@ -406,6 +459,8 @@ class InstantNewsStack(Stack):
         cdk.CfnOutput(self, "EcrRepoUri", value=repo.repository_uri)
         cdk.CfnOutput(self, "DbEndpoint", value=db.db_instance_endpoint_address)
         cdk.CfnOutput(self, "DbReplicaEndpoint", value=db_replica.db_instance_endpoint_address)
+        cdk.CfnOutput(self, "RedisEndpoint", value=redis_endpoint)
+        cdk.CfnOutput(self, "RedisUrl", value=redis_url)
         cdk.CfnOutput(self, "DbSecretArn", value=db_secret.secret_arn)
         cdk.CfnOutput(self, "AppSecretsArn", value=app_secrets.secret_arn)
         cdk.CfnOutput(self, "WebUrl", value=f"https://www.{domain_name}")

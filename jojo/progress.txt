@@ -1,0 +1,31 @@
+# JOJO v2 Progress Log
+Started: Fri 17 Apr 2026 07:45:40 AM EDT
+PRD: Company Information Infrastructure Upgrade — Normalize company data into 6 purpose-built Postgres tables (companies, company_financials, company_fundamentals + history SCD-2, company_competitors, institutional_holders, insider_transactions). Add Redis (ElastiCache) cache-aside via BaseRepository pattern. Aggregate via CompanyService.get_full_profile() with ThreadPoolExecutor parallel fan-out and on-demand backfill guarded by per-(ticker, domain) Redis mutex. Expose unified GET /api/company/<ticker>/profile endpoint. Refactor existing /api/market/<symbol>/* routes to use new repos (backward compatible). Backfill from existing company_data_cache JSON blobs, then deprecate. Add scheduled EDGAR (10-Q/K, 13F, Form 4) and Polygon fundamentals ingestion via APScheduler with window-aware 13F polling and monthly SEC calendar probe. Seed S&P 500 core tickers up front (rate-gated) with tighter refresh cadence; long-tail tickers grow organically via on-demand backfill. Stay synchronous Flask + SQLAlchemy 2.0 with clean repo interfaces designed for a future mechanical async migration. Source PRD: tasks/prd-company-info-infra.md
+Mode: Adversarial (loop)
+---
+
+## Codebase Patterns
+
+- **Cache singleton pattern** (`app/cache/redis_client.py`): lazy thread-safe `get_redis()` that resolves URL from `Config.REDIS_URL` with env-var fallback. Uses `ConnectionPool.from_url(max_connections=50, decode_responses=False)`. Future repos should import `from app.cache import get_redis` and serialize payloads explicitly (JSON/msgpack), not rely on `decode_responses`.
+- **Health endpoint pattern** (`app/routes/health.py`): separate blueprint for cheap anonymous probes; exceptions from Redis/DB checks are caught and surfaced in the JSON body, not re-raised. Returns 200/503 based on overall status. `/api/stats` remains the ECS container healthcheck target — don't repoint it until a story says so.
+- **CDK security-group ordering**: for resources like ElastiCache that need SG ingress from ECS services created later in the stack, define the resource's own SG up front (outbound disabled), then call `sg.add_ingress_rule(peer=service.connections.security_groups[0], ...)` after each ECS service is constructed. Avoids circular construct ordering that would happen with `allow_from`.
+- **Prod vs dev compose**: `docker-compose.yml` is the canonical service graph; `docker-compose.override.yml` is the dev-only layer (SQLite, exposed ports, profile-disabled prod-only services). Add `depends_on.<svc>.condition: service_healthy` on the app service so Flask waits for deps to be healthy before starting.
+
+---
+
+## 2026-04-17 - US-001 - IMPLEMENTOR - Redis infra landed
+- Added `redis:7-alpine` service to `docker-compose.yml` (+ `redis-data` volume, healthcheck, appendonly persistence) and `docker-compose.override.yml` publishes 6379 to host.
+- Added `REDIS_URL` to `Config` (default `redis://localhost:6379/0`) and wired it through docker-compose env + CDK shared_env for web/admin/worker ECS tasks.
+- New `app/cache/` package: singleton `get_redis()` with `max_connections=50` pool; thread-safe, lazy.
+- New `/health` blueprint reports Redis ping + `SELECT 1` DB check; 200 when both OK, 503 otherwise.
+- CDK stack: `aws_elasticache.CfnCacheCluster` (engine redis 7.1, `cache.t4g.micro`, 1 node, port 6379) in PRIVATE_WITH_EGRESS subnets; dedicated `redis_sg` with inbound 6379 only from ECS service SGs (web/admin/worker). Added `RedisEndpoint` + `RedisUrl` CfnOutputs.
+- `requirements.txt` pins `redis>=5.0.0`.
+- Files changed: docker-compose.yml, docker-compose.override.yml, app/config.py, requirements.txt, app/cache/__init__.py, app/cache/redis_client.py, app/routes/health.py, app/routes/__init__.py, infra/stack.py.
+- Self-validation: AST parse OK on all 4 Python files; `docker compose config` valid; `docker compose -f docker-compose.yml up -d redis` + `redis-cli PING` returns PONG; `npx cdk synth` emits `AWS::ElastiCache::CacheCluster` (found once) and REDIS_URL in 3 task definitions; `mypy --follow-imports=silent app/cache/` exits 0; Flask test client hits `/health` → 200 with `{redis:'ok', db:'ok', status:'ok'}`, hits error path with bad REDIS_URL → 503 with specific redis error.
+- **Learnings / Environment notes for Tester:**
+  - Host machine already runs a system redis on 127.0.0.1:6379 → `docker compose up -d redis` (dev-override path) will fail to bind the host port. Either stop system redis (`sudo systemctl stop redis-server`) or use `docker compose -f docker-compose.yml up -d redis` which omits the override's host port mapping.
+  - mypy install command: `/home/haotiant/conda/bin/pip install mypy types-redis`. Running `mypy app/cache/` (without `--follow-imports=silent`) surfaces pre-existing errors in `app/services/cache_manager.py` and `app/services/edgar_client.py` — these are NOT from this story. Use `mypy --follow-imports=silent app/cache/` for a scoped pass.
+  - `app/cache/redis_client.py` provides `reset_redis_client()` — tests that swap `REDIS_URL` between cases must call it to drop the cached singleton.
+  - `/health` is a NEW route; ECS healthcheck still targets `/api/stats` — intentional, changing that is out of scope.
+  - CDK Redis endpoint is a CloudFormation token that resolves at deploy time (`f"redis://{cluster.attr_redis_endpoint_address}:{cluster.attr_redis_endpoint_port}/0"`); the synthesized template contains `Fn::GetAtt` refs that read correctly.
+---
