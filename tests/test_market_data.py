@@ -37,12 +37,17 @@ class TestPolygonClientEnabled:
         mock_resp.status_code = 200
         mock_resp.raise_for_status = MagicMock()
         mock_resp.json.return_value = {
-            "status": "OK",
-            "ticker": {
-                "day": {"c": 150.0, "v": 1000000, "vw": 149.5},
-                "prevDay": {"c": 148.0},
-                "lastTrade": {"p": 150.0},
-            },
+            "results": [{
+                "session": {
+                    "price": 150.0,
+                    "close": 150.0,
+                    "previous_close": 148.0,
+                    "change": 2.0,
+                    "change_percent": round((2.0 / 148.0) * 100, 4),
+                    "volume": 1000000,
+                    "vwap": 149.5,
+                },
+            }],
         }
         mock_get.return_value = mock_resp
 
@@ -53,7 +58,7 @@ class TestPolygonClientEnabled:
         assert result["symbol"] == "AAPL"
         assert result["price"] == 150.0
         assert result["change"] == 2.0
-        assert result["change_percent"] == round((2.0 / 148.0) * 100, 4)
+        assert result["change_percent"] == round((2.0 / 148.0) * 100, 4)  # from session directly
         assert result["volume"] == 1000000
         assert result["vwap"] == 149.5
 
@@ -62,12 +67,17 @@ class TestPolygonClientEnabled:
         mock_resp = MagicMock()
         mock_resp.raise_for_status = MagicMock()
         mock_resp.json.return_value = {
-            "status": "OK",
-            "ticker": {
-                "day": {"c": 150.0, "v": 1000000, "vw": 149.5},
-                "prevDay": {"c": 148.0},
-                "lastTrade": {"p": 150.0},
-            },
+            "results": [{
+                "session": {
+                    "price": 150.0,
+                    "close": 150.0,
+                    "previous_close": 148.0,
+                    "change": 2.0,
+                    "change_percent": round((2.0 / 148.0) * 100, 4),
+                    "volume": 1000000,
+                    "vwap": 149.5,
+                },
+            }],
         }
         mock_get.return_value = mock_resp
 
@@ -82,12 +92,17 @@ class TestPolygonClientEnabled:
         mock_resp = MagicMock()
         mock_resp.raise_for_status = MagicMock()
         mock_resp.json.return_value = {
-            "status": "OK",
-            "ticker": {
-                "day": {"c": 100.0, "v": 500, "vw": 99.0},
-                "prevDay": {"c": 100.0},
-                "lastTrade": {"p": 100.0},
-            },
+            "results": [{
+                "session": {
+                    "price": 100.0,
+                    "close": 100.0,
+                    "previous_close": 100.0,
+                    "change": 0,
+                    "change_percent": 0,
+                    "volume": 500,
+                    "vwap": 99.0,
+                },
+            }],
         }
         mock_get.return_value = mock_resp
 
@@ -239,14 +254,19 @@ class TestPolygonClientEnabled:
                         "homepage_url": "",
                     },
                 }
-            elif "/v2/snapshot/" in url:
+            elif "/v3/snapshot" in url:
                 mock_resp.json.return_value = {
-                    "status": "OK",
-                    "ticker": {
-                        "day": {"c": 200.0, "v": 500000, "vw": 199.0},
-                        "prevDay": {"c": 195.0},
-                        "lastTrade": {"p": 200.0},
-                    },
+                    "results": [{
+                        "session": {
+                            "price": 200.0,
+                            "close": 200.0,
+                            "previous_close": 195.0,
+                            "change": 5.0,
+                            "change_percent": round((5.0 / 195.0) * 100, 4),
+                            "volume": 500000,
+                            "vwap": 199.0,
+                        },
+                    }],
                 }
             return mock_resp
 

@@ -108,12 +108,17 @@ class TestPolygonClientGetFinancials:
         # snapshot endpoint response (for P/E calculation)
         snapshot_resp = MagicMock()
         snapshot_resp.json.return_value = {
-            "status": "OK",
-            "ticker": {
-                "day": {"c": 185.0, "v": 50000000, "vw": 184.5},
-                "prevDay": {"c": 183.0},
-                "lastTrade": {"p": 185.0},
-            },
+            "results": [{
+                "session": {
+                    "price": 185.0,
+                    "close": 185.0,
+                    "previous_close": 183.0,
+                    "change": 2.0,
+                    "change_percent": round((2.0 / 183.0) * 100, 4),
+                    "volume": 50000000,
+                    "vwap": 184.5,
+                },
+            }],
         }
         snapshot_resp.raise_for_status.return_value = None
         mock_session.get.side_effect = [financials_resp, snapshot_resp]
