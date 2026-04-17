@@ -684,3 +684,98 @@ Commands run
   mock-based tests call `refreshAll()` then `await` a microtask or use the
   per-panel `refresh<Panel>()` variants.
 ---
+
+## [2026-04-17] - US-013 - TESTER — anomaly badges + summary counter PASSED
+
+All 10 assertions validated via real Playwright in the proxy harness
+(Flask :8765 + reverse-proxy :8766 injecting Bearer JWT). No Python or
+frontend code touched by the Tester; all mocks installed in-browser.
+
+Assertions (all PASS)
+---------------------
+1. `.ingest-tile[data-source="SeekingAlpha"]` gained `badge--crit` after
+   resolver returned p95=200s for that source. Other 43 sources stayed
+   `badge--ok`.
+2. `#mon-summary [data-role="crit-count"]` read "1" (>=1 required).
+3. Click on `[data-severity="crit"]` → body gains `body-filter--crit`;
+   SA tile visible (display:flex, offsetParent truthy); CNBC (badge--ok)
+   hidden (display:none, offsetParent=null); Polygon (badge--warn) also
+   hidden (crit filter hides warn+ok as spec'd). crit-btn
+   aria-pressed="true".
+4. Click on `[data-role="clear-filter"]` → body class list = ["mon-body"],
+   clear-filter regains `hidden` attr, both severity buttons aria-pressed
+   reset to "false".
+5. QueueDepth=[200,400,600] (Max=600 >=500 crit) → `.widget--queue-depth`
+   class includes `badge--crit`.
+6. BackendChosen minimax=2 / claude=5 / bedrock=3 (fallback=80% >=50%
+   crit) → `.widget--fallback-chain` class includes `badge--crit`.
+7. RateLimitRemaining=[50] (88.9% used >=80% crit) → `.meter--x-api`
+   class = "tile meter--x-api meter--danger badge--crit" (both legacy
+   US-011 `meter--danger` and new US-013 `badge--crit` present, as the
+   Implementor documented — badges are additive, not mutually exclusive).
+8. `.tile--polygon`, `.tile--edgar`, `.tile--stripe` all default to
+   `badge--warn` without any mock.
+9. `cd frontend && npm run build` exit 0. Emitted
+   static/assets/admin-monitoring-DhOE_LLZ.js (78.69 kB / 31.50 kB gz)
+   and admin-monitoring-D8yhXZoC.css (14.72 kB / 3.41 kB gz).
+10. Bundle grep on static/assets/admin-monitoring-DhOE_LLZ.js:
+    `badge--ok` ✓ `badge--warn` ✓ `badge--crit` ✓
+    `THRESHOLDS` ✓ `ingestion_p95_s` ✓ `ai_queue_depth` ✓
+    `x_rate_limit_pct` ✓ `minimax_fallback_pct` ✓
+
+Regression
+----------
+`/home/haotiant/conda/bin/python -m pytest tests/ --tb=short`
+  → 261 passed, 1 skipped, 1 warning. Identical to US-012 baseline.
+
+Console
+-------
+Zero errors captured across all scenarios (15 info messages total).
+
+Artifacts
+---------
+jojo/test_results/US-013/attempt-1/
+  validate.sh, setup_admin.log, token.txt, flask.log, proxy.py, proxy.log,
+  build.log, selectors.log, pytest.log, eval_counts.log, summary.log,
+  console.log, playwright-seekingalpha-crit.png, playwright-filter-active.png
+
+Verdict
+-------
+TEST_PASSED. `prd.json` US-013 flipped to TEST_PASSED / passes=true.
+
+### Learnings
+
+- **APP_JWT_SECRET divergence in local dev**: the .env file and AWS Secrets
+  Manager each carry a DIFFERENT 64-char APP_JWT_SECRET value in this dev
+  environment. The Flask subprocess (running via `from app.config import
+  Config`) ended up using the AWS-sourced value because of the order
+  load_dotenv() ran vs _load_secret() caching. The seeder that mints the
+  JWT must either (a) explicitly pop APP_JWT_SECRET from env before
+  `import Config` so Config falls back to AWS, or (b) hard-code the same
+  secret the Flask will use. This caused US-009..US-012 testers to
+  inadvertently skirt the problem by restoring an old token.txt. Future
+  testers: always mint JWTs with `Config.APP_JWT_SECRET` and make sure
+  os.environ.pop('APP_JWT_SECRET', None) runs before `from app.config
+  import Config` — matching the Flask subprocess' actual secret. This is
+  now documented in US-013 validate.sh via the seeder block.
+- **meter--x-api double-badge is expected, not a bug**: US-011 added
+  `meter--danger|warn|ok` classes on the X API tile directly; US-013
+  added `badge--crit|warn|ok` as an additive layer. When the rate-limit
+  is crit, both fire at once. The tester brief explicitly allows this
+  ("badge--crit OR meter--danger (both are expected markers)"). Do not
+  fail a future assertion because both classes are present.
+- **body-filter--crit hides BOTH warn and ok**: the CSS rule stacks
+  (`.body-filter--crit .badge--ok, .body-filter--crit .badge--warn
+  { display:none }`). A test that expects warn tiles to remain visible
+  under crit filter will fail — use body-filter--warn for the "warn+crit
+  visible" view. This matches the intent ("show only criticals") and
+  is documented in the Implementor's notes.
+- **Body-aware fetch interceptor scales past per-URL mocks**: rather than
+  pre-seeding `window.__mockResponses[pattern] = body`, wrap
+  `SignalAuth.fetch` so that for `/admin/api/metrics/cloudwatch` it
+  parses `opts.body.queries[]` and calls a user-provided
+  `window.__cwResolver(query)` returning a values[] array. The mock then
+  wraps into the real response shape `{series: {id: {values,
+  timestamps}}}`. This lets a single interceptor serve all scenarios
+  (ingestion, AI, upstream) without re-installing per test.
+---

@@ -1178,6 +1178,20 @@
         }
        },
        {
+        "Name": "X_API_BEARER_TOKEN",
+        "ValueFrom": {
+         "Fn::Join": [
+          "",
+          [
+           {
+            "Ref": "AppSecretsA1997F2A"
+           },
+           ":X_API_BEARER_TOKEN::"
+          ]
+         ]
+        }
+       },
+       {
         "Name": "STRIPE_SECRET_KEY",
         "ValueFrom": {
          "Fn::Join": [
@@ -1908,6 +1922,35 @@
     "aws:cdk:path": "InstantNewsStack/AdminTask/TaskRole/Resource"
    }
   },
+  "AdminTaskTaskRoleDefaultPolicy80ADD05C": {
+   "Type": "AWS::IAM::Policy",
+   "Properties": {
+    "PolicyDocument": {
+     "Statement": [
+      {
+       "Action": [
+        "cloudwatch:GetMetricData",
+        "cloudwatch:ListMetrics",
+        "ce:GetCostAndUsage",
+        "ce:GetDimensionValues"
+       ],
+       "Effect": "Allow",
+       "Resource": "*"
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "PolicyName": "AdminTaskTaskRoleDefaultPolicy80ADD05C",
+    "Roles": [
+     {
+      "Ref": "AdminTaskTaskRole229B8B1F"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "InstantNewsStack/AdminTask/TaskRole/DefaultPolicy/Resource"
+   }
+  },
   "AdminTaskD8C87731": {
    "Type": "AWS::ECS::TaskDefinition",
    "Properties": {
@@ -2136,6 +2179,20 @@
             "Ref": "AppSecretsA1997F2A"
            },
            ":POLYGON_API_KEY::"
+          ]
+         ]
+        }
+       },
+       {
+        "Name": "X_API_BEARER_TOKEN",
+        "ValueFrom": {
+         "Fn::Join": [
+          "",
+          [
+           {
+            "Ref": "AppSecretsA1997F2A"
+           },
+           ":X_API_BEARER_TOKEN::"
           ]
          ]
         }
@@ -2563,6 +2620,7 @@
    "DependsOn": [
     "AdminServiceLBPublicListenerECSGroup1498466E",
     "AdminServiceLBPublicListener13810D66",
+    "AdminTaskTaskRoleDefaultPolicy80ADD05C",
     "AdminTaskTaskRole229B8B1F"
    ],
    "Metadata": {
@@ -2585,6 +2643,7 @@
     }
    },
    "DependsOn": [
+    "AdminTaskTaskRoleDefaultPolicy80ADD05C",
     "AdminTaskTaskRole229B8B1F"
    ],
    "Metadata": {
@@ -2612,6 +2671,7 @@
     "ToPort": 8000
    },
    "DependsOn": [
+    "AdminTaskTaskRoleDefaultPolicy80ADD05C",
     "AdminTaskTaskRole229B8B1F"
    ],
    "Metadata": {
@@ -2773,7 +2833,7 @@
        },
        {
         "Name": "WORKER_INTERVAL_SECONDS",
-        "Value": "30"
+        "Value": "15"
        }
       ],
       "Essential": true,
@@ -2881,6 +2941,20 @@
             "Ref": "AppSecretsA1997F2A"
            },
            ":POLYGON_API_KEY::"
+          ]
+         ]
+        }
+       },
+       {
+        "Name": "X_API_BEARER_TOKEN",
+        "ValueFrom": {
+         "Fn::Join": [
+          "",
+          [
+           {
+            "Ref": "AppSecretsA1997F2A"
+           },
+           ":X_API_BEARER_TOKEN::"
           ]
          ]
         }
