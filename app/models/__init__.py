@@ -14,14 +14,18 @@ explicitly from their submodule::
 """
 
 from sqlalchemy import (
+    BigInteger,
     Boolean,
     Column,
     Date,
     DateTime,
     Float,
     ForeignKey,
+    ForeignKeyConstraint,
     Integer,
     LargeBinary,
+    Numeric,
+    PrimaryKeyConstraint,
     String,
     Text,
     UniqueConstraint,
@@ -349,3 +353,63 @@ class Company(Base):
             "updated_at": self.updated_at.isoformat() if self.updated_at else None,
             "delisted_at": self.delisted_at.isoformat() if self.delisted_at else None,
         }
+
+
+class CompanyFinancials(Base):
+    """Append-only quarterly / annual filing row for a ticker.
+
+    Mirrors ``migrations/versions/015_add_company_financials.py``. Composite
+    primary key ``(ticker, period_end, period_type)`` is the dedup key;
+    re-ingesting the same filing is rejected with a PK violation. All metric
+    columns are nullable — upstream filings (EDGAR XBRL, Polygon) populate
+    different subsets depending on the company.
+    """
+
+    __tablename__ = "company_financials"
+
+    ticker = Column(String(10), nullable=False)
+    period_end = Column(Date, nullable=False)
+    period_type = Column(String(10), nullable=False)  # Q1/Q2/Q3/Q4/FY
+    fiscal_year = Column(Integer, nullable=False)
+
+    # Income statement
+    revenue = Column(BigInteger, nullable=True)
+    gross_profit = Column(BigInteger, nullable=True)
+    operating_income = Column(BigInteger, nullable=True)
+    net_income = Column(BigInteger, nullable=True)
+    eps_basic = Column(Numeric(10, 4), nullable=True)
+    eps_diluted = Column(Numeric(10, 4), nullable=True)
+
+    # Balance sheet
+    total_assets = Column(BigInteger, nullable=True)
+    total_liabilities = Column(BigInteger, nullable=True)
+    total_equity = Column(BigInteger, nullable=True)
+    cash_equivalents = Column(BigInteger, nullable=True)
+    long_term_debt = Column(BigInteger, nullable=True)
+
+    # Cash flow
+    operating_cf = Column(BigInteger, nullable=True)
+    investing_cf = Column(BigInteger, nullable=True)
+    financing_cf = Column(BigInteger, nullable=True)
+    free_cash_flow = Column(BigInteger, nullable=True)
+
+    # Metadata
+    filing_date = Column(Date, nullable=True)
+    source = Column(String(50), nullable=True)
+    ingested_at = Column(DateTime, nullable=False, server_default=func.now())
+
+    __table_args__ = (
+        PrimaryKeyConstraint(
+            "ticker", "period_end", "period_type", name="pk_company_financials"
+        ),
+        ForeignKeyConstraint(
+            ["ticker"],
+            ["companies.ticker"],
+            name="fk_financials_ticker",
+            ondelete="RESTRICT",
+        ),
+        # The Alembic migration creates idx_financials_period with a DESC
+        # modifier on period_end. We intentionally do not re-declare it here
+        # so ``Base.metadata.create_all`` (used only for SQLite test
+        # bootstraps) doesn't try to emit dialect-specific index DDL.
+    )
