@@ -29,6 +29,8 @@ def register_routes(app):
     # Admin routes only load when ADMIN_ENABLED=true (admin ECS service)
     if os.environ.get("ADMIN_ENABLED", "true").lower() == "true":
         from app.admin.routes import admin_bp
+        from app.admin.metrics import metrics_bp as admin_metrics_bp
         app.register_blueprint(admin_bp)
+        app.register_blueprint(admin_metrics_bp)
 
     app.register_blueprint(static_bp)
