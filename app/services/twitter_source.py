@@ -21,9 +21,10 @@ import time
 from dataclasses import dataclass, field
 from typing import Dict, List, Optional
 
-import requests
+import requests  # type: ignore[import-untyped]
 
 from app.services.feed_parser import utc_iso
+from app.services.metrics import emit_metric, emit_metrics
 from datetime import datetime, timezone
 
 logger = logging.getLogger("signal.twitter")
@@ -32,6 +33,21 @@ X_API_BASE = "https://api.x.com/2"
 RECENT_SEARCH_PATH = "/tweets/search/recent"
 USER_LOOKUP_PATH = "/users/by/username"
 USER_TIMELINE_PATH = "/users/{id}/tweets"
+_TWITTER_NAMESPACE = "InstantNews/Twitter"
+
+
+def _header_int(resp, key: str) -> Optional[int]:
+    """Parse a numeric X API rate-limit header, returning ``None`` on any failure."""
+    try:
+        raw = resp.headers.get(key)
+    except AttributeError:
+        return None
+    if raw is None:
+        return None
+    try:
+        return int(raw)
+    except (TypeError, ValueError):
+        return None
 
 
 @dataclass
@@ -120,12 +136,42 @@ class TwitterClient:
                 continue
             if code == 429:
                 logger.warning("X API 429 on search/recent — stopping chunk loop")
+                emit_metric(
+                    namespace=_TWITTER_NAMESPACE,
+                    metric_name="RateLimited",
+                    value=1,
+                    unit="Count",
+                    dimensions={"Endpoint": "search_recent"},
+                )
                 break
             if code != 200:
                 logger.warning("X API search/recent status=%s body=%s",
                                code, (resp.text or "")[:200])
                 continue
             data = resp.json()
+            # Emit one EMF line per successful search/recent call so the
+            # dashboard can chart rate-limit headroom + billable counts.
+            tweets_billed = len(data.get("data", []) or [])
+            users_billed = len((data.get("includes") or {}).get("users", []) or [])
+            rl_remaining = _header_int(resp, "x-rate-limit-remaining")
+            rl_limit = _header_int(resp, "x-rate-limit-limit")
+            metrics_payload: List[dict] = [
+                {"name": "TweetsBilled", "value": tweets_billed, "unit": "Count"},
+                {"name": "UsersBilled", "value": users_billed, "unit": "Count"},
+            ]
+            if rl_remaining is not None:
+                metrics_payload.append(
+                    {"name": "RateLimitRemaining", "value": rl_remaining, "unit": "Count"}
+                )
+            if rl_limit is not None:
+                metrics_payload.append(
+                    {"name": "RateLimitLimit", "value": rl_limit, "unit": "Count"}
+                )
+            emit_metrics(
+                namespace=_TWITTER_NAMESPACE,
+                metrics=metrics_payload,
+                dimensions={"Endpoint": "search_recent"},
+            )
             # Build id -> username from the expansions.includes.users[] payload
             id_to_username: Dict[str, str] = {}
             for u in (data.get("includes") or {}).get("users", []) or []:

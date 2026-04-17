@@ -154,10 +154,13 @@
         "Post-deploy: aws cloudwatch get-metric-statistics --namespace InstantNews/Twitter --metric-name TweetsBilled --statistics Sum --start-time $(date -u -d '-1h' +%FT%TZ) --end-time $(date -u +%FT%TZ) --period 300 returns datapoints matching observed call volume",
         "mypy app/services/twitter_source.py exits 0"
       ],
-      "status": "REQUIRE_IMPLEMENT",
+      "status": "READY_FOR_TEST",
       "passes": false,
-      "implementation_notes": null,
-      "files_changed": [],
+      "implementation_notes": "Instrumented `TwitterClient.search_recent` in `app/services/twitter_source.py` to emit one EMF line per successful `/2/tweets/search/recent` response and one `RateLimited=1` line per 429 — both under namespace `InstantNews/Twitter` with dimension `{Endpoint: 'search_recent'}`. Implementation detail: emission happens INSIDE `search_recent` (not in the generic `_get` helper) because (a) the body is already parsed once into `data` there, reusing the parse for `TweetsBilled = len(data.get('data', []) or [])` and `UsersBilled = len((data.get('includes') or {}).get('users', []) or [])` — no double-parse, no body-reread; (b) `_get` is called by other endpoints (resolve_user_id) whose response shape and rate-limit model differ and we don't want to over-emit. Added a small `_header_int(resp, key)` helper that returns `Optional[int]` — safely parses `x-rate-limit-remaining` and `x-rate-limit-limit` headers, returning None if the header is missing, non-numeric, or the response object is a partial mock. On 200: emits a multi-metric line via `emit_metrics` with `[TweetsBilled, UsersBilled]` unconditionally plus `RateLimitRemaining` and `RateLimitLimit` ONLY when the headers are parseable (so tests that mock without headers still produce clean EMF lines without NaN poisoning). On 429: emits `RateLimited=1` via `emit_metric` right before the existing `break` that stops the chunk loop. Since-id semantics, chunking, user-id caching, and `_last_max_newest_id` persistence are untouched. Added `# type: ignore[import-untyped]` on the `import requests` line — `requests` lacks bundled stubs and mypy otherwise fails even without US-005 changes; the ignore is scoped to that single import and unrelated to the new code. Self-validation: `pytest tests/services/test_twitter_metrics.py -v` → 3 passed (200 path w/ headers → 4 metrics including RateLimitRemaining=449 & TweetsBilled=1, 429 path → 1 RateLimited metric, 200 path without headers → 2 metrics with graceful header omission). `mypy --follow-imports=silent app/services/twitter_source.py` → Success. Composite mypy over all five touched service modules → Success 5/5. Full regression 246 passed 1 skipped (baseline 236 + 3 US-003 + 4 US-004 + 3 US-005). Post-deploy CloudWatch assertion deferred until team lead's batched `cdk deploy`.",
+      "files_changed": [
+        "app/services/twitter_source.py",
+        "tests/services/test_twitter_metrics.py"
+      ],
       "failure_reason": null,
       "test_evidence": null,
       "test_report": null,
