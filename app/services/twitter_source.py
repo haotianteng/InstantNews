@@ -103,9 +103,10 @@ class TwitterClient:
             return []
 
         all_tweets: List[RawTweet] = []
-        for chunk in _chunk_by_query_length(usernames, max_chars=450):
+        max_newest_id = None
+        for chunk in _chunk_by_query_length(usernames, max_chars=3800):
             query = " OR ".join(f"from:{u}" for u in chunk)
-            params = {
+            params: Dict = {
                 "query": query,
                 "max_results": max(10, min(100, max_results)),
                 "tweet.fields": "created_at,public_metrics,text,author_id",
@@ -136,7 +137,19 @@ class TwitterClient:
             # Fold into persistent cache so subsequent calls also benefit
             self._user_id_cache.update({v: k for k, v in id_to_username.items()})
 
+            chunk_newest = (data.get("meta") or {}).get("newest_id")
+            if chunk_newest and (max_newest_id is None or int(chunk_newest) > int(max_newest_id)):
+                max_newest_id = chunk_newest
+
             for tw in data.get("data", []) or []:
+                # Filter inclusive since_id quirk: X returns tweets WITH id == since_id
+                # even though the doc says "greater than". Skip any id <= since_id.
+                if since_id:
+                    try:
+                        if int(tw["id"]) <= int(since_id):
+                            continue
+                    except (ValueError, TypeError):
+                        pass
                 author_id = str(tw.get("author_id", ""))
                 username = id_to_username.get(author_id) or f"uid:{author_id}"
                 all_tweets.append(RawTweet(
@@ -147,7 +160,44 @@ class TwitterClient:
                     url=f"https://x.com/{username}/status/{tw['id']}",
                     metrics=tw.get("public_metrics", {}) or {},
                 ))
+        # Expose the max newest_id to the caller via instance attr for persistence
+        self._last_max_newest_id = max_newest_id
         return all_tweets
+
+
+SINCE_ID_REDIS_KEY = "twitter:since_id:diplomatic"
+SINCE_ID_TTL_SECONDS = 7 * 24 * 3600  # roll forward from scratch if we haven't polled in a week
+
+
+def _load_since_id() -> Optional[str]:
+    try:
+        from app.cache.redis_client import get_redis
+        v = get_redis().get(SINCE_ID_REDIS_KEY)
+        if v is None:
+            return None
+        return v.decode() if isinstance(v, bytes) else str(v)
+    except Exception as e:
+        logger.warning("since_id load failed: %s", e)
+        return None
+
+
+def _store_since_id(newest_id: str) -> None:
+    try:
+        from app.cache.redis_client import get_redis
+        # X snowflake IDs are numeric strings; we store as-is.
+        get_redis().setex(SINCE_ID_REDIS_KEY, SINCE_ID_TTL_SECONDS, newest_id)
+    except Exception as e:
+        logger.warning("since_id store failed: %s", e)
+
+
+def _bump_since_id(max_seen: str) -> str:
+    """X treats since_id as inclusive (confirmed via live probe). Adding 1 makes the
+    next call exclusive of the ID we've already seen, which is what the caller wants.
+    Snowflake IDs are monotonically increasing so max_seen+1 is a valid lower bound."""
+    try:
+        return str(int(max_seen) + 1)
+    except (ValueError, TypeError):
+        return max_seen
 
 
 def _chunk_by_query_length(usernames: List[str], max_chars: int) -> List[List[str]]:
@@ -183,7 +233,7 @@ def tweet_to_news_row(tw: RawTweet) -> dict:
 
 
 def fetch_diplomatic_tweets(bearer_token: str, handles: List[str], max_results: int = 100) -> List[dict]:
-    """Public entry-point called by feed_refresh. Returns News-ready dicts."""
+    """Public entry-point. Uses Redis-persisted since_id to fetch only new tweets."""
     client = TwitterClient(bearer_token)
     if not client.enabled:
         logger.info("Twitter disabled (no bearer token)")
@@ -191,8 +241,14 @@ def fetch_diplomatic_tweets(bearer_token: str, handles: List[str], max_results: 
     if not handles:
         return []
     t0 = time.time()
-    raw = client.search_recent(handles, max_results=max_results)
+    stored = _load_since_id()
+    since_id = _bump_since_id(stored) if stored else None
+    raw = client.search_recent(handles, max_results=max_results, since_id=since_id)
     rows = [tweet_to_news_row(t) for t in raw]
-    logger.info("Twitter fetch: %d handles -> %d tweets in %.2fs",
-                len(handles), len(rows), time.time() - t0)
+    # Persist the max newest_id we saw this run (across all chunks) for next call.
+    new_max = getattr(client, "_last_max_newest_id", None)
+    if new_max:
+        _store_since_id(new_max)
+    logger.info("Twitter fetch: %d handles -> %d tweets in %.2fs since_id=%s new_max=%s",
+                len(handles), len(rows), time.time() - t0, since_id or '-', new_max or '-')
     return rows

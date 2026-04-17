@@ -91,5 +91,10 @@ print('Manual schema fixes completed')
 " 2>&1
 fi
 
-echo "Starting Nginx + Gunicorn via Supervisor..."
-exec supervisord -c /etc/supervisor/conf.d/signal.conf
+if [ $# -eq 0 ]; then
+  echo "Starting Nginx + Gunicorn via Supervisor..."
+  exec supervisord -c /etc/supervisor/conf.d/signal.conf
+else
+  echo "Starting container command: $*"
+  exec "$@"
+fi

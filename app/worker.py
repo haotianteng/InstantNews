@@ -34,6 +34,7 @@ from __future__ import annotations
 import logging
 import signal
 import sys
+import threading
 import time
 from datetime import datetime, timezone
 from typing import TYPE_CHECKING, Any
@@ -43,7 +44,6 @@ from sqlalchemy.orm import sessionmaker
 from app.config import Config
 from app.database import get_session, init_db
 from app.logging_config import configure_logging
-from app.services.feed_refresh import refresh_feeds_parallel
 
 if TYPE_CHECKING:  # pragma: no cover
     from apscheduler.schedulers.background import BackgroundScheduler
@@ -395,16 +395,62 @@ def main() -> None:
     # process during deploy and could partially-create new tables.
     session_factory = sessionmaker(bind=engine)
 
-    interval = config.WORKER_INTERVAL_SECONDS
+    # Per-source poller architecture (replaces the legacy while-loop).
+    # Each source has its own cadence; slow feeds can't starve fast ones.
+    from app.services.source_poller import (
+        SourceSpec,
+        build_rss_spec,
+        build_twitter_spec,
+        build_truth_social_spec,
+        start_source_thread,
+    )
+    from app.services.ai_pipeline import ensure_started as start_ai_pipeline, stop as stop_ai_pipeline
+
+    # Per-source intervals (seconds). Tune individually — SeekingAlpha has a small
+    # rolling window so poll tighter; Google News proxies update slower.
+    RSS_INTERVAL_DEFAULT = config.WORKER_INTERVAL_SECONDS  # 15s default
+    RSS_INTERVALS = {
+        "SeekingAlpha": 10,
+        "CNBC": 20,
+        "CNBC_World": 20,
+        "MarketWatch": 20,
+        "MarketWatch_Markets": 20,
+        "Investing_com": 20,
+        "Yahoo_Finance": 20,
+        "Nasdaq": 30,
+        "Benzinga": 20,
+        "BBC_Business": 60,
+        "Reuters_Business": 60,      # Google News proxy — slower cadence
+        "AP_News": 60,               # Google News proxy
+        "Bloomberg_Business": 30,
+        "Bloomberg_Markets": 30,
+        "Google_News_Business": 60,
+    }
+    TWITTER_INTERVAL = int(getattr(config, "TWITTER_POLL_INTERVAL_SECONDS", 5) or 5)
+    TRUTH_SOCIAL_INTERVAL = int(getattr(config, "TRUTH_SOCIAL_POLL_INTERVAL_SECONDS", 60) or 60)
+
+    specs: list[SourceSpec] = []
+    for name, url in config.FEEDS.items():
+        specs.append(build_rss_spec(name, url, config,
+                                    interval_seconds=RSS_INTERVALS.get(name, RSS_INTERVAL_DEFAULT)))
+    if getattr(config, "SOCIAL_SOURCES_ENABLED", True):
+        specs.append(build_twitter_spec(config, TWITTER_INTERVAL))
+        specs.append(build_truth_social_spec(config, TRUTH_SOCIAL_INTERVAL))
+
     logger.info("Feed worker started", extra={
         "event": "worker_start",
         "detail": (
-            f"interval={interval}s, BEDROCK_ENABLED={config.BEDROCK_ENABLED}, "
+            f"sources={len(specs)} twitter_interval={TWITTER_INTERVAL}s "
+            f"truth_social_interval={TRUTH_SOCIAL_INTERVAL}s "
+            f"BEDROCK_ENABLED={config.BEDROCK_ENABLED}, "
             f"scheduler_jobs={[j.id for j in scheduler.get_jobs()] if scheduler else []}"
         ),
     })
 
-    # Start the APScheduler thread (ingestion jobs).
+    # AI pipeline — global queue + dispatcher + batch workers.
+    start_ai_pipeline(session_factory)
+
+    # APScheduler ingestion jobs (EDGAR / Polygon / S&P 500).
     if scheduler is not None:
         try:
             scheduler.start()
@@ -412,33 +458,38 @@ def main() -> None:
         except Exception:
             logger.exception("APScheduler failed to start")
 
-    running = True
+    # Start one thread per source.
+    stop_event = threading.Event()
+    results_sink: dict = {}
+    results_lock = threading.Lock()
+    threads = [start_source_thread(spec, session_factory, results_sink, results_lock, stop_event)
+               for spec in specs]
 
     def shutdown(signum, frame):  # type: ignore[no-untyped-def]
-        nonlocal running
         logger.info("Shutting down feed worker", extra={"event": "worker_shutdown"})
-        running = False
+        stop_event.set()
 
     signal.signal(signal.SIGINT, shutdown)
     signal.signal(signal.SIGTERM, shutdown)
 
-    while running:
-        try:
-            total_new, results = refresh_feeds_parallel(session_factory, config)
+    # Periodic summary log + keepalive loop
+    summary_interval = 60
+    while not stop_event.is_set():
+        stop_event.wait(summary_interval)
+        if stop_event.is_set():
+            break
+        with results_lock:
+            total = sum(results_sink.values())
+            snapshot = dict(results_sink)
+            results_sink.clear()
+        if total:
             logger.info("Feed refresh completed", extra={
                 "event": "refresh_complete",
-                "detail": f"{total_new} new items from {len(results)} sources",
-            })
-        except Exception:
-            logger.exception("Feed refresh failed", extra={
-                "event": "refresh_error",
+                "detail": f"{total} new items across {len(snapshot)} sources in last {summary_interval}s",
+                "per_source": snapshot,
             })
 
-        # Sleep in small increments so we can catch shutdown signals
-        for _ in range(interval):
-            if not running:
-                break
-            time.sleep(1)
+    stop_ai_pipeline()
 
     if scheduler is not None:
         try:

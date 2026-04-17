@@ -90,6 +90,10 @@ class Config:
     X_API_BEARER_TOKEN = _load_secret("X_API_BEARER_TOKEN")
     SOCIAL_SOURCES_ENABLED = os.environ.get("SOCIAL_SOURCES_ENABLED", "true").lower() == "true"
     TWITTER_MAX_RESULTS_PER_RUN = int(os.environ.get("TWITTER_MAX_RESULTS_PER_RUN", "100"))
+    # Per-source poll intervals (seconds). 5s for Twitter — rate-limited at 450/15m
+    # per-app, we use 180/15m = 40% of cap with since_id keeping costs flat.
+    TWITTER_POLL_INTERVAL_SECONDS = int(os.environ.get("TWITTER_POLL_INTERVAL_SECONDS", "5"))
+    TRUTH_SOCIAL_POLL_INTERVAL_SECONDS = int(os.environ.get("TRUTH_SOCIAL_POLL_INTERVAL_SECONDS", "60"))
 
 
 class TestConfig(Config):
