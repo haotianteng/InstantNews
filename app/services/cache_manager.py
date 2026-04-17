@@ -1,5 +1,16 @@
 """Two-tier company data cache manager.
 
+.. deprecated:: US-013
+   The normalized Postgres tables (``companies``, ``company_financials``,
+   ``company_fundamentals``, ``company_competitors``,
+   ``institutional_holders``, ``insider_transactions``) combined with the
+   Redis-backed :mod:`app.repositories` layer supersede this JSON blob
+   cache. ``CompanyCache`` is kept active during the 7-day dual-write
+   soak (spec US-013) so legacy readers continue to see fresh data; it
+   will be removed in US-018 once the backfill (US-014) is complete and
+   the soak window has elapsed. New call sites must go through the
+   repository layer instead.
+
 L1: in-memory dicts inside PolygonClient / EdgarClient (per-process, fast)
 L2: company_data_cache DB table (shared across workers, survives restarts)
 
@@ -9,6 +20,7 @@ their existing L1 logic — no changes to route handlers required.
 
 import json
 import logging
+import warnings
 from datetime import datetime, timezone, timedelta
 from typing import Any, Optional
 
@@ -31,7 +43,22 @@ DB_TTLS = {
 
 
 class CompanyCache:
-    """L2 database cache for company dimension data."""
+    """L2 database cache for company dimension data.
+
+    .. deprecated:: US-013
+       Prefer ``app.repositories.*`` (backed by Redis + normalized
+       tables). This class stays on the read+write path during the
+       7-day dual-write soak so legacy consumers keep working; it will
+       be removed alongside the ``company_data_cache`` table in US-018.
+    """
+
+    def __init__(self) -> None:
+        warnings.warn(
+            "CompanyCache is deprecated; use app.repositories.* "
+            "(will be removed in US-018 after the dual-write soak).",
+            DeprecationWarning,
+            stacklevel=2,
+        )
 
     def get(self, symbol: str, data_type: str) -> Optional[Any]:
         """Return cached data if still valid, else None."""
