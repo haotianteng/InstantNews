@@ -81,26 +81,26 @@ class PolygonClient:
             return cached.value
 
         try:
-            # Strip suffix for Polygon API (uses US endpoint for all)
+            # Use v3 universal snapshot — works for stocks, futures, extended hours
             api_symbol = symbol.split(".")[0] if "." in symbol else symbol
-            url = f"{POLYGON_BASE_URL}/v2/snapshot/locale/us/markets/stocks/tickers/{api_symbol}"
-            resp = self._session.get(url, params={"apiKey": self._api_key}, timeout=10)
+            url = f"{POLYGON_BASE_URL}/v3/snapshot"
+            resp = self._session.get(url, params={
+                "apiKey": self._api_key,
+                "ticker.any_of": api_symbol,
+            }, timeout=10)
             resp.raise_for_status()
             data = resp.json()
 
-            if data.get("status") != "OK" or "ticker" not in data:
-                logger.warning("polygon snapshot: unexpected response for %s: %s", symbol, data.get("status"))
+            results = data.get("results", [])
+            if not results:
+                logger.warning("polygon snapshot: no results for %s", symbol)
                 return None
 
-            ticker = data["ticker"]
-            day = ticker.get("day", {})
-            prev_day = ticker.get("prevDay", {})
-            last_trade = ticker.get("lastTrade", {})
-
-            price = last_trade.get("p") or day.get("c") or prev_day.get("c", 0)
-            prev_close = prev_day.get("c", 0)
-            change = round(price - prev_close, 4) if price and prev_close else 0
-            change_pct = round((change / prev_close) * 100, 4) if prev_close else 0
+            session = results[0].get("session", {})
+            price = session.get("price") or session.get("close") or session.get("previous_close", 0)
+            prev_close = session.get("previous_close", 0)
+            change = round(session.get("change", 0), 4)
+            change_pct = round(session.get("change_percent", 0), 4)
 
             # Detect exchange and market status
             if asset_type and asset_type.upper() == "FUTURE":
@@ -127,8 +127,8 @@ class PolygonClient:
                 "price": price,
                 "change": change,
                 "change_percent": change_pct,
-                "volume": day.get("v", 0),
-                "vwap": day.get("vw", 0),
+                "volume": session.get("volume", 0),
+                "vwap": session.get("vwap", 0),
                 **market_info,
             }
 
