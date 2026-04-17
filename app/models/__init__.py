@@ -413,3 +413,82 @@ class CompanyFinancials(Base):
         # so ``Base.metadata.create_all`` (used only for SQLite test
         # bootstraps) doesn't try to emit dialect-specific index DDL.
     )
+
+
+class CompanyFundamentals(Base):
+    """Current-view fundamentals snapshot for a ticker.
+
+    Mirrors ``migrations/versions/016_add_company_fundamentals.py``. PK is
+    just ``ticker`` — there is one row per ticker. On each UPDATE, the
+    Postgres trigger ``fn_snapshot_fundamentals_before_update`` copies the
+    OLD row into ``company_fundamentals_history`` with the prior
+    ``updated_at`` as ``valid_from`` and NOW() as ``valid_to``.
+    """
+
+    __tablename__ = "company_fundamentals"
+
+    ticker = Column(String(10), primary_key=True)
+    market_cap = Column(BigInteger, nullable=True)
+    shares_outstanding = Column(BigInteger, nullable=True)
+    pe_ratio = Column(Numeric(10, 4), nullable=True)
+    pb_ratio = Column(Numeric(10, 4), nullable=True)
+    ev_ebitda = Column(Numeric(10, 4), nullable=True)
+    dividend_yield = Column(Numeric(6, 4), nullable=True)
+    beta = Column(Numeric(6, 4), nullable=True)
+    next_earnings_date = Column(Date, nullable=True)
+    next_earnings_time = Column(String(10), nullable=True)  # BMO/AMC
+    analyst_rating = Column(Numeric(3, 2), nullable=True)
+    price_target_mean = Column(Numeric(10, 2), nullable=True)
+    updated_at = Column(DateTime, nullable=False, server_default=func.now())
+
+    __table_args__ = (
+        ForeignKeyConstraint(
+            ["ticker"],
+            ["companies.ticker"],
+            name="fk_fundamentals_ticker",
+            ondelete="RESTRICT",
+        ),
+    )
+
+
+class CompanyFundamentalsHistory(Base):
+    """Append-only SCD-2 history rows for ``company_fundamentals``.
+
+    Populated automatically by the Postgres trigger. Each row represents a
+    snapshot that was valid during ``[valid_from, valid_to)``. PK is
+    ``(ticker, valid_from)``; lookups are typically indexed by
+    ``(ticker, valid_to DESC)``.
+    """
+
+    __tablename__ = "company_fundamentals_history"
+
+    ticker = Column(String(10), nullable=False)
+    market_cap = Column(BigInteger, nullable=True)
+    shares_outstanding = Column(BigInteger, nullable=True)
+    pe_ratio = Column(Numeric(10, 4), nullable=True)
+    pb_ratio = Column(Numeric(10, 4), nullable=True)
+    ev_ebitda = Column(Numeric(10, 4), nullable=True)
+    dividend_yield = Column(Numeric(6, 4), nullable=True)
+    beta = Column(Numeric(6, 4), nullable=True)
+    next_earnings_date = Column(Date, nullable=True)
+    next_earnings_time = Column(String(10), nullable=True)
+    analyst_rating = Column(Numeric(3, 2), nullable=True)
+    price_target_mean = Column(Numeric(10, 2), nullable=True)
+    updated_at = Column(DateTime, nullable=True)
+    valid_from = Column(DateTime, nullable=False)
+    valid_to = Column(DateTime, nullable=False)
+
+    __table_args__ = (
+        PrimaryKeyConstraint(
+            "ticker", "valid_from", name="pk_company_fundamentals_history"
+        ),
+        ForeignKeyConstraint(
+            ["ticker"],
+            ["companies.ticker"],
+            name="fk_fundamentals_history_ticker",
+            ondelete="RESTRICT",
+        ),
+        # idx_fundamentals_history_ticker_validto (DESC) created by the
+        # Alembic migration; not duplicated here for the same reason as
+        # CompanyFinancials.
+    )
