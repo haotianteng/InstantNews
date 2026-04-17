@@ -323,6 +323,58 @@ a { color: inherit; text-decoration: none; }
 .mon-drawer__error { color: var(--text-muted); font-size: 12px; padding: var(--sp-4) 0; }
 .mon-drawer__error { color: var(--red); }
 
+/* ── AI panel (US-010) ───────────────────────────────────────────── */
+.banner {
+  display: block; padding: var(--sp-2) var(--sp-3);
+  border-radius: var(--radius-sm); font-size: 12px;
+  margin-bottom: var(--sp-2);
+}
+.banner--warn {
+  background: var(--yellow-bg); color: var(--yellow);
+  border: 1px solid var(--yellow-border);
+}
+
+.ai-widgets {
+  display: grid;
+  grid-template-columns: minmax(120px, 0.6fr) minmax(200px, 1.4fr) minmax(160px, 1fr);
+  gap: var(--sp-3);
+  align-items: stretch;
+}
+@media (max-width: 900px) {
+  .ai-widgets { grid-template-columns: 1fr; }
+}
+.widget {
+  background: var(--bg-surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: var(--sp-2) var(--sp-3);
+  display: flex; flex-direction: column; gap: var(--sp-1);
+  min-width: 0;
+}
+.widget__label {
+  font-size: 10.5px; text-transform: uppercase; color: var(--text-muted);
+  letter-spacing: 0.08em; font-weight: 600;
+}
+.widget__value { font-size: 26px; color: var(--text-primary); font-weight: 600; }
+.widget__spark { color: var(--blue); height: 32px; }
+.widget__chart { width: 100%; }
+.widget__empty { color: var(--text-muted); font-size: 11px; padding: var(--sp-3) 0; text-align: center; }
+
+.fallback-donut { display: block; margin: var(--sp-1) auto 0; }
+.fallback-legend {
+  display: flex; flex-direction: column; gap: 2px;
+  font-size: 11px; color: var(--text-secondary); margin-top: var(--sp-1);
+}
+.fallback-legend i {
+  display: inline-block; width: 8px; height: 8px; border-radius: 2px;
+  margin-right: 6px; vertical-align: middle;
+}
+.fallback-legend b {
+  color: var(--text-primary); font-weight: 500;
+  margin-left: auto; font-family: var(--font-mono);
+}
+.fallback-legend span { display: flex; align-items: center; gap: 4px; }
+
 /* ── Scrollbar ───────────────────────────────────────────────────────── */
 ::-webkit-scrollbar { width: 6px; height: 6px; }
 ::-webkit-scrollbar-track { background: var(--bg-primary); }

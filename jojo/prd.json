@@ -341,10 +341,13 @@
         "Playwright: assert donut renders three arcs with data-backend attributes minimax, claude, bedrock",
         "cd frontend && npm run build exits 0"
       ],
-      "status": "REQUIRE_IMPLEMENT",
+      "status": "READY_FOR_TEST",
       "passes": false,
-      "implementation_notes": null,
-      "files_changed": [],
+      "implementation_notes": "Implemented AI pipeline panel alongside the ingestion panel in `frontend/src/admin-monitoring.js`. Renders three widgets inside `.panel--ai`: `.widget--queue-depth` (big current number + 160×32 inline-SVG sparkline of the last 60 QueueDepth Max samples), `.widget--batch-duration` (uPlot line chart with two series — p50 and p95 BatchDurationMs), and `.widget--fallback-chain` (SVG donut with three arcs carrying `data-backend='minimax|claude|bedrock'` attributes using `stroke-dasharray` on concentric circles — no third-party chart library). One batched POST to `/admin/api/metrics/cloudwatch` collects six queries: QueueDepth Maximum (no dimensions — bedrock_analysis emits without any dims), BatchDurationMs p50+p95 (no dims), and BackendChosen Sum × 3 dimensioned by `Backend=minimax|claude|bedrock`. Backend shares are computed as `sum(BackendChosen)[k] / total` over the selected range; when `total > 0 && minimax share < 0.8`, a yellow `<div class='banner banner--warn ai-banner'>MiniMax fallback active — check credits</div>` is shown at the top of the panel (removed when share >= 0.8 or total == 0 — no data shouldn't trigger a false alarm). Previous uPlot instance is destroyed on refresh to avoid leaks. CSS additions cover `.ai-widgets` grid, widget chrome, donut+legend layout, and the warn banner. Self-validation: `cd frontend && npm run build` exits 0, bundle includes the `.widget--queue-depth/.widget--batch-duration/.widget--fallback-chain/.ai-banner/banner--warn` selectors. Tester mock recipe: stub `window.__monitoring__.fetchMetrics` to return `{bmm: {values: [5]}, bcl: {values: [3]}, bbr: {values: [2]}}` (20% minimax) → banner should appear. Return `{bmm: {values: [9]}, bcl: {values: [1]}, bbr: {values: [0]}}` (90% minimax) → banner should hide.",
+      "files_changed": [
+        "frontend/src/admin-monitoring.js",
+        "frontend/src/styles/admin-monitoring.css"
+      ],
       "failure_reason": null,
       "test_evidence": null,
       "test_report": null,

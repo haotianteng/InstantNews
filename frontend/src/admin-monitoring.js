@@ -15,7 +15,9 @@ import SignalAuth from './auth.js';
 import {
   classifyStatus,
   formatSeconds,
+  formatNumber,
   sparklineSvg,
+  sumSeries,
   maxSeries,
   escapeHtml,
 } from './admin-monitoring-helpers.js';
@@ -432,6 +434,184 @@ async function _openIngestionDrawer(sourceName) {
   }
 }
 
+// ── US-010: AI pipeline panel ─────────────────────────────────────────
+const _aiState = { uplot: null };
+
+function _aiPanelBody() {
+  return document.querySelector('.panel--ai .panel__body');
+}
+
+function _renderAiSkeleton() {
+  const body = _aiPanelBody();
+  if (!body) return;
+  if (body.querySelector('.ai-widgets')) return;
+  body.innerHTML = `
+    <div class="banner banner--warn ai-banner" hidden>MiniMax fallback active — check credits</div>
+    <div class="ai-widgets">
+      <div class="widget widget--queue-depth">
+        <div class="widget__label">Queue depth</div>
+        <div class="widget__value num" data-numeric>–</div>
+        <div class="widget__spark" aria-hidden="true"></div>
+      </div>
+      <div class="widget widget--batch-duration">
+        <div class="widget__label">Batch duration (p50 / p95)</div>
+        <div class="widget__chart" style="width:100%;height:140px;"></div>
+      </div>
+      <div class="widget widget--fallback-chain">
+        <div class="widget__label">Backend fallback chain</div>
+        <svg class="fallback-donut" viewBox="0 0 42 42" width="120" height="120" aria-hidden="true">
+          <circle class="donut-track" cx="21" cy="21" r="15.9155" fill="none"
+            stroke="var(--bg-surface-3)" stroke-width="4"></circle>
+          <circle data-backend="minimax" cx="21" cy="21" r="15.9155" fill="none"
+            stroke="var(--green)" stroke-width="4" stroke-dasharray="0 100"
+            stroke-dashoffset="25" transform="rotate(-90 21 21)"></circle>
+          <circle data-backend="claude" cx="21" cy="21" r="15.9155" fill="none"
+            stroke="var(--blue)" stroke-width="4" stroke-dasharray="0 100"
+            stroke-dashoffset="25" transform="rotate(-90 21 21)"></circle>
+          <circle data-backend="bedrock" cx="21" cy="21" r="15.9155" fill="none"
+            stroke="var(--yellow)" stroke-width="4" stroke-dasharray="0 100"
+            stroke-dashoffset="25" transform="rotate(-90 21 21)"></circle>
+        </svg>
+        <div class="fallback-legend">
+          <span><i style="background:var(--green)"></i>minimax <b data-share="minimax">0%</b></span>
+          <span><i style="background:var(--blue)"></i>claude <b data-share="claude">0%</b></span>
+          <span><i style="background:var(--yellow)"></i>bedrock <b data-share="bedrock">0%</b></span>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function _updateFallbackDonut(shares) {
+  const body = _aiPanelBody();
+  if (!body) return;
+  const svg = body.querySelector('.fallback-donut');
+  if (!svg) return;
+  let offset = 0;
+  for (const key of ['minimax', 'claude', 'bedrock']) {
+    const share = Math.max(0, Math.min(1, Number(shares[key]) || 0));
+    const pct = share * 100;
+    const circle = svg.querySelector(`circle[data-backend="${key}"]`);
+    if (circle) {
+      circle.setAttribute('stroke-dasharray', `${pct.toFixed(2)} ${(100 - pct).toFixed(2)}`);
+      circle.setAttribute('stroke-dashoffset', (25 - offset).toFixed(2));
+    }
+    const label = body.querySelector(`[data-share="${key}"]`);
+    if (label) label.textContent = `${Math.round(pct)}%`;
+    offset += pct;
+  }
+}
+
+async function _refreshAI(range) {
+  const body = _aiPanelBody();
+  if (!body) return;
+  _renderAiSkeleton();
+
+  const queries = [
+    { id: 'qd', namespace: 'InstantNews/AIPipeline', metric: 'QueueDepth',
+      dimensions: {}, stat: 'Maximum' },
+    { id: 'bd50', namespace: 'InstantNews/AIPipeline', metric: 'BatchDurationMs',
+      dimensions: {}, stat: 'p50' },
+    { id: 'bd95', namespace: 'InstantNews/AIPipeline', metric: 'BatchDurationMs',
+      dimensions: {}, stat: 'p95' },
+    { id: 'bmm', namespace: 'InstantNews/AIPipeline', metric: 'BackendChosen',
+      dimensions: { Backend: 'minimax' }, stat: 'Sum' },
+    { id: 'bcl', namespace: 'InstantNews/AIPipeline', metric: 'BackendChosen',
+      dimensions: { Backend: 'claude' }, stat: 'Sum' },
+    { id: 'bbr', namespace: 'InstantNews/AIPipeline', metric: 'BackendChosen',
+      dimensions: { Backend: 'bedrock' }, stat: 'Sum' },
+  ];
+
+  let series = {};
+  try {
+    series = await fetchMetrics(queries, range);
+  } catch (err) {
+    console.warn('[monitoring] ai fetchMetrics failed', err);
+    return;
+  }
+
+  const qd = series.qd || { timestamps: [], values: [] };
+  const qdLast = (() => {
+    for (let i = qd.values.length - 1; i >= 0; i -= 1) {
+      const v = Number(qd.values[i]);
+      if (Number.isFinite(v)) return v;
+    }
+    return null;
+  })();
+  const qdEl = body.querySelector('.widget--queue-depth .widget__value');
+  const qdSpark = body.querySelector('.widget--queue-depth .widget__spark');
+  if (qdEl) qdEl.textContent = qdLast == null ? '–' : formatNumber(qdLast);
+  if (qdSpark) qdSpark.innerHTML = sparklineSvg((qd.values || []).slice(-60), {
+    width: 160, height: 32, stroke: 'var(--blue)',
+  });
+
+  const bd50 = series.bd50 || { timestamps: [], values: [] };
+  const bd95 = series.bd95 || { timestamps: [], values: [] };
+  const xs = bd50.timestamps.length >= bd95.timestamps.length
+    ? bd50.timestamps : bd95.timestamps;
+  const align = (vals, ts) => {
+    if (vals.length === xs.length) return vals;
+    const out = new Array(xs.length).fill(null);
+    for (let i = 0; i < ts.length; i += 1) {
+      const xi = xs.indexOf(ts[i]);
+      if (xi !== -1) out[xi] = vals[i];
+    }
+    return out;
+  };
+  const chartHost = body.querySelector('.widget--batch-duration .widget__chart');
+  if (chartHost && xs.length > 0) {
+    const data = [
+      xs,
+      align(bd50.values, bd50.timestamps),
+      align(bd95.values, bd95.timestamps),
+    ];
+    if (_aiState.uplot) {
+      try { _aiState.uplot.destroy(); } catch (_e) { /* noop */ }
+      _aiState.uplot = null;
+    }
+    const opts = {
+      width: chartHost.clientWidth || 320,
+      height: 140,
+      series: [
+        {},
+        { label: 'p50 ms', stroke: '#3fb950', width: 1.25 },
+        { label: 'p95 ms', stroke: '#d29922', width: 1.25 },
+      ],
+      axes: [
+        { stroke: '#8b949e' },
+        { stroke: '#8b949e' },
+      ],
+      scales: { x: { time: true } },
+      legend: { show: false },
+    };
+    try {
+      _aiState.uplot = new uPlot(opts, data, chartHost);
+    } catch (err) {
+      console.warn('[monitoring] batch duration uplot failed', err);
+    }
+  } else if (chartHost) {
+    chartHost.innerHTML = '<div class="widget__empty">No data</div>';
+  }
+
+  const bmm = sumSeries((series.bmm || {}).values);
+  const bcl = sumSeries((series.bcl || {}).values);
+  const bbr = sumSeries((series.bbr || {}).values);
+  const total = bmm + bcl + bbr;
+  const shares = total > 0
+    ? { minimax: bmm / total, claude: bcl / total, bedrock: bbr / total }
+    : { minimax: 0, claude: 0, bedrock: 0 };
+  _updateFallbackDonut(shares);
+
+  const banner = body.querySelector('.ai-banner');
+  if (banner) {
+    if (total > 0 && shares.minimax < 0.8) {
+      banner.removeAttribute('hidden');
+    } else {
+      banner.setAttribute('hidden', '');
+    }
+  }
+}
+
 // ── Public interface (window.__monitoring__) ──────────────────────────
 window.__monitoring__ = {
   state,
@@ -447,7 +627,8 @@ window.__monitoring__ = {
   POLL_INTERVALS,
   THRESHOLDS,
   refreshIngestion: _refreshIngestion,
-  _helpers: { classifyStatus, formatSeconds, sparklineSvg },
+  refreshAI: _refreshAI,
+  _helpers: { classifyStatus, formatSeconds, formatNumber, sparklineSvg },
 };
 
 // ── Bootstrap ─────────────────────────────────────────────────────────
@@ -464,6 +645,7 @@ function boot() {
   bindTimeRangeButtons();
 
   registerPanel('ingestion', _refreshIngestion);
+  registerPanel('ai', _refreshAI);
 
   setRange(state.range);
   updateSummary(0, 0);
