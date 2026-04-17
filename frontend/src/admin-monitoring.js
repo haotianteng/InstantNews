@@ -16,6 +16,7 @@ import {
   classifyStatus,
   formatSeconds,
   formatNumber,
+  formatUsd,
   sparklineSvg,
   sumSeries,
   maxSeries,
@@ -702,6 +703,263 @@ async function _refreshUpstream(range) {
   }
 }
 
+// ── US-012: Cost panel ────────────────────────────────────────────────
+const _costState = { cache: null, cacheAt: 0 };
+
+function _costPanelBody() {
+  return document.querySelector('.panel--cost .panel__body');
+}
+
+function _renderCostSkeleton() {
+  const body = _costPanelBody();
+  if (!body) return;
+  if (body.querySelector('.cost-grid')) return;
+  body.innerHTML = `
+    <div class="cost-grid">
+      <div class="summary--mtd">
+        <div class="summary__row">
+          <span class="summary__label">MTD spend</span>
+          <span class="summary__value num" data-numeric data-role="mtd">–</span>
+        </div>
+        <div class="summary__row">
+          <span class="summary__label">Projected month-end</span>
+          <span class="summary__value num" data-numeric data-role="proj">–</span>
+        </div>
+      </div>
+      <div class="chart--aws-daily" aria-label="AWS daily spend stacked bar chart"></div>
+      <div class="meter--x-api-monthly">
+        <div class="meter__row">
+          <span class="meter__label" data-role="x-label">– / – posts</span>
+          <span class="meter__days" data-role="x-days"></span>
+        </div>
+        <div class="meter-bar-wrap">
+          <span class="meter-bar" style="width:0%"></span>
+        </div>
+        <div class="meter__note" data-role="x-est" hidden>estimated</div>
+      </div>
+    </div>
+  `;
+}
+
+function _resolveCostRangeKey(range) {
+  // Cost API accepts 24h | 7d | 30d; dashboard uses 1h | 24h | 7d.
+  if (range === '1h' || range === '24h') return '24h';
+  if (range === '7d') return '7d';
+  return '7d';
+}
+
+function _renderAwsStackedBars(awsData) {
+  const body = _costPanelBody();
+  if (!body) return;
+  const host = body.querySelector('.chart--aws-daily');
+  if (!host) return;
+
+  const dailyTotals = awsData.daily_totals || [];
+  const byService = awsData.by_service || [];
+  if (!dailyTotals.length) {
+    host.innerHTML = '<div class="widget__empty">No AWS cost data</div>';
+    return;
+  }
+
+  // Pick the top-4 preferred services, everything else rolls up as "other".
+  const SERVICE_ALIASES = {
+    'Amazon Elastic Container Service': 'ECS',
+    'Amazon Relational Database Service': 'RDS',
+    'Amazon ElastiCache': 'ElastiCache',
+    'AmazonCloudWatch': 'CloudWatch',
+    'Amazon CloudWatch': 'CloudWatch',
+  };
+  const preferred = ['ECS', 'RDS', 'ElastiCache', 'CloudWatch'];
+  const topServiceNames = new Set();
+  for (const alias of Object.keys(SERVICE_ALIASES)) {
+    if (byService.some((s) => s.service === alias)) topServiceNames.add(alias);
+  }
+  // If fewer than 4 preferred aliases matched, fill from top-by-cost.
+  for (const s of byService) {
+    if (topServiceNames.size >= 4) break;
+    topServiceNames.add(s.service);
+  }
+
+  const labelFor = (svc) => SERVICE_ALIASES[svc] || svc;
+  const PALETTE = {
+    ECS: '#3fb950',
+    RDS: '#58a6ff',
+    ElastiCache: '#d29922',
+    CloudWatch: '#bc8cff',
+    other: '#8b949e',
+  };
+
+  // CE's by_service payload is summed across the range, so per-day breakdown
+  // isn't directly available. Approximate by scaling each day's total by the
+  // across-range service mix (honest given the data we have).
+  const rangeTotal = byService.reduce((acc, s) => acc + (Number(s.cost) || 0), 0);
+  const topTotal = byService.reduce((acc, s) => (
+    topServiceNames.has(s.service) ? acc + (Number(s.cost) || 0) : acc
+  ), 0);
+  const mix = {};
+  for (const s of byService) {
+    if (topServiceNames.has(s.service)) {
+      mix[labelFor(s.service)] = rangeTotal > 0 ? (Number(s.cost) || 0) / rangeTotal : 0;
+    }
+  }
+  mix.other = rangeTotal > 0 ? (rangeTotal - topTotal) / rangeTotal : 0;
+
+  const stackKeys = preferred.filter((k) => mix[k] !== undefined && mix[k] > 0);
+  if (!stackKeys.length) {
+    for (const svc of Object.keys(mix)) {
+      if (svc !== 'other' && mix[svc] > 0) stackKeys.push(svc);
+    }
+  }
+  if (mix.other > 0) stackKeys.push('other');
+
+  const width = host.clientWidth || 480;
+  const height = 160;
+  const padL = 36;
+  const padR = 8;
+  const padT = 8;
+  const padB = 22;
+  const plotW = width - padL - padR;
+  const plotH = height - padT - padB;
+  const maxDaily = Math.max(1e-6, ...dailyTotals.map((d) => Number(d.cost) || 0));
+  const bw = Math.max(4, plotW / dailyTotals.length - 4);
+
+  let bars = '';
+  dailyTotals.forEach((d, i) => {
+    const total = Number(d.cost) || 0;
+    const x = padL + i * (plotW / dailyTotals.length) + 2;
+    let yCursor = padT + plotH;
+    for (const k of stackKeys) {
+      const share = mix[k] || 0;
+      const h = total > 0 ? (total / maxDaily) * plotH * share : 0;
+      if (h <= 0) continue;
+      const y = yCursor - h;
+      const color = PALETTE[k] || '#484f58';
+      bars += `<rect x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${bw.toFixed(1)}" height="${h.toFixed(1)}" fill="${color}" data-service="${escapeHtml(k)}" data-date="${escapeHtml(d.date)}">
+        <title>${escapeHtml(d.date)} ${escapeHtml(k)} ${formatUsd(total * share)}</title>
+      </rect>`;
+      yCursor = y;
+    }
+    if (i % Math.max(1, Math.round(dailyTotals.length / 7)) === 0) {
+      const lx = x + bw / 2;
+      const ly = padT + plotH + 14;
+      const short = String(d.date || '').slice(5); // MM-DD
+      bars += `<text x="${lx.toFixed(1)}" y="${ly}" text-anchor="middle" fill="#8b949e" font-size="10">${escapeHtml(short)}</text>`;
+    }
+  });
+
+  bars += `<text x="4" y="${padT + 10}" fill="#8b949e" font-size="10">${escapeHtml(formatUsd(maxDaily))}</text>`;
+  bars += `<text x="4" y="${padT + plotH}" fill="#8b949e" font-size="10">$0</text>`;
+
+  const legend = stackKeys.map((k) => (
+    `<span class="legend-item"><i style="background:${PALETTE[k] || '#484f58'}"></i>${escapeHtml(k)}</span>`
+  )).join('');
+
+  host.innerHTML = `
+    <svg class="aws-bars" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" preserveAspectRatio="none">
+      ${bars}
+    </svg>
+    <div class="aws-legend">${legend}</div>
+  `;
+}
+
+function _renderCostMtd(awsData) {
+  const body = _costPanelBody();
+  if (!body) return;
+  const daily = awsData.daily_totals || [];
+  const mtdEl = body.querySelector('[data-role="mtd"]');
+  const projEl = body.querySelector('[data-role="proj"]');
+  const now = new Date();
+  const monthIdx = now.getUTCMonth();
+  const monthYear = now.getUTCFullYear();
+  let mtd = 0;
+  for (const d of daily) {
+    const parts = String(d.date || '').split('-');
+    if (parts.length !== 3) continue;
+    if (Number(parts[0]) === monthYear && Number(parts[1]) - 1 === monthIdx) {
+      mtd += Number(d.cost) || 0;
+    }
+  }
+  if (mtd === 0 && daily.length) {
+    // Range may start before month boundary — fall back to range total.
+    mtd = daily.reduce((acc, d) => acc + (Number(d.cost) || 0), 0);
+  }
+  const daysElapsed = Math.max(1, now.getUTCDate());
+  const daysInMonth = new Date(Date.UTC(monthYear, monthIdx + 1, 0)).getUTCDate();
+  const projected = (mtd / daysElapsed) * daysInMonth;
+  if (mtdEl) mtdEl.textContent = formatUsd(mtd);
+  if (projEl) projEl.textContent = formatUsd(projected);
+}
+
+function _renderXApiMonthly(xApi) {
+  const body = _costPanelBody();
+  if (!body) return;
+  const label = body.querySelector('[data-role="x-label"]');
+  const daysEl = body.querySelector('[data-role="x-days"]');
+  const estEl = body.querySelector('[data-role="x-est"]');
+  const bar = body.querySelector('.meter--x-api-monthly .meter-bar');
+  if (!xApi || typeof xApi !== 'object') {
+    if (label) label.textContent = '– / – posts';
+    if (bar) bar.style.width = '0%';
+    return;
+  }
+  const used = Number(xApi.used_this_month) || 0;
+  const quota = Number(xApi.quota) || 0;
+  const pct = quota > 0 ? Math.max(0, Math.min(100, (used / quota) * 100)) : 0;
+  const now = new Date();
+  const daysInMonth = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + 1, 0)).getUTCDate();
+  const daysLeft = Math.max(0, daysInMonth - now.getUTCDate());
+
+  if (label) {
+    if (quota > 0) {
+      label.textContent = `${used.toLocaleString()} / ${quota.toLocaleString()} posts`;
+    } else {
+      label.textContent = `${used.toLocaleString()} posts`;
+    }
+  }
+  if (daysEl) daysEl.textContent = `${daysLeft} days left`;
+  if (bar) bar.style.width = `${pct.toFixed(1)}%`;
+  if (estEl) {
+    if (xApi.estimated === true) {
+      estEl.removeAttribute('hidden');
+    } else {
+      estEl.setAttribute('hidden', '');
+    }
+  }
+}
+
+async function _refreshCost(range) {
+  const body = _costPanelBody();
+  if (!body) return;
+  _renderCostSkeleton();
+
+  const key = _resolveCostRangeKey(range);
+  let data = null;
+  // Page-local cache (1 minute) so repeated refresh ticks don't hammer the
+  // server (which in turn caches CE responses for 1h).
+  if (
+    _costState.cache
+    && _costState.cache._key === key
+    && (Date.now() - _costState.cacheAt) < 60_000
+  ) {
+    data = _costState.cache;
+  } else {
+    try {
+      data = await fetchCost(key);
+      data._key = key;
+      _costState.cache = data;
+      _costState.cacheAt = Date.now();
+    } catch (err) {
+      console.warn('[monitoring] fetchCost failed', err);
+      return;
+    }
+  }
+
+  const aws = data.aws || { by_service: [], daily_totals: [] };
+  _renderAwsStackedBars(aws);
+  _renderCostMtd(aws);
+  _renderXApiMonthly(data.x_api || {});
+}
+
 // ── Public interface (window.__monitoring__) ──────────────────────────
 window.__monitoring__ = {
   state,
@@ -719,7 +977,8 @@ window.__monitoring__ = {
   refreshIngestion: _refreshIngestion,
   refreshAI: _refreshAI,
   refreshUpstream: _refreshUpstream,
-  _helpers: { classifyStatus, formatSeconds, formatNumber, sparklineSvg },
+  refreshCost: _refreshCost,
+  _helpers: { classifyStatus, formatSeconds, formatNumber, formatUsd, sparklineSvg },
 };
 
 // ── Bootstrap ─────────────────────────────────────────────────────────
@@ -738,6 +997,7 @@ function boot() {
   registerPanel('ingestion', _refreshIngestion);
   registerPanel('ai', _refreshAI);
   registerPanel('upstream', _refreshUpstream);
+  registerPanel('cost', _refreshCost);
 
   setRange(state.range);
   updateSummary(0, 0);

@@ -407,10 +407,13 @@
         "mypy on any new Python helpers (if added) exits 0",
         "cd frontend && npm run build exits 0"
       ],
-      "status": "REQUIRE_IMPLEMENT",
+      "status": "READY_FOR_TEST",
       "passes": false,
-      "implementation_notes": null,
-      "files_changed": [],
+      "implementation_notes": "Implemented cost panel in `frontend/src/admin-monitoring.js` using the existing `fetchCost(range)` wrapper around GET `/admin/api/metrics/cost`. `.panel--cost` body now contains `.cost-grid` with three elements: `.summary--mtd` (two rows: `MTD spend: $X` + `Projected month-end: $Y`, projection = `(mtd / days_elapsed) * days_in_month`), `.chart--aws-daily` (inline SVG stacked bar chart — one bar per day in `aws.daily_totals`; stacks show share of ECS / RDS / ElastiCache / CloudWatch / other derived from the `aws.by_service` mix, since CE's by_service payload is summed across the range not per-day — approximation is documented in code), and `.meter--x-api-monthly` (horizontal progress bar filled `(used / quota) * 100%`, label reads `{used} / {quota} posts` + separate `N days left`, and when `xApi.estimated === true` a `<div data-role='x-est'>estimated</div>` footnote is un-hidden). Dashboard range mapping: `1h` and `24h` → `24h`, `7d` → `7d` (cost API only accepts 24h/7d/30d so we clamp). Colors respect the dark theme tokens — ECS green, RDS blue, ElastiCache yellow, CloudWatch purple, other grey. Page-lifetime cache (1 min) layered on top of the server's 1h CE cache to avoid redundant network calls as the dashboard ticks. Tester mock recipe: stub `window.__monitoring__.fetchCost` to return `{aws: {daily_totals: [{date:'2026-04-10', cost:12.34}, {date:'2026-04-11', cost:15.67}, ...7 days...], by_service: [{service:'Amazon Elastic Container Service', cost:50}, {service:'Amazon Relational Database Service', cost:30}]}, x_api: {estimated: true, used_this_month: 1200, quota: 10000}}` — asserts: 7 `<rect>` elements per stack key in `.chart--aws-daily svg`, `.summary__value[data-role='mtd']` textContent contains `$`, `.meter__note[data-role='x-est']` not hidden. Build exits 0; bundle grep confirms `.chart--aws-daily`, `.meter--x-api-monthly`, `.summary--mtd` selectors.",
+      "files_changed": [
+        "frontend/src/admin-monitoring.js",
+        "frontend/src/styles/admin-monitoring.css"
+      ],
       "failure_reason": null,
       "test_evidence": null,
       "test_report": null,

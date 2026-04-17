@@ -200,3 +200,266 @@ def test_emit(capfd):
 - **Pre-existing `import-untyped` for requests**: `requests` ships without type stubs in this environment. Rather than installing `types-requests` (adds a runtime dep that's global to the repo and could trigger other mypy issues), scope the ignore narrowly: `import requests  # type: ignore[import-untyped]`. This is the minimal change and is clearly tagged for future cleanup.
 
 ---
+
+## [2026-04-17] - US-002..US-005 - TESTER — all four TEST_PASSED (deferred post-deploy assertions documented)
+
+- Ran `jojo/test_results/validate_002_005.sh` on branch `jojo/admin-monitoring-dashboard` HEAD (commit `ac57a31` progress-doc, validating commits `1b84633` / `f3421bb` / `790e9cb` / `437ebc8`).
+- **US-002 (IAM + CDK)** — TEST_PASSED (commit 1b84633).
+  - `cd infra && npx cdk synth` → EXIT=0 (see `jojo/test_results/US-002/attempt-1/synth.log`).
+  - `cd infra && npx cdk diff` → EXIT=0. IAM Statement diff shows one `+` row, Resource=`*`, four actions: `ce:GetCostAndUsage`, `ce:GetDimensionValues`, `cloudwatch:GetMetricData`, `cloudwatch:ListMetrics`, Principal=`AWS:${AdminTask/TaskRole}` (see `.../US-002/attempt-1/diff.log` + `diff_iam_actions.log`). One new `AWS::IAM::Policy` (`AdminTaskTaskRoleDefaultPolicy80ADD05C`) plus DependsOn churn on AdminService/Service, its SecurityGroup, and the matching SecurityGroupIngress — cosmetic, accepted per implementor note.
+  - Deferred (post-deploy): `boto3.client('cloudwatch').list_metrics(MaxResults=1)` and `boto3.client('ce').get_cost_and_usage(...)` from inside admin ECS task.
+- **US-003 (source_poller EMF)** — TEST_PASSED (commit f3421bb).
+  - `pytest tests/services/test_source_poller_metrics.py -v` → 3 passed (`.../US-003/attempt-1/pytest.log`, EXIT=0).
+  - `mypy --follow-imports=silent app/services/source_poller.py` → Success: no issues found in 1 source file (`.../US-003/attempt-1/mypy.log`, EXIT=0).
+  - EMF shape confirmed by reading `tests/services/test_source_poller_metrics.py`: namespace `InstantNews/Ingestion`, dims `{Source, SourceType}` (happy + empty paths) / `{Source, SourceType, ErrorType}` (failure path), metric names `NewItems`, `FetchDurationMs`, `IngestLatencySeconds`, `FetchErrors`. Empty-fetch path covered (NewItems=0 + FetchDurationMs, no latency).
+  - Deferred (post-deploy): `aws cloudwatch get-metric-statistics --namespace InstantNews/Ingestion ...`.
+- **US-004 (ai_pipeline + bedrock_analysis EMF)** — TEST_PASSED (commit 790e9cb).
+  - `pytest tests/services/test_ai_pipeline_metrics.py -v` → 4 passed (`.../US-004/attempt-1/pytest.log`, EXIT=0).
+  - `mypy --follow-imports=silent app/services/ai_pipeline.py app/services/bedrock_analysis.py` → Success: no issues found in 2 source files (`.../US-004/attempt-1/mypy.log`, EXIT=0).
+  - Dispatcher-loop `QueueDepth` emit confirmed by inspection (`app/services/ai_pipeline.py:47-60`): `_AI_NAMESPACE="InstantNews/AIPipeline"`, `_QUEUE_DEPTH_MIN_INTERVAL_SECONDS=5.0`, emit gated by `now_mono - last_queue_depth_emit >= 5.0`. Accepted limitation per handoff — module-level infinite loop, post-deploy CloudWatch check is the cheaper validation.
+  - Deferred (post-deploy): `aws cloudwatch get-metric-statistics --namespace InstantNews/AIPipeline --metric-name QueueDepth ...` (no dimensions).
+- **US-005 (twitter_source EMF)** — TEST_PASSED (commit 437ebc8).
+  - `pytest tests/services/test_twitter_metrics.py -v` → 3 passed (`.../US-005/attempt-1/pytest.log`, EXIT=0).
+  - `mypy --follow-imports=silent app/services/twitter_source.py` → Success: no issues found in 1 source file (`.../US-005/attempt-1/mypy.log`, EXIT=0). `# type: ignore[import-untyped]` on `requests` accepted.
+  - 200 + headers → 4 metrics (TweetsBilled, UsersBilled, RateLimitRemaining=449, RateLimitLimit=450), 429 → RateLimited=1, 200 without headers → graceful omission of rate-limit keys. All with Dimensions=[['Endpoint']], Endpoint=search_recent, Namespace=InstantNews/Twitter.
+  - Deferred (post-deploy): `aws cloudwatch get-metric-statistics --namespace InstantNews/Twitter --metric-name TweetsBilled --dimensions Name=Endpoint,Value=search_recent ...`.
+- **Full regression**: `pytest tests/ --tb=short` → **246 passed, 1 skipped**, 1 warning in 6.60s (`.../US-005/attempt-1/regression.log`, EXIT=0) — exact match to implementor's reported baseline (236 US-001 baseline + 3 US-003 + 4 US-004 + 3 US-005 = 246). No new failures, no flakes.
+- prd.json writes (Tester scope only): US-002/003/004/005 each `status: TEST_PASSED`, `passes: true`, plus `test_evidence` + `test_report`. `fail_count` left at 0 for all four.
+- Validation script saved at `jojo/test_results/validate_002_005.sh`.
+
+### Learnings
+
+- **Deferred post-deploy assertions pattern**: stories whose final assertion is `aws cloudwatch get-metric-statistics` on a fresh namespace cannot be settled in a PR-time tester run — the stack-level deploy is batched. Pass the story if (a) the unit test proves the EMF line is emitted with correct namespace/dimensions/metric names, (b) the namespace literal in source matches the namespace in the post-deploy query. Record the exact deferred command in `test_report` under a "Deferred (post-deploy)" heading so whoever runs the soak test after deploy knows what to verify. Do NOT block the PR on a CloudWatch call that cannot physically succeed until after the stack deploy — that creates an infinite-loop trap.
+- **CDK diff DependsOn churn is cosmetic when adding an IAM Policy**: attaching a new `iam.PolicyStatement` via `.task_role.add_to_policy()` generates one new `AWS::IAM::Policy` resource (`<TaskName>TaskRoleDefaultPolicy<hash>`) AND rewrites DependsOn arrays on every resource that already depended on the TaskRole. The diff reader should focus on the "IAM Statement Changes" table (authoritative) and ignore the "Resources" tweak rows that only change DependsOn lists. No physical replacement, no logical-ID change.
+- **Namespace-to-query shape mapping** for deferred assertions:
+  - `InstantNews/Ingestion` — dims `{Source, SourceType}` for rate metrics; `{Source, SourceType, ErrorType}` for FetchErrors.
+  - `InstantNews/AIPipeline` — no dims for `QueueDepth`, `BatchSize`, `BatchDurationMs`; dim `{Backend}` for `BackendChosen`.
+  - `InstantNews/Twitter` — dim `{Endpoint}` for all metrics; current only value is `search_recent`.
+- **Regression-count fingerprint stays useful**: implementor reported "246 passed, 1 skipped" and reproducing that exact count (same warning count, same skip count) is a cheap, strong signal that no tests silently skipped or collection-errored on the tester side.
+
+---
+
+## [2026-04-17] - US-006 - IMPLEMENTOR — POST /admin/api/metrics/cloudwatch ready for test
+
+- Created `app/admin/metrics.py` (new blueprint, url_prefix `/admin/api/metrics`) with `POST /cloudwatch`.
+- Registered in `app/routes/__init__.py` alongside the existing admin blueprint, gated by the same `ADMIN_ENABLED=true` env check.
+- Reused the existing `@require_admin` decorator from `app/admin/auth.py` — no new auth logic. 401 if `g.current_user is None`, 403 if role not in `{admin, superadmin}`.
+- Validates `range in {1h,24h,7d}`, non-empty `queries` (cap 500 per AWS GetMetricData batch limit), and required fields `{id, namespace, metric, stat}` per query.
+- Range resolution: 1h/24h -> period=60s, 7d -> period=3600s. `end=datetime.now(UTC)`, `start=end-range`.
+- Boto3 call: `cloudwatch.get_metric_data(MetricDataQueries, StartTime, EndTime, ScanBy='TimestampAscending')` via a `_cloudwatch_client()` factory so tests can patch.
+- Response shape: `{series: {[id]: {timestamps: [unix-seconds int], values: [float]}}}`. Queries CloudWatch doesn't echo back still get an empty entry (defensive).
+- 60-second TTL cache: custom thread-safe `_TTLCache` (dict + threading.Lock). `cachetools` is NOT installed in the conda env; stdlib-only is fine. Cache key = sha256 of `json.dumps({range, queries}, sort_keys=True)`. `X-Cache: HIT | MISS` header on every response.
+- Commands run:
+  - `/home/haotiant/conda/bin/python -c "from app.admin.metrics import metrics_bp; print(metrics_bp.name)"` -> `admin_metrics`.
+  - `/home/haotiant/conda/bin/python -c "from app import create_app; app = create_app(); print([r.rule for r in app.url_map.iter_rules() if '/admin/api/metrics' in r.rule])"` -> `['/admin/api/metrics/cloudwatch', '/admin/api/metrics/cost']` (US-007 was implemented in the same file; ignore the cost route for US-006 testing).
+  - `/home/haotiant/conda/bin/python -m pytest tests/admin/test_metrics_cloudwatch.py -v` -> 8 passed.
+  - `/home/haotiant/conda/bin/mypy --follow-imports=silent app/admin/metrics.py` -> Success.
+- Commit: `9e86d79` on branch `jojo/admin-monitoring-dashboard`.
+- Files: `app/admin/metrics.py`, `app/routes/__init__.py`, `tests/admin/__init__.py`, `tests/admin/test_metrics_cloudwatch.py`.
+
+### Environment notes for Tester
+
+- The admin blueprint only loads when `ADMIN_ENABLED` env var is unset or `true`. In `TestConfig` (conftest.py) that env stays at its default, so both `admin_bp` and `admin_metrics_bp` register under the test app. If a tester spawns a shell with `ADMIN_ENABLED=false`, the routes won't exist and they'll see 404 instead of 401/403/200 — document a paranoia check with `print([r.rule for r in app.url_map.iter_rules() if '/admin/api/metrics' in r.rule])` before any curl-style assertions.
+- **Auth pattern for tests**: seed a `User` row with the matching `firebase_uid` and the desired `role`, then `patch("app.auth.firebase.verify_id_token", return_value=MOCK_DECODED_TOKEN)`. The middleware loads the DB row into `g.current_user`, then `@require_admin` checks `role`. `VERIFY_PATCH` and `MOCK_DECODED_TOKEN` are importable from `tests.test_auth`. 401 = no auth header at all; 403 = seeded user's role != admin/superadmin.
+- The `_clear_metrics_cache` autouse fixture in tests/admin/ flushes `_cloudwatch_cache`, `_cost_cache`, and `_x_usage_cache` between tests — relevant if a tester writes additional scratch tests; without it, test ordering becomes significant because identical bodies hit the same cache key.
+- Cache TTL is 60s per spec; tests verify the 2nd-identical-call-skips-boto3 behaviour deterministically without waiting (cache eviction only happens on explicit `.clear()` or after wall-clock TTL).
+- The endpoint is POST-only and reads JSON body via `request.get_json(silent=True) or {}`. Non-JSON bodies coerce to `{}` and fail validation with 400 — not 415.
+- Dimension values are coerced via `str(v)` before the boto3 call. A dimension `{Source: 42}` passes validation (int values aren't rejected at input boundary) and goes down the wire as `{"Name": "Source", "Value": "42"}`.
+
+### Learnings
+
+- **Blueprint layering in `app/routes/__init__.py`**: the existing pattern registers `admin_bp` inside an `if os.environ.get("ADMIN_ENABLED", "true").lower() == "true":` guard. New admin blueprints must go under the same guard so the admin ECS service is the only place that exposes them. Following the existing import-at-registration-site pattern (not top-level) keeps the public API pod from pulling boto3 deps into its import graph.
+- **`cachetools` is not in the base conda env**; writing a 30-line thread-safe `_TTLCache` (dict + `threading.Lock`, `time.monotonic()` for expiry) is strictly simpler than adding a dep for this use case. The implementation fits in `app/admin/metrics.py` alongside the endpoints.
+- **Dimension `Value` coercion at the boto3 boundary** (`str(v)`) matches the same discipline the EMF helper `emit_metric` uses in US-001 — CloudWatch rejects non-string dimension values, and it's cheaper to coerce once here than audit every caller.
+- **`MetricDataQueries` batch cap = 500 per call** per AWS GetMetricData API. Our validator rejects >500 with 400 rather than silently splitting into multiple calls — the dashboard's worst-case query count is ~17 sources × 3 metrics = 51, so we're comfortably under. Splitting would double the cost for a case that doesn't exist.
+
+---
+
+## [2026-04-17] - US-007 - IMPLEMENTOR — GET /admin/api/metrics/cost ready for test
+
+- Extended `app/admin/metrics.py` with `GET /cost` (same blueprint, same `@require_admin`). Default `range=7d`; allowed values `24h|7d|30d`. Returns 400 on invalid range.
+- AWS piece: two `ce.get_cost_and_usage` calls per cache-miss request:
+  - Daily totals (no grouping) -> `[{date, cost}, ...]`.
+  - By-service (`GroupBy=[{Type:DIMENSION,Key:SERVICE}]`) — summed across days per service, sorted desc by cost -> `[{service, cost}, ...]`.
+  - Both use `Metrics=['UnblendedCost']`. `_ce_client()` indirection so tests can patch.
+- Cache: 1h TTL on the outer response (keyed `cost:<range>`) minimises Cost Explorer spend ($0.01/call).
+- X API piece — OQ-1 resolution documented below. Primary path calls `GET https://api.x.com/2/usage/tweets` with `X_API_BEARER_TOKEN`. On 200 extracts `project_cap`, `project_usage`, `cap_reset_day` from the response (supports both `{data: {...}}` and flat wrappers) and maps to `{used_this_month, quota, reset_at}` where `reset_at` is ISO UTC derived from `cap_reset_day` (defaults to next month start if missing). On 401/403/404 raises `_XUsageUnavailable`; on `requests.RequestException` falls through to the same fallback branch.
+- Fallback path (triggered by `_XUsageUnavailable`, `RequestException`, or empty bearer): sums `InstantNews/Twitter.TweetsBilled` with `Dimensions=[{Name:'Endpoint', Value:'search_recent'}]` via `cloudwatch.get_metric_statistics(Period=86400, Statistics=['Sum'])` across the current calendar month and returns `{estimated: true, used_this_month, estimated_cost_usd: round(used*0.005, 4)}`. If CloudWatch itself raises ClientError, returns zeros rather than 5xx — authoritative AWS cost is already in the response.
+- Separate 5-min TTL cache for the X usage portion (`_x_usage_cache`) so the outer 1h cache doesn't drag a stale quota figure forward.
+- `X-Cache: HIT | MISS` header on every response.
+- Commands run:
+  - `/home/haotiant/conda/bin/python -m pytest tests/admin/test_metrics_cost.py -v` -> 7 passed.
+  - `/home/haotiant/conda/bin/python -m pytest tests/admin/ -v` (both files) -> 15 passed.
+  - `/home/haotiant/conda/bin/mypy --follow-imports=silent app/admin/metrics.py` -> Success.
+  - `/home/haotiant/conda/bin/python -m pytest tests/ --tb=short` -> **261 passed, 1 skipped** (baseline 246 + 8 US-006 + 7 US-007 = 261 exact match).
+- Commit: `7b77b8d`.
+- Files: `app/admin/metrics.py` (extended), `tests/admin/test_metrics_cost.py`.
+
+### Environment notes for Tester
+
+- The cost endpoint is GET-only with `?range=7d` default. No JSON body.
+- Primary-path test patches `app.admin.metrics._fetch_x_api_usage` directly (easier than mocking the outbound HTTP call through `requests`). The fallback-path test patches `app.admin.metrics.requests.get` to return a fake `_FakeXResp(404)` — this proves the `/2/usage/tweets` endpoint being unavailable flips the response into estimated-mode.
+- Both `_ce_client` and `_cloudwatch_client` are module-level factory functions so tests patch `app.admin.metrics._ce_client` / `_cloudwatch_client` (NOT `boto3.client`). This keeps the import-time cost of `import boto3` outside the test hot path.
+- The two TTL caches are independent: the outer 1h `_cost_cache` (keyed by range) wraps the full response; the inner 5min `_x_usage_cache` (keyed `x_usage`) wraps only the X API section. Test `test_cache_hit_returns_hit_header` verifies that the outer cache produces `X-Cache: HIT` on the 2nd identical GET and that `ce.get_cost_and_usage` is called exactly twice total across the two requests (once for daily totals, once for by-service — same pair, not repeated).
+- **Deferred (post-deploy)**: the `curl` assertions in the prd test list require the admin ECS task to be running with valid credentials AND the IAM policy from US-002 to be deployed. Unit tests cover the endpoint logic in full; treat the curl-from-admin-task assertions as deferred until the team lead's batched `cdk deploy`.
+
+### OQ-1 resolution (X API /2/usage/tweets availability)
+
+- **Finding**: the endpoint IS available on Basic tier per the X docs rate-limits page (`https://docs.x.com/x-api/fundamentals/rate-limits`) which lists `GET /2/usage/tweets` under the "Usage (1 endpoint)" section with a 50/15min per-app rate limit.
+- **Response fields** (cross-referenced via `docs.x.com/x-api/fundamentals/post-cap` + X developer community announcement posts): `project_cap` (monthly quota, 10,000 on Basic), `project_usage` (count consumed month-to-date), `cap_reset_day` (day-of-month when the quota resets).
+- **Not deferred, but fallback still mandatory**: the primary path is the happy case in production, but the fallback to CloudWatch must exist to gracefully handle (a) 401/403 if the bearer token's project doesn't have the usage-endpoint scope, (b) transient network errors, (c) empty/missing bearer in env, (d) any future API changes. Both paths are unit-tested.
+
+### Learnings
+
+- **Cost Explorer DAILY granularity excludes `End`**: for a "last 7 days" view we ask `[today-7, today]` which yields 7 buckets ending yesterday. Asking for `[today-7, today+1]` to include today's partial-day bucket would return a too-low value AND pays for CE's $0.01 call regardless.
+- **CE `GroupBy=SERVICE` emits daily-grouped results**: you have to sum across `ResultsByTime[].Groups[]` yourself — CE does not provide a flat "by service across the whole range" shape. Two calls (totals + grouped) is the canonical way to populate a stacked bar chart without doing math on the frontend.
+- **X API bearer token reuse**: the same `X_API_BEARER_TOKEN` secret that powers `twitter_source.py` polling also authorises `/2/usage/tweets`. No separate credential, no AWS Secrets Manager change.
+- **Separate inner-vs-outer TTLs matter**: a single 1h cache on the whole response would cause a freshly-reset monthly quota (e.g. rolling past midnight on the 1st) to stay at "95% used" for up to an hour. The 5-min inner cache on the X portion caps that staleness window at 5 minutes while still massively reducing calls to the rate-limited `/2/usage/tweets` endpoint.
+
+---
+
+## [2026-04-17] - US-006 + US-007 - TESTER — both TEST_PASSED (deferred post-deploy curl assertions noted)
+
+- Ran `jojo/test_results/validate_006_007.sh` on branch `jojo/admin-monitoring-dashboard` validating commits `9e86d79` (US-006) and `7b77b8d` (US-007).
+- **US-006 (POST /admin/api/metrics/cloudwatch)** — TEST_PASSED.
+  - Blueprint smoke (`jojo/test_results/US-006/attempt-1/blueprint_smoke.log`): `metrics_bp.name` -> `admin_metrics`, EXIT=0.
+  - Route enumeration (`routes_smoke.log` + `routes_assert.log`): `create_app()` exposes `['/admin/api/metrics/cloudwatch', '/admin/api/metrics/cost']`. Assertion `'/admin/api/metrics/cloudwatch' in routes` -> OK, EXIT=0.
+  - `pytest tests/admin/test_metrics_cloudwatch.py -v` -> **8 passed** in 0.36s (`pytest.log`, EXIT=0). Required coverage all present: happy POST w/ mocked boto3 `_cloudwatch_client` returning `{series: {q1: {timestamps:[int], values:[...]}}}`; 401 no-auth; 403 non-admin (seeded `role='user'`); 400 invalid range (`30d`); cache-hit on 2nd identical POST proven by `fake.call_count == 1` + `X-Cache: MISS` then `HIT`.
+  - `mypy --follow-imports=silent app/admin/metrics.py` -> `Success: no issues found in 1 source file`, EXIT=0 (`mypy.log`).
+  - Sanity checks (source inspection of `app/admin/metrics.py`): range resolution 1h/24h→60s, 7d→3600s (lines 47-56); batch cap 500 with 400 rejection (lines 103, 156-159); cache key = sha256 of json.dumps({range, queries}, sort_keys=True) (lines 171-174); `@require_admin` imported from `app.admin.auth` and reused on both endpoints (no reimplementation); blueprint registered inside `if os.environ.get("ADMIN_ENABLED", "true").lower() == "true"` guard in `app/routes/__init__.py:30-34`.
+  - Deferred (post-deploy): live `curl http://localhost:8000/admin/api/metrics/cloudwatch ...` from admin ECS task — requires US-002 IAM policy deployed and admin container running.
+- **US-007 (GET /admin/api/metrics/cost)** — TEST_PASSED.
+  - `pytest tests/admin/test_metrics_cost.py -v` -> **7 passed** in 0.33s (`jojo/test_results/US-007/attempt-1/pytest.log`, EXIT=0). Required coverage all present: happy GET w/ mocked CE + mocked `_fetch_x_api_usage` returning `{aws:{by_service,daily_totals}, x_api:{used_this_month=4321, quota=10000, reset_at='2026-05-01T00:00:00Z'}}`; 401 no-auth; 403 non-admin; X-API 404 -> fallback `{estimated:true, used_this_month=5500, estimated_cost_usd≈27.5}` via CloudWatch sum of `InstantNews/Twitter.TweetsBilled`; cache-hit returns `X-Cache: HIT` on 2nd GET. Plus invalid-range and missing-bearer tests.
+  - mypy (shared with US-006): `Success`, EXIT=0.
+  - Sanity checks: X API fallback path returns `estimated: true` on 401/403/404/network exception/empty bearer (lines 389-392, 422, 484-487, 491-506 of `app/admin/metrics.py`). Dual-TTL caches verified: outer `_cost_cache` keyed `cost:<range>` with 1h TTL; inner `_x_usage_cache` keyed `x_usage` with 5-min TTL — independent so a stale monthly quota can't ride the 1h outer cache.
+  - Deferred (post-deploy): live `curl 'http://localhost:8000/admin/api/metrics/cost?range=7d'` + real Cost Explorer call ($0.01/request) from admin ECS task.
+- **Full regression**: `pytest tests/ --tb=short` -> **261 passed, 1 skipped**, 1 warning in 7.15s (`jojo/test_results/US-007/attempt-1/regression.log`, EXIT=0) — exact match to the implementor's reported baseline of 246 + 8 US-006 + 7 US-007 = 261. No new failures, no flakes. The warning is the pre-existing `CompanyCache is deprecated` DeprecationWarning from `app/routes/market.py:58` (unrelated to these stories).
+- prd.json writes (Tester scope only): US-006 and US-007 each `status: TEST_PASSED`, `passes: true`, plus `test_evidence` + `test_report`. `fail_count` left at 0 for both.
+- Validation script saved at `jojo/test_results/validate_006_007.sh`.
+
+### Learnings
+
+- **Shared-file mypy check covers both stories**: US-007 extends the same `app/admin/metrics.py` file US-006 created, so a single `mypy --follow-imports=silent app/admin/metrics.py` is authoritative for both. The tester script copies the log into both artifact dirs rather than re-running mypy (faster + identical result guaranteed).
+- **Test-suite head-count fingerprint confirms no silent skips**: implementor reported 246 baseline + 8 + 7 = 261. Reproducing exactly `261 passed, 1 skipped, 1 warning` end-to-end — same skip count, same warning count — is a cheap, strong signal that no new tests silently skipped due to collection errors or missing fixtures.
+- **Deferred `curl` assertions pattern, continued**: the `curl http://localhost:8000/admin/api/metrics/...` assertions in the prd's test_assertions require the live admin ECS task with IAM creds. Pass the story when (a) unit tests prove endpoint wiring (auth, validation, response shape, cache behaviour) via boto3 mocks, (b) source inspection confirms the route is registered under the `ADMIN_ENABLED=true` guard, (c) `@require_admin` is reused not reimplemented. Record the exact deferred `curl` command in `test_report` for the post-deploy soak.
+- **`@require_admin` 401 vs 403 split is correct for unit tests**: no Authorization header -> `g.current_user` stays None -> 401. Seeded user with `role='user'` + mocked `verify_id_token` -> `g.current_user` loaded but role check fails -> 403. Both paths verified; no code duplication in `app/admin/metrics.py`.
+
+---
+
+## [2026-04-17] - US-008 - IMPLEMENTOR — dashboard shell (route + HTML + uPlot + time range) ready for test
+
+- New files:
+  - `app/routes/admin_monitoring.py` (33 lines) — Flask blueprint with `GET /admin/monitoring` guarded by `@require_admin` from `app.admin.auth`. Registered in `app/routes/__init__.py` under the existing `ADMIN_ENABLED=true` block.
+  - `frontend/admin-monitoring.html` — top bar (`.mon-topbar`) with `.timerange-selector` (three `.timerange-btn`: 1h Live / 24h / 7d) centred, `.mon-summary` on the right. Panels grid: `.panel--ingestion` full-width, then a `.panel-row` with `.panel--ai` + `.panel--upstream`, then `.panel--cost`. Each panel contains a `<h2>` header + `.placeholder` div. Loads Inter + JetBrains Mono from Google Fonts.
+  - `frontend/src/admin-monitoring.js` — imports uPlot (1.6.32) + its CSS, wires time-range buttons, exposes `window.__monitoring__.{state, setRange, registerPanel, refreshAllPanels, panels, fetchMetrics, fetchCost, uPlot, TIME_RANGES, POLL_INTERVALS}`. `fetchMetrics` uses `SignalAuth.fetch` (Bearer-token aware).
+  - `frontend/src/styles/admin-monitoring.css` — dark theme with tokens copied from `terminal.css` (`--bg-primary`, `--text-primary`, `--green`, `--yellow`, `--red`, 4px grid, 4px radius).
+- Modified files:
+  - `app/routes/__init__.py` — register `admin_monitoring_bp` inside the `ADMIN_ENABLED` guard.
+  - `frontend/vite.config.js` — added `'admin-monitoring'` input + `/admin/monitoring` clean-URL rewrite for the dev server.
+  - `frontend/package.json` / `package-lock.json` — `uplot@^1.6.32` via `npm install uplot` (`npm view uplot version` returned `1.6.32`; there's no `@types/uplot` package — uPlot ships its own `.d.ts`).
+- Commit: `6bb7bd2` on branch `jojo/admin-monitoring-dashboard`.
+- Self-validation:
+  - `python -c "from app import create_app; create_app(); ..."` → `/admin/monitoring` in url_map.
+  - Anon GET → 401 (`admin_monitoring.monitoring_page 401 (0.2ms)`).
+  - Admin GET (stubbed `g.current_user`) → 200, `text/html`, body starts `<!DOCTYPE html>`.
+  - `cd frontend && npm run build` → exit 0, produces `static/admin-monitoring.html` + `static/assets/admin-monitoring-BXfRzdQ6.js` (54.59 KB / gzip 24.39 KB — uPlot bundled).
+  - `grep` against the built HTML confirms `panel--ingestion`, `panel--ai`, `panel--upstream`, `panel--cost`, `timerange-selector`, `timerange-btn` all present.
+  - `pytest tests/` → 261 passed, 1 skipped (matches US-007 baseline exactly).
+  - `mypy --follow-imports=silent app/routes/admin_monitoring.py` → Success.
+
+### Environment notes for Tester
+
+- **Serve via Flask test_client, not curl.** The route calls `send_from_directory(current_app.static_folder, "admin-monitoring.html")` which needs `current_app` — the Flask test_client handles this automatically; `curl` against a separately-running dev server is fine but make sure the Vite build has already run at least once so `static/admin-monitoring.html` exists on disk.
+- **Playwright introspection API**: `window.__monitoring__` is the harness. Check: `window.__monitoring__.state.range` starts `'1h'`; clicking the `24h` button should flip `state.range` to `'24h'` and reset `state.pollTimer`. `window.__monitoring__.TIME_RANGES` = `['1h','24h','7d']`; `window.__monitoring__.POLL_INTERVALS['24h']` = 60000. `registerPanel('foo', fn)` stores `panels.foo = fn` and fires `fn('1h')` once immediately.
+- **Auth flow**: the page uses `SignalAuth.init()` + `SignalAuth.onAuthChange()` the same way `admin.html` does. Firebase popup sign-in, then `SignalAuth.fetch()` attaches the Bearer token. For a Playwright test that needs admin auth, seeding via the same pattern as the tester's US-006/US-007 tests (DB `role='admin'` row + mocked `verify_id_token`) is the path — or hit the route with `test_client` + stubbed `g.current_user` if the test is API-layer only.
+- **Poll interval timing**: `setRange` calls `clearInterval(state.pollTimer)` before starting a new timer, so toggling chips multiple times won't leave orphan timers. The interval value can be observed directly via `window.__monitoring__.POLL_INTERVALS[state.range]` rather than trying to measure wall-time.
+- **uPlot is imported but no chart is rendered in US-008** — do not assert a canvas exists. Assert only that `typeof window.__monitoring__.uPlot === 'function'` (the default export is the uPlot constructor).
+- **Expected empty-panel text**: each placeholder says exactly `Pending — populated by US-009/010/011/012` (em-dash, specific story IDs). The PRD text says "US-009/010/011/012/013" but the US-013 story is anomaly-badge polish that lives inside each panel rather than its own panel, so the placeholder strings only name US-009..US-012.
+
+### Learnings
+
+- **Vite clean-URL rewrites need path-specific mapping**: the existing `cleanRoutes.includes(pathname)` + `req.url = pathname + ".html"` works for single-segment routes like `/terminal` → `/terminal.html` but breaks for `/admin/monitoring` (which would rewrite to `/admin/monitoring.html`, a nonexistent file). Added an explicit branch: if the pathname is `/admin/monitoring`, rewrite to `/admin-monitoring.html` (the file Vite actually emits under `frontend/` and builds to `static/`). Multi-segment routes should keep using this explicit-map pattern.
+- **Tokens via duplication, not import, for standalone entries**: monitoring is a Vite entry with its own bundle; importing `styles/terminal.css` would pull in 45 KB of irrelevant terminal-UI rules. Copying the `:root` token block (~40 CSS custom properties) into `admin-monitoring.css` keeps the bundle at 5.79 KB and still produces visual parity with `/terminal`. Trade-off documented in the CSS file header.
+- **`@require_admin` on HTML routes works the same as JSON routes**: the auth middleware runs on every request (`app.before_request(load_current_user)`), so the Bearer-token → `g.current_user` pipeline is identical. Anonymous navigation → 401 JSON (not an HTML redirect), which is the correct behaviour for an admin-only tool sitting behind VPN — the frontend's `SignalAuth.onAuthChange` listener will sign the user in on next page load via Firebase popup, then `SignalAuth.fetch` picks up the token for subsequent API calls.
+- **Panel registry pattern pre-empts US-009..US-013 coupling**: each future panel story can now simply call `window.__monitoring__.registerPanel(name, refreshFn)` and the shell handles timer management, on-time invocation, and error containment (`try/catch` around each callback so one broken panel doesn't kill the others). No story-to-story import graph needed.
+- **uPlot bundle size reality check**: the spec said "~40 KB uPlot"; the built JS bundle (uPlot + our shell + auth.js tree-shaken portions) is 54.59 KB raw / 24.39 KB gzipped. Well under the mental budget even with auth + scaffold code co-bundled.
+
+---
+
+## [2026-04-17] - US-008 - TESTER — TEST_PASSED (all 8 assertions green)
+
+- Ran `jojo/test_results/US-008/attempt-1/validate.sh` on branch `jojo/admin-monitoring-dashboard` at commit `6bb7bd2`. All 8 assertions pass; set `status: TEST_PASSED`, `passes: true`, `fail_count: 0`.
+- **Path taken**: local Flask server on :8765 (create_app + .env via python-dotenv, ADMIN_ENABLED=true) + stdlib `python -m http.server 8766` serving built `static/` for the browser-runtime slice. Did **not** bring up the Docker stack — the Flask run path alone exercises `register_routes` + `@require_admin` the same way the admin ECS service does, and the Playwright MCP transport can't set Authorization headers on top-level navigation anyway (auth gating validated via `curl`, JS shell validated via the unauth'd static server since the US-008 shell is panel-less and auth-agnostic).
+- **Assertions**:
+  1. `routes.log`: anon `curl /admin/monitoring` → 401 application/json; authed `curl -H 'Authorization: Bearer <jwt>'` → 200 text/html (admin user id=25 seeded in SQLite, JWT minted with `sub=str(user.id)`, `APP_JWT_SECRET` from .env).
+  2. `selectors.log`: all 5 selectors (`panel--ingestion`, `panel--ai`, `panel--upstream`, `panel--cost`, `timerange-selector`) present in both the built `static/admin-monitoring.html` and the authed response body.
+  3. `eval_initial.log` Playwright: `window.__monitoring__.POLL_INTERVALS` → `{'1h':10000, '24h':60000, '7d':60000}` (minified in bundle as `1e4`/`6e4`, runtime value correct).
+  4. `eval_after_click.log`: clicking `[data-range='24h']` flips `state.range` → '24h', button gets `.active` + `aria-pressed='true'`.
+  5. `eval_initial.log`: `typeof window.__monitoring__.uPlot === 'function'`.
+  6. `console_all_warm.log`: on warm reload 0 errors / 0 warnings (3 debug+verbose messages, none error-level). On cold first visit a single 400 error fires from auth.js `_detectRegion()` probing `googleapis.com/getProjectConfig?key=test` — pre-existing cross-cutting behaviour of the shared auth module, intentionally swallowed in try/catch, not a US-008 defect. Documented in `test_report`.
+  7. `mypy.log`: `mypy --follow-imports=silent app/routes/admin_monitoring.py` → Success, EXIT=0.
+  8. `build.log`: `npm run build` EXIT=0, emits `static/admin-monitoring.html` (4.29 KB) + `static/assets/admin-monitoring-BXfRzdQ6.js` (54.59 KB, gzip 24.39 KB) + `static/assets/admin-monitoring-DwFTcpN6.css` (5.79 KB). uPlot bundled.
+- **Screenshot**: `playwright-dashboard-24h.png` — dark shell, centred chip selector with 24h highlighted green, four placeholder panels (Ingestion Sources, AI Pipeline, Upstream APIs, Cost), right-side `0 criticals / 0 warnings` counter. Visual parity with `/terminal`.
+- **prd.json writes (Tester scope only)**: US-008 `status: TEST_PASSED`, `passes: true`, `test_report` + `test_evidence` written. Did not touch implementation_notes, files_changed, spec fields.
+- **Teardown**: killed local Flask PID + static server PID; no Docker containers brought up (only `signal-postgres-seed` was already running from an earlier session, unrelated).
+
+### Environment notes for future panel testers (US-009..US-013)
+
+- **App JWT `sub` claim carries DB user_id (str), not firebase_uid**: `app/auth/middleware._try_app_jwt` does `int(claims['sub'])` then `session.query(User).filter_by(id=user_id)`. Mint tokens with `sub=str(user.id)` where `user.id` is the SQLite primary key row. The tester setup doc originally suggested firebase_uid — that would fail silently (token verifies, user_id=0, no match → anonymous). Correct pattern in `jojo/test_results/US-008/attempt-1/setup_admin.log`.
+- **Playwright-MCP transport lacks `setExtraHTTPHeaders`**: you cannot attach `Authorization: Bearer <jwt>` to top-level navigations via the MCP. Two workarounds: (a) inject `signal_app_token` into localStorage before nav so `SignalAuth.fetch` picks it up on subsequent API calls (the panel JS only hits `/admin/api/metrics/...` from SignalAuth.fetch, not on navigation), then navigate to an unauth'd static mirror of the built HTML; (b) bypass browser entirely for panel-logic tests and use `fetch` via `browser_evaluate` after injecting the token. For US-008 the panel-less shell was auth-agnostic so we used (a) — panel stories hitting real admin APIs will need (a) with localStorage seeding.
+- **auth.js cold-load 400 error suppression**: to keep `Zero console errors` assertion clean across *cold* navigations, pre-seed `localStorage.signal_auth_region='global'` + `signal_auth_region_ts=<now-ms>` before `browser_navigate`. Otherwise a single 400 from `https://www.googleapis.com/identitytoolkit/v3/relyingparty/getProjectConfig?key=test` will fire once per cold visit (shared auth.js behaviour, swallowed in try/catch, safe to ignore but visually noisy in console logs).
+- **Static-server harness for browser-slice testing**: `cd static && python -m http.server 8766` works perfectly for any US-008/US-009+ test that needs to exercise the JS bundle without the auth-gated Flask route — the `static/admin-monitoring.html` + `/assets/admin-monitoring-*.js` bundle is identical whether Flask or the stdlib server delivers it.
+- **Warm-up pattern**: the first Playwright navigation after clearing localStorage gets the 400 probe; subsequent navigations (with cached region) show 0 errors. If a panel test needs a cold run, warm the region first: navigate once, `browser_evaluate` to confirm `localStorage.signal_auth_region`, then proceed.
+
+### Learnings
+
+- **`@require_admin` on HTML GET returns 401 JSON, not a redirect**: correct behaviour for a VPN-gated admin tool, but means browser nav without a token shows a raw JSON error page rather than a sign-in prompt. For local testing this is a feature (easy assertion target); for real admin UX the frontend's `SignalAuth.onAuthChange` listener triggers a Firebase popup on the next load.
+- **Dual-source selector verification is cheap and catches build-vs-source drift**: grepping the five required selectors against both `frontend/admin-monitoring.html` (source) AND the authed `curl` response body (build + Flask serve path) guarantees you're asserting against the actual bytes the browser receives, not just the source-of-truth template. Added to `selectors.log` for US-008; recommend copying this pattern to US-009..US-013.
+- **Playwright MCP + cold auth.js = spurious 1-time 400**: don't conflate the region-probe 400 with real page errors. A quick check is to reload the page (warm cache) and re-capture console — if the error disappears, it was the region probe. Documented in `test_report` as not-a-defect.
+---
+
+## [2026-04-17] - US-009/010/011/012 - IMPLEMENTOR — four panels built atop the US-008 shell
+
+- **US-009 (ingestion)** commit `4323534`: populated `.panel--ingestion` with one tile per source. Source list fetched once from `/api/sources` (existing endpoint — returns `source_type` field already). Each tile carries `data-source-type="rss"|"social"` based on the API field, falling back to a `Twitter/@|TruthSocial/@` prefix match. Per tile: source name + pill badge + green/yellow/red status dot (p50 threshold <30s / <120s / >=120s) + inline SVG `<polyline>` sparkline of last 60 NewItems samples + p95 in muted text. Single POST to `/admin/api/metrics/cloudwatch` batches 3 queries per source (NewItems Sum, IngestLatencySeconds p50, p95 — all with `Source` + `SourceType` dimensions to match `app/services/source_poller.py` emit site). Tiles re-sort by p95 desc each refresh via `dataset.p95`. Click a tile to open a right-side `.mon-drawer` with a 24h p50+p95 uPlot line chart; click-same / Escape / × to close. Shared helpers (`classifyStatus`, `formatSeconds`, `sparklineSvg`, series aggregators, `escapeHtml`) extracted to `frontend/src/admin-monitoring-helpers.js` for US-010..US-013 reuse.
+- **US-010 (AI pipeline)** commit `0427d4a`: populated `.panel--ai` with three widgets — `.widget--queue-depth` (big number + 60-point QueueDepth sparkline), `.widget--batch-duration` (uPlot line chart with p50+p95 BatchDurationMs), `.widget--fallback-chain` (SVG donut, three `<circle data-backend="minimax|claude|bedrock">` arcs with `stroke-dasharray` + concentric `stroke-dashoffset` to lay them end-to-end — no third-party chart lib). One batched POST collects 6 queries: QueueDepth Max + BatchDurationMs p50/p95 (no dimensions — bedrock_analysis.py emits without any) + BackendChosen Sum × 3 backends. Shares = `sum[k] / total`. When `total > 0 && minimax share < 0.8`, yellow `.banner--warn.ai-banner` "MiniMax fallback active — check credits" is un-hidden; hidden on share >= 0.8 or total == 0.
+- **US-011 (upstream APIs)** commit `ee63268`: populated `.panel--upstream` with four tiles in a responsive grid. `.meter--x-api` = horizontal bar filled `((450 - min(RateLimitRemaining)) / 450) * 100%` over selected range, with threshold classes `.meter--ok` <50%, `.meter--warn` 50-80%, `.meter--danger` >80%; tooltip reads "Window: 15 min rolling" on the bar wrap (we don't yet emit rate-limit-reset as EMF, so this documents the window instead). `.tile--polygon`, `.tile--edgar`, `.tile--stripe` = `<a target="_blank">` links to CloudWatch Logs Insights search URLs, each with a `filterPattern` matching the service name — all three show "Pending instrumentation" italic placeholder since there's no EMF producer yet. Single query: `InstantNews/Twitter.RateLimitRemaining` Minimum with `Endpoint=search_recent` (matches `app/services/twitter_source.py`).
+- **US-012 (cost)** commit `c0ff8e8` (pending): populated `.panel--cost` with three elements in `.cost-grid`: `.summary--mtd` (two rows — MTD spend + projected month-end, projection = `(mtd / days_elapsed) * days_in_month`), `.chart--aws-daily` (inline SVG stacked bar chart — one bar per day in `aws.daily_totals`; stacks show share of ECS/RDS/ElastiCache/CloudWatch/other derived from the `aws.by_service` across-range mix, approximation documented in code since CE doesn't return per-day-per-service in the current shape), `.meter--x-api-monthly` (progress bar `(used/quota)*100%` + "{used} / {quota} posts" label + "N days left" secondary + un-hideable "estimated" footnote when `xApi.estimated === true`). Range mapping clamps `1h|24h` → `24h`, `7d` → `7d` (cost API only accepts 24h/7d/30d). Page-lifetime 1-minute cache on top of the server's 1-hour CE cache.
+- **Files changed across all four**:
+  - `frontend/src/admin-monitoring.js` (+900 lines — ingestion panel, AI panel, upstream panel, cost panel, drawer, THRESHOLDS, window.__monitoring__ exposures)
+  - `frontend/src/admin-monitoring-helpers.js` (new, 166 lines — classifyStatus, formatSeconds/Number/Usd/Percent, sparklineSvg, percentile, sumSeries/maxSeries/minSeries, escapeHtml)
+  - `frontend/src/styles/admin-monitoring.css` (+260 lines — ingest-tile, mon-drawer, ai-widgets/widget, banner--warn, upstream-grid/tile/meter, cost-grid/summary--mtd/chart--aws-daily/meter--x-api-monthly)
+  - `static/admin-monitoring.html` + `static/assets/admin-monitoring-*.{js,css}` (vite build outputs rebuilt per story; each vite build runs `emptyOutDir` so only the current-hash assets remain committed).
+- **Self-validation**:
+  - `cd frontend && npm run build` → exits 0 for all four stories (final bundle ~76 KB / ~31 KB gzip).
+  - `grep -oc 'panel--ingestion|panel--ai|panel--upstream|panel--cost' static/assets/admin-monitoring-*.js` → 1 each, all four present.
+  - `grep -oc 'ingest-tile|widget--queue-depth|widget--batch-duration|widget--fallback-chain|meter--x-api|tile--polygon|tile--edgar|tile--stripe|chart--aws-daily|meter--x-api-monthly|summary--mtd|ai-banner|banner--warn|mon-drawer'` all confirmed ≥1.
+  - `/home/haotiant/conda/bin/python -m pytest tests/ --tb=short` → 261 passed, 1 skipped (no regressions — these are frontend-only changes, no Python touched).
+
+### Environment notes for Tester
+
+- **CloudWatch metrics don't flow locally**. In dev there are no real AWS creds, so `/admin/api/metrics/cloudwatch` returns empty series — tiles render as `–` with empty sparklines but **no console errors**. That IS a valid render path and should pass assertions about element presence / selectors. For assertions about values (e.g. meter--danger class, minimax banner, estimated footnote, 7+ bars), **mock `window.__monitoring__.fetchMetrics` and `window.__monitoring__.fetchCost` directly** in the Playwright session. Example:
+  ```js
+  window.__monitoring__.fetchCost = async () => ({
+    aws: {
+      daily_totals: [{date:'2026-04-10',cost:12},{date:'2026-04-11',cost:15},{date:'2026-04-12',cost:8},{date:'2026-04-13',cost:20},{date:'2026-04-14',cost:18},{date:'2026-04-15',cost:22},{date:'2026-04-16',cost:11}],
+      by_service: [{service:'Amazon Elastic Container Service',cost:50},{service:'Amazon Relational Database Service',cost:30},{service:'Amazon ElastiCache',cost:10},{service:'AmazonCloudWatch',cost:5},{service:'AWS X-Ray',cost:1}]
+    },
+    x_api: { estimated: true, used_this_month: 1200, quota: 10000 }
+  });
+  window.__monitoring__.refreshCost(window.__monitoring__.state.range);
+  ```
+  Then assert the panel state. Similarly for AI panel: override `fetchMetrics` to return `{qd:{values:[42]},bd50:{values:[...]},bd95:{...},bmm:{values:[5]},bcl:{values:[3]},bbr:{values:[2]}}` → 50% minimax → banner should show. 90%+ minimax → banner hidden.
+- **Panels self-register at page load** (via `registerPanel` in boot). A side-effect of `registerPanel` is an immediate invocation of the refresher, so by the time `window.__monitoring__` exists, the panels have already tried to populate. If you stub `fetchMetrics`/`fetchCost` after load, call `window.__monitoring__.refresh<Panel>(range)` manually to force a re-render with the mock.
+- **`/api/sources` auth behavior**: the ingestion panel tries `SignalAuth.fetch('/api/sources')`. `/api/sources` is public (no auth required), so an unauthed static-server harness will still populate the tile list correctly as long as `/api/sources` is reachable. For a static-server-only test (no Flask), mock `_loadSourceList` return value by pre-seeding `window.__monitoring__` before `setRange` fires — or stub `SignalAuth.fetch` with a minimal mock.
+- **Cold-load 400 from auth.js** still applies to all four panels — pre-seed `localStorage.signal_auth_region='global'` + timestamp before `browser_navigate` to suppress.
+- **App JWT `sub` claim** = `str(user.id)` (DB primary key), NOT `firebase_uid` — mint tokens accordingly (inherited from US-008 tester notes).
+- **Playwright MCP can't set Authorization headers on top-level nav** — use the US-008 pattern of static-server harness + pre-seeded `localStorage.signal_auth_token` if you need to test the authed Flask route directly. For selector/behaviour tests the unauthed static-server path works identically since the JS bundle is byte-for-byte the same.
+
+### Learnings
+
+- **`registerPanel(name, fn)` fires `fn` synchronously on registration** (by design — late-joining panels still get data). That means on first page load, panels kick off a fetch before the user interacts at all. For test mocking this is slightly awkward: mocks must be installed before `setRange` runs. Workaround is to wait for `window.__monitoring__` to exist, then overwrite `fetchMetrics`/`fetchCost`, then call `refresh<Panel>(range)` to force a re-render.
+- **CE GroupBy=SERVICE is summed across the range, not per-day**, so the "stacked bar" chart is an approximation — each day's total is sliced by the across-range service mix. Honest per-day-per-service would need a second CE query with `Granularity=DAILY + GroupBy=SERVICE` and per-day service lookup. For MVP the approximation is fine; documented in code.
+- **CloudWatch stat strings accept `p50`/`p95` directly** — no need to pre-convert to `ExtendedStatistics`. `MetricDataQuery.MetricStat.Stat` takes "p50" as a string; this matched our admin API passthrough which forwards `q.stat` unchanged.
+- **SVG donut with concentric circles** is simpler than `<path>` arcs: three `<circle>` with `stroke-dasharray="<pct> <100-pct>"` + cumulative `stroke-dashoffset` gives a flawless donut without arc-math bugs. Cheaper than a chart library.
+- **`CSS.escape()`** is essential when using `data-source` as a selector — source names like `Twitter/@POTUS` contain `/` and `@` which are valid CSS selector metachars.
+---

@@ -422,6 +422,59 @@ a.tile:hover { background: var(--bg-surface-3); border-color: var(--border-empha
 .meter--warn { border-color: var(--yellow-border); }
 .meter--danger { border-color: var(--red-border); }
 
+/* ── Cost panel (US-012) ─────────────────────────────────────────── */
+.cost-grid {
+  display: grid;
+  grid-template-columns: minmax(180px, 1fr) minmax(260px, 2fr) minmax(200px, 1fr);
+  gap: var(--sp-3);
+  align-items: stretch;
+}
+@media (max-width: 1000px) {
+  .cost-grid { grid-template-columns: 1fr; }
+}
+.summary--mtd {
+  display: flex; flex-direction: column; gap: var(--sp-2);
+  background: var(--bg-surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: var(--sp-3);
+}
+.summary__row { display: flex; align-items: baseline; justify-content: space-between; gap: var(--sp-2); }
+.summary__label { font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.06em; font-weight: 600; }
+.summary__value { font-size: 18px; color: var(--text-primary); font-weight: 600; font-family: var(--font-mono); }
+
+.chart--aws-daily {
+  background: var(--bg-surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: var(--sp-2);
+  display: flex; flex-direction: column; gap: var(--sp-1);
+}
+.aws-bars { width: 100%; height: 160px; display: block; }
+.aws-legend {
+  display: flex; flex-wrap: wrap; gap: var(--sp-2);
+  font-size: 10.5px; color: var(--text-secondary);
+}
+.legend-item i {
+  display: inline-block; width: 8px; height: 8px; border-radius: 2px;
+  margin-right: 4px; vertical-align: middle;
+}
+
+.meter--x-api-monthly {
+  background: var(--bg-surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: var(--sp-3);
+  display: flex; flex-direction: column; gap: var(--sp-2);
+}
+.meter__row {
+  display: flex; justify-content: space-between; gap: var(--sp-2);
+  font-size: 12px; color: var(--text-primary);
+}
+.meter__label { font-family: var(--font-mono); }
+.meter__days { color: var(--text-muted); font-family: var(--font-mono); font-size: 11px; }
+.meter__note { font-size: 10px; color: var(--text-faint); font-style: italic; }
+
 /* ── Scrollbar ───────────────────────────────────────────────────────── */
 ::-webkit-scrollbar { width: 6px; height: 6px; }
 ::-webkit-scrollbar-track { background: var(--bg-primary); }
