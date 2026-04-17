@@ -18,6 +18,7 @@ export default defineConfig({
         privacy: resolve(__dirname, "privacy.html"),
         terms: resolve(__dirname, "terms.html"),
         admin: resolve(__dirname, "admin.html"),
+        "admin-monitoring": resolve(__dirname, "admin-monitoring.html"),
       },
     },
   },
@@ -50,13 +51,18 @@ export default defineConfig({
             "/privacy",
             "/terms",
             "/admin",
+            "/admin/monitoring",
           ];
           const pathname = req.url.split("?")[0];
           if (cleanRoutes.includes(pathname)) {
             const query = req.url.includes("?")
               ? "?" + req.url.split("?")[1]
               : "";
-            req.url = pathname + ".html" + query;
+            if (pathname === "/admin/monitoring") {
+              req.url = "/admin-monitoring.html" + query;
+            } else {
+              req.url = pathname + ".html" + query;
+            }
           }
           // /docs/* sub-routes → docs.html
           if (pathname.startsWith("/docs/")) {

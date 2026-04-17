@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>InstNews Monitoring</title>
+  <meta name="description" content="Operational monitoring dashboard for InstNews — per-source ingestion latency, AI pipeline health, upstream API headroom, and spend.">
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <!-- Firebase SDK (compat mode) -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='12' fill='%230d1117'/><path d='M20 65 L35 40 L50 55 L65 25 L80 45' stroke='%233fb950' stroke-width='6' fill='none' stroke-linecap='round' stroke-linejoin='round'/><circle cx='80' cy='45' r='5' fill='%233fb950'/></svg>">
+</head>
+<body class="mon-body">
+  <div class="mon-shell">
+    <!-- Top bar -->
+    <header class="mon-topbar">
+      <div class="mon-topbar__left">
+        <span class="mon-logo">InstNews <span class="mon-logo__sub">Monitoring</span></span>
+      </div>
+      <div class="mon-topbar__center">
+        <div class="timerange-selector" role="group" aria-label="Time range">
+          <button type="button" class="timerange-btn active" data-range="1h" aria-pressed="true">1h Live</button>
+          <button type="button" class="timerange-btn" data-range="24h" aria-pressed="false">24h</button>
+          <button type="button" class="timerange-btn" data-range="7d" aria-pressed="false">7d</button>
+        </div>
+      </div>
+      <div class="mon-topbar__right">
+        <span class="mon-summary" id="mon-summary">
+          <span class="mon-summary__crit" id="mon-summary-crit">0 criticals</span>
+          <span class="mon-summary__sep">/</span>
+          <span class="mon-summary__warn" id="mon-summary-warn">0 warnings</span>
+        </span>
+      </div>
+    </header>
+
+    <!-- Panels grid -->
+    <main class="mon-main">
+      <section class="panel panel--ingestion" aria-labelledby="panel-ingestion-h">
+        <header class="panel__header">
+          <h2 id="panel-ingestion-h" class="panel__title">Ingestion Sources</h2>
+        </header>
+        <div class="panel__body">
+          <div class="placeholder" data-panel="ingestion">
+            Pending — populated by US-009
+          </div>
+        </div>
+      </section>
+
+      <div class="panel-row">
+        <section class="panel panel--ai" aria-labelledby="panel-ai-h">
+          <header class="panel__header">
+            <h2 id="panel-ai-h" class="panel__title">AI Pipeline</h2>
+          </header>
+          <div class="panel__body">
+            <div class="placeholder" data-panel="ai">
+              Pending — populated by US-010
+            </div>
+          </div>
+        </section>
+
+        <section class="panel panel--upstream" aria-labelledby="panel-upstream-h">
+          <header class="panel__header">
+            <h2 id="panel-upstream-h" class="panel__title">Upstream APIs</h2>
+          </header>
+          <div class="panel__body">
+            <div class="placeholder" data-panel="upstream">
+              Pending — populated by US-011
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <section class="panel panel--cost" aria-labelledby="panel-cost-h">
+        <header class="panel__header">
+          <h2 id="panel-cost-h" class="panel__title">Cost</h2>
+        </header>
+        <div class="panel__body">
+          <div class="placeholder" data-panel="cost">
+            Pending — populated by US-012
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script type="module" src="/src/admin-monitoring.js"></script>
+</body>
+</html>
