@@ -8,6 +8,7 @@ from app.routes.docs import docs_bp
 from app.routes.keys import keys_bp
 from app.routes.usage import usage_bp
 from app.routes.market import market_bp
+from app.routes.company import company_bp
 from app.routes.health import health_bp
 from app.routes.static_pages import static_bp
 import os
@@ -22,6 +23,7 @@ def register_routes(app):
     app.register_blueprint(keys_bp)
     app.register_blueprint(usage_bp)
     app.register_blueprint(market_bp)
+    app.register_blueprint(company_bp)
     app.register_blueprint(health_bp)
 
     # Admin routes only load when ADMIN_ENABLED=true (admin ECS service)
