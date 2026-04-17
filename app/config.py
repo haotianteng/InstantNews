@@ -46,7 +46,7 @@ class Config:
     FETCH_TIMEOUT = int(os.environ.get("FETCH_TIMEOUT", "5"))
     MAX_AGE_DAYS = int(os.environ.get("MAX_AGE_DAYS", str(5 * 365)))
     DEDUP_THRESHOLD = float(os.environ.get("DEDUP_THRESHOLD", "0.85"))
-    WORKER_INTERVAL_SECONDS = int(os.environ.get("WORKER_INTERVAL_SECONDS", "30"))
+    WORKER_INTERVAL_SECONDS = int(os.environ.get("WORKER_INTERVAL_SECONDS", "15"))
     WORKER_ENABLED = os.environ.get("WORKER_ENABLED", "true").lower() == "true"
     BEDROCK_ENABLED = os.environ.get("BEDROCK_ENABLED", "true").lower() == "true"
 

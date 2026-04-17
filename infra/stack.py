@@ -399,7 +399,7 @@ class InstantNewsStack(Stack):
             logging=ecs.LogDrivers.aws_logs(stream_prefix="worker", log_group=worker_log_group),
             environment={
                 **shared_env,
-                "WORKER_INTERVAL_SECONDS": "30",
+                "WORKER_INTERVAL_SECONDS": "15",
             },
             secrets=shared_secrets,
         )

@@ -150,7 +150,10 @@ def refresh_feeds_parallel(session_factory, config):
         threads.append(st)
         st.start()
 
-    deadline = time.time() + 30
+    # Tight deadline: slow feeds (rsshub redirects, Google News search, etc.)
+    # shouldn't dominate the tick. FETCH_TIMEOUT already caps per-feed at 5s;
+    # 12s here allows some stragglers without pushing the next tick.
+    deadline = time.time() + 12
     for t in threads:
         remaining = max(0.1, deadline - time.time())
         t.join(timeout=remaining)
@@ -194,9 +197,17 @@ def refresh_feeds_parallel(session_factory, config):
     finally:
         session.close()
 
-    # Run Bedrock AI analysis on new articles (after store + dedup)
+    # Run Bedrock AI analysis asynchronously so the scheduler tick can return
+    # quickly. AI results land on News rows over the next several seconds/minutes
+    # and the /api/news polling surfaces them as soon as they're committed.
     if all_new_ids:
-        _run_bedrock_analysis(session_factory, all_new_ids)
+        analysis_thread = Thread(
+            target=_run_bedrock_analysis,
+            args=(session_factory, all_new_ids),
+            daemon=True,
+            name=f"bedrock-{len(all_new_ids)}",
+        )
+        analysis_thread.start()
 
     return total_new, results
 
