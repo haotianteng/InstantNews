@@ -32,11 +32,24 @@
         </div>
       </div>
       <div class="mon-topbar__right">
-        <span class="mon-summary" id="mon-summary">
-          <span class="mon-summary__crit" id="mon-summary-crit">0 criticals</span>
-          <span class="mon-summary__sep">/</span>
-          <span class="mon-summary__warn" id="mon-summary-warn">0 warnings</span>
-        </span>
+        <div class="mon-summary" id="mon-summary" role="group" aria-label="Anomaly summary">
+          <button type="button" class="mon-summary-btn mon-summary-btn--crit"
+                  id="mon-summary-crit" data-severity="crit"
+                  aria-pressed="false" title="Filter to criticals">
+            <span class="num" data-role="crit-count">0</span>
+            <span class="mon-summary-btn__label">criticals</span>
+          </button>
+          <span class="mon-summary__sep" aria-hidden="true">/</span>
+          <button type="button" class="mon-summary-btn mon-summary-btn--warn"
+                  id="mon-summary-warn" data-severity="warn"
+                  aria-pressed="false" title="Filter to warnings + criticals">
+            <span class="num" data-role="warn-count">0</span>
+            <span class="mon-summary-btn__label">warnings</span>
+          </button>
+          <button type="button" class="mon-summary-btn mon-summary-btn--clear"
+                  data-role="clear-filter" hidden
+                  title="Clear filter">clear filter</button>
+        </div>
       </div>
     </header>
 

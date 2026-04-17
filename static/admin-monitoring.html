@@ -16,9 +16,9 @@
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
 
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='12' fill='%230d1117'/><path d='M20 65 L35 40 L50 55 L65 25 L80 45' stroke='%233fb950' stroke-width='6' fill='none' stroke-linecap='round' stroke-linejoin='round'/><circle cx='80' cy='45' r='5' fill='%233fb950'/></svg>">
-  <script type="module" crossorigin src="/assets/admin-monitoring-Bc21lktp.js"></script>
+  <script type="module" crossorigin src="/assets/admin-monitoring-DhOE_LLZ.js"></script>
   <link rel="modulepreload" crossorigin href="/assets/auth-C4Y_TkCR.js">
-  <link rel="stylesheet" crossorigin href="/assets/admin-monitoring-35bQgDcP.css">
+  <link rel="stylesheet" crossorigin href="/assets/admin-monitoring-D8yhXZoC.css">
 </head>
 <body class="mon-body">
   <div class="mon-shell">
@@ -35,11 +35,24 @@
         </div>
       </div>
       <div class="mon-topbar__right">
-        <span class="mon-summary" id="mon-summary">
-          <span class="mon-summary__crit" id="mon-summary-crit">0 criticals</span>
-          <span class="mon-summary__sep">/</span>
-          <span class="mon-summary__warn" id="mon-summary-warn">0 warnings</span>
-        </span>
+        <div class="mon-summary" id="mon-summary" role="group" aria-label="Anomaly summary">
+          <button type="button" class="mon-summary-btn mon-summary-btn--crit"
+                  id="mon-summary-crit" data-severity="crit"
+                  aria-pressed="false" title="Filter to criticals">
+            <span class="num" data-role="crit-count">0</span>
+            <span class="mon-summary-btn__label">criticals</span>
+          </button>
+          <span class="mon-summary__sep" aria-hidden="true">/</span>
+          <button type="button" class="mon-summary-btn mon-summary-btn--warn"
+                  id="mon-summary-warn" data-severity="warn"
+                  aria-pressed="false" title="Filter to warnings + criticals">
+            <span class="num" data-role="warn-count">0</span>
+            <span class="mon-summary-btn__label">warnings</span>
+          </button>
+          <button type="button" class="mon-summary-btn mon-summary-btn--clear"
+                  data-role="clear-filter" hidden
+                  title="Clear filter">clear filter</button>
+        </div>
       </div>
     </header>
 

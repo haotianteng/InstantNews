@@ -63,6 +63,9 @@ function refreshAllPanels() {
       console.error('[monitoring] panel refresh failed', name, err);
     }
   }
+  // Best-effort immediate recount — individual panel refreshers also recount
+  // at the tail of their async work so the counter reflects fetched data.
+  try { recomputeSummary(); } catch (_err) { /* noop */ }
 }
 
 // ── Time-range control ────────────────────────────────────────────────
@@ -128,20 +131,94 @@ export async function fetchCost(range) {
   return res.json();
 }
 
+/**
+ * Legacy single-call counter updater. Used by early scaffolding tests that
+ * relied on counters being driven by imperative numbers. US-013 superseded
+ * this with recomputeSummary() which counts DOM badges directly, but we
+ * keep this for external introspection via window.__monitoring__.
+ */
 function updateSummary(criticals, warnings) {
-  const critEl = document.getElementById('mon-summary-crit');
-  const warnEl = document.getElementById('mon-summary-warn');
-  if (critEl) critEl.textContent = `${criticals} critical${criticals === 1 ? '' : 's'}`;
-  if (warnEl) warnEl.textContent = `${warnings} warning${warnings === 1 ? '' : 's'}`;
+  const critNum = document.querySelector('#mon-summary [data-role="crit-count"]');
+  const warnNum = document.querySelector('#mon-summary [data-role="warn-count"]');
+  if (critNum) critNum.textContent = String(criticals);
+  if (warnNum) warnNum.textContent = String(warnings);
 }
 
 // ── Central anomaly thresholds (consumed by panels + US-013) ──────────
 const THRESHOLDS = {
   ingestion_p95_s: { warn: 60, crit: 180 },
   ai_queue_depth: { warn: 100, crit: 500 },
-  x_rate_limit_pct: { warn: 50, crit: 80 },
-  minimax_fallback_pct: { warn: 20, crit: 50 },
+  x_rate_limit_pct: { warn: 50, crit: 80 },        // % of 450 used
+  minimax_fallback_pct: { warn: 20, crit: 50 },    // % falling off minimax
 };
+
+// ── US-013: badge apply + summary counter ────────────────────────────
+/**
+ * Set `badge--<level>` on an element, removing the other two. Idempotent.
+ * Pass `null` to strip all badge classes.
+ */
+function applyBadge(el, level) {
+  if (!el) return;
+  el.classList.remove('badge--ok', 'badge--warn', 'badge--crit');
+  if (level === 'ok' || level === 'warn' || level === 'crit') {
+    el.classList.add(`badge--${level}`);
+  }
+}
+
+/**
+ * Count currently-rendered `.badge--crit` / `.badge--warn` elements and
+ * update the top-right summary counter. Called at the tail of every panel
+ * refresh and by refreshAllPanels() after each tick.
+ */
+function recomputeSummary() {
+  const crits = document.querySelectorAll('.badge--crit').length;
+  const warns = document.querySelectorAll('.badge--warn').length;
+  const critNum = document.querySelector('#mon-summary [data-role="crit-count"]');
+  const warnNum = document.querySelector('#mon-summary [data-role="warn-count"]');
+  if (critNum) critNum.textContent = String(crits);
+  if (warnNum) warnNum.textContent = String(warns);
+  return { crits, warns };
+}
+
+/**
+ * Toggle the body filter class used by CSS to hide/show badged elements by
+ * severity. Passing null clears the filter.
+ */
+function setSeverityFilter(severity) {
+  const body = document.body;
+  if (!body) return;
+  body.classList.remove('body-filter--crit', 'body-filter--warn');
+  const critBtn = document.querySelector('#mon-summary [data-severity="crit"]');
+  const warnBtn = document.querySelector('#mon-summary [data-severity="warn"]');
+  const clearBtn = document.querySelector('#mon-summary [data-role="clear-filter"]');
+  if (critBtn) critBtn.setAttribute('aria-pressed', severity === 'crit' ? 'true' : 'false');
+  if (warnBtn) warnBtn.setAttribute('aria-pressed', severity === 'warn' ? 'true' : 'false');
+  if (severity === 'crit') {
+    body.classList.add('body-filter--crit');
+    if (clearBtn) clearBtn.removeAttribute('hidden');
+  } else if (severity === 'warn') {
+    body.classList.add('body-filter--warn');
+    if (clearBtn) clearBtn.removeAttribute('hidden');
+  } else if (clearBtn) {
+    clearBtn.setAttribute('hidden', '');
+  }
+}
+
+function bindSummaryButtons() {
+  const root = document.getElementById('mon-summary');
+  if (!root) return;
+  root.addEventListener('click', (ev) => {
+    const btn = ev.target.closest('button[data-severity], button[data-role="clear-filter"]');
+    if (!btn) return;
+    if (btn.dataset.role === 'clear-filter') {
+      setSeverityFilter(null);
+      return;
+    }
+    const sev = btn.dataset.severity;
+    const alreadyActive = btn.getAttribute('aria-pressed') === 'true';
+    setSeverityFilter(alreadyActive ? null : sev);
+  });
+}
 
 // ── US-009: Ingestion panel ───────────────────────────────────────────
 const _ingestionState = {
@@ -317,10 +394,15 @@ async function _refreshIngestion(range) {
     if (tile) {
       tile.dataset.p50 = p50 == null ? '' : String(p50);
       tile.dataset.p95 = p95 == null ? '' : String(p95);
+      // US-013: tile-level badge based on p95 vs THRESHOLDS. Additive — the
+      // existing p50 dot-status coloring lives on inner .ingest-tile__dot.
+      const { warn, crit } = THRESHOLDS.ingestion_p95_s;
+      applyBadge(tile, classifyStatus(p95, warn, crit));
     }
     _ingestionState.lastSeries[s.name] = b;
   }
   _sortIngestionTiles();
+  recomputeSummary();
 }
 
 // ── Ingestion drawer (pin one source, 24h uPlot) ─────────────────────
@@ -542,10 +624,16 @@ async function _refreshAI(range) {
   })();
   const qdEl = body.querySelector('.widget--queue-depth .widget__value');
   const qdSpark = body.querySelector('.widget--queue-depth .widget__spark');
+  const qdWidget = body.querySelector('.widget--queue-depth');
   if (qdEl) qdEl.textContent = qdLast == null ? '–' : formatNumber(qdLast);
   if (qdSpark) qdSpark.innerHTML = sparklineSvg((qd.values || []).slice(-60), {
     width: 160, height: 32, stroke: 'var(--blue)',
   });
+  // US-013: badge on queue-depth widget.
+  if (qdWidget) {
+    const { warn, crit } = THRESHOLDS.ai_queue_depth;
+    applyBadge(qdWidget, qdLast == null ? 'ok' : classifyStatus(qdLast, warn, crit));
+  }
 
   const bd50 = series.bd50 || { timestamps: [], values: [] };
   const bd95 = series.bd95 || { timestamps: [], values: [] };
@@ -612,6 +700,21 @@ async function _refreshAI(range) {
       banner.setAttribute('hidden', '');
     }
   }
+
+  // US-013: badge on fallback-chain widget based on non-minimax share (%).
+  // No data → ok (absence of routing is not an anomaly here).
+  const fallbackWidget = body.querySelector('.widget--fallback-chain');
+  if (fallbackWidget) {
+    const { warn, crit } = THRESHOLDS.minimax_fallback_pct;
+    if (total <= 0) {
+      applyBadge(fallbackWidget, 'ok');
+    } else {
+      const fallbackPct = (1 - shares.minimax) * 100;
+      applyBadge(fallbackWidget, classifyStatus(fallbackPct, warn, crit));
+    }
+  }
+
+  recomputeSummary();
 }
 
 // ── US-011: Upstream APIs panel ───────────────────────────────────────
@@ -687,6 +790,8 @@ async function _refreshUpstream(range) {
       meter.setAttribute('data-status', 'ok');
       meter.classList.remove('meter--ok', 'meter--warn', 'meter--danger');
       meter.classList.add('meter--ok');
+      // US-013: no data → ok badge.
+      applyBadge(meter, 'ok');
     } else {
       const used = Math.max(0, quota - remainingMin);
       const pct = Math.max(0, Math.min(100, (used / quota) * 100));
@@ -699,8 +804,21 @@ async function _refreshUpstream(range) {
       meter.classList.add(cls);
       meter.setAttribute('data-status',
         cls === 'meter--danger' ? 'crit' : (cls === 'meter--warn' ? 'warn' : 'ok'));
+      // US-013: badge mirrors the existing meter-- classes via central
+      // THRESHOLDS so all badges share one ruleset.
+      const { warn, crit } = THRESHOLDS.x_rate_limit_pct;
+      applyBadge(meter, classifyStatus(pct, warn, crit));
     }
   }
+
+  // US-013: the three "pending instrumentation" tiles are flagged as warn —
+  // they're known-unimplemented and should not read as green/ok.
+  for (const sel of ['.tile--polygon', '.tile--edgar', '.tile--stripe']) {
+    const tile = body.querySelector(sel);
+    if (tile) applyBadge(tile, 'warn');
+  }
+
+  recomputeSummary();
 }
 
 // ── US-012: Cost panel ────────────────────────────────────────────────
@@ -958,6 +1076,10 @@ async function _refreshCost(range) {
   _renderAwsStackedBars(aws);
   _renderCostMtd(aws);
   _renderXApiMonthly(data.x_api || {});
+  // US-013: cost panel has no threshold-backed badges today, but recount so
+  // badges from other panels (which may have refreshed concurrently) stay
+  // in sync with the summary counter.
+  recomputeSummary();
 }
 
 // ── Public interface (window.__monitoring__) ──────────────────────────
@@ -966,10 +1088,14 @@ window.__monitoring__ = {
   setRange,
   registerPanel,
   refreshAllPanels,
+  refreshAll: refreshAllPanels,    // alias for US-013 tester convenience
   panels,
   fetchMetrics,
   fetchCost,
   updateSummary,
+  recomputeSummary,                // US-013: recount badges after mock injects
+  setSeverityFilter,               // US-013: programmatic filter toggle
+  applyBadge,                      // US-013: direct badge set (debug only)
   uPlot,
   TIME_RANGES,
   POLL_INTERVALS,
@@ -993,6 +1119,7 @@ function boot() {
   }
 
   bindTimeRangeButtons();
+  bindSummaryButtons();
 
   registerPanel('ingestion', _refreshIngestion);
   registerPanel('ai', _refreshAI);
@@ -1000,7 +1127,7 @@ function boot() {
   registerPanel('cost', _refreshCost);
 
   setRange(state.range);
-  updateSummary(0, 0);
+  recomputeSummary();
 }
 
 if (document.readyState === 'loading') {

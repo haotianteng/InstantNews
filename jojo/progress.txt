@@ -463,3 +463,224 @@ def test_emit(capfd):
 - **SVG donut with concentric circles** is simpler than `<path>` arcs: three `<circle>` with `stroke-dasharray="<pct> <100-pct>"` + cumulative `stroke-dashoffset` gives a flawless donut without arc-math bugs. Cheaper than a chart library.
 - **`CSS.escape()`** is essential when using `data-source` as a selector — source names like `Twitter/@POTUS` contain `/` and `@` which are valid CSS selector metachars.
 ---
+
+## [2026-04-17] - US-009/010/011/012 - TESTER — all four TEST_PASSED
+
+Harness
+-------
+- Flask 127.0.0.1:8765 (ADMIN_ENABLED=true, python-dotenv) seeded admin user
+  admin-us009@test.local (id=26) and minted 207-char HS256 JWT with
+  sub=str(user.id).
+- New tool: **reverse proxy on 127.0.0.1:8766 → Flask :8765** that injects
+  the admin Bearer header on all proxied requests. Source:
+  `jojo/test_results/US-009/attempt-1/proxy.py`. Needed because
+  playwright-mcp can't set Authorization on top-level navigation. With the
+  proxy in place the browser gets one same-origin base that serves both the
+  static Vite bundle AND a live Flask backend (so `/api/sources` returns the
+  real 40-source list and the ingestion panel populates from real data).
+  This pattern replaces the plain `python -m http.server 8766` recipe from
+  US-008 for any future test that needs authed XHR without modifying source.
+
+Per-story verdicts
+------------------
+- **US-009 — TEST_PASSED**: 40 tiles rendered in `.panel--ingestion` (15 rss +
+  25 social, hasTwitter=true); fetchMetrics outbound POST verified to carry
+  `metric=IngestLatencySeconds` with `Source` + `SourceType` dims (sampled
+  Source=CNBC); clicking first tile opens `.mon-drawer` with uPlot `<canvas>`
+  (drawer_has_canvas=true, drawer_aria_hidden=false). 0 console
+  errors/warnings. Screenshot: `panel-ingestion-with-drawer.png`.
+- **US-010 — TEST_PASSED**: all three `.widget--*` present. With
+  {bmm:[5],bcl:[3],bbr:[2]} → 50% minimax → `.ai-banner.banner--warn` visible
+  with text "MiniMax fallback active — check credits". With
+  {bmm:[9],bcl:[1],bbr:[0]} → banner has `hidden` attr. Donut has exactly 3
+  `<circle data-backend=minimax|claude|bedrock>` arcs. Screenshot:
+  `panel-ai-50pct-banner.png`.
+- **US-011 — TEST_PASSED**: `.meter--x-api` + `.tile--polygon` + `.tile--edgar`
+  + `.tile--stripe` all present. Mock xrl remaining = 50 → used 400/450 =
+  88.9% → `.meter--danger`. xrl=300 → 150/450=33.3% → `.meter--ok`. xrl=200 →
+  250/450=55.5% → `.meter--warn`. `.tile--edgar` is
+  `<a target="_blank" href="…edgar…">` (CloudWatch Logs Insights URL with
+  `filterPattern=%22edgar%22`). Per tester brief, verified via getAttribute
+  rather than actual tab-open. Screenshot: `panel-upstream-danger.png`.
+- **US-012 — TEST_PASSED**: `.chart--aws-daily` + `.meter--x-api-monthly` +
+  `.summary--mtd` all present. Mocked `/admin/api/metrics/cost` with the
+  canonical 7-day fixture (ECS $12.30 + RDS $5.20; x_api estimated=true
+  used=1200 quota=10000). 14 `<rect data-date>` bars (7 days × 2 stack
+  layers, ≥7 required). `.meter-bar` width="12%" (1200/10000).
+  `[data-role="x-est"]` rendered and visible ("estimated"). Summary text:
+  "MTD spend $21.46  Projected month-end $37.87". Screenshot:
+  `panel-cost-mocked.png`.
+
+Shared quality gates
+--------------------
+- `cd frontend && npm run build` → exit 0 (admin-monitoring-Bc21lktp.js
+  76.62 kB / 30.98 kB gzip, admin-monitoring-35bQgDcP.css 13.09 kB).
+- `/home/haotiant/conda/bin/python -m pytest tests/ --tb=short` → 261
+  passed, 1 skipped (matches implementor self-validation — these are
+  frontend-only changes).
+- Selector presence in built bundle (18/18 sel): `panel--ingestion`,
+  `panel--ai`, `panel--upstream`, `panel--cost`, `widget--queue-depth`,
+  `widget--batch-duration`, `widget--fallback-chain`, `meter--x-api`,
+  `tile--polygon`, `tile--edgar`, `tile--stripe`, `chart--aws-daily`,
+  `meter--x-api-monthly`, `summary--mtd`, `banner--warn`, `mon-drawer`,
+  `ingest-tile`, `ai-banner`. See `jojo/test_results/US-009/attempt-1/selectors.log`.
+
+Validation script
+-----------------
+`jojo/test_results/validate_009_012.sh` — builds the frontend, grep-counts
+all 18 selectors, runs pytest regression, and points at the per-story
+`summary.log` files that document the Playwright assertion set + screenshot
+paths.
+
+### Learnings (new for US-009..US-012)
+
+- **`_refreshIngestion` calls the module-scoped `fetchMetrics`, not
+  `window.__monitoring__.fetchMetrics`.** The `window.__monitoring__.fetchMetrics`
+  export is an ergonomic alias for DevTools poking but not a monkey-patch
+  point from a tester's perspective. The only effective intercept layer is
+  `SignalAuth.fetch`, which the module-scoped `fetchMetrics` uses
+  internally. All four panels route through SignalAuth.fetch, so a single
+  interceptor covers ingestion + AI + upstream + cost.
+- **`_loadSourceList()` caches `[]` on failure** (empty array is truthy in
+  JS). If the first boot-time fetch to `/api/sources` 404s (as with the
+  static-only harness), subsequent `_refreshIngestion` calls see the cached
+  empty list and can't be unstuck without a reload. The reverse-proxy
+  harness sidesteps this by making `/api/sources` actually work on first
+  try. Any future test that needs to exercise per-source tiles should use
+  the proxy rather than a plain static server.
+- **uPlot draws on `<canvas>`** — the drawer DOM is actually
+  `<div class="mon-drawer__chart"><div class="uplot u-hz"><div class="u-wrap"><canvas .../>...`.
+  Assert `document.querySelector('.mon-drawer canvas')` for chart init
+  success, not a specific SVG shape.
+- **Cost panel has a page-local 1-minute cache** keyed by range. Calling
+  `refreshCost('7d')` from a session that hasn't previously fetched 7d is a
+  guaranteed cache miss, which is what you want for mock-based assertions.
+  Worth documenting for US-013 which will likely need to re-render panels
+  after threshold changes.
+- **Bar counting on the stacked chart**: the implementor renders one `<rect
+  data-date>` per (day, service) tuple, not per day. For a 7-day range with
+  2 services in `by_service`, that's 14 rects. The assertion "≥ 7 bars" is
+  satisfied either way; but a strict "== 7" would fail. The PRD wording is
+  "≥ 7" so this is fine.
+---
+
+## [2026-04-17] - US-013 - IMPLEMENTOR — anomaly badges + summary counter ready for test
+
+Implemented threshold-driven visual badges across ingestion / AI / upstream
+panels, plus a top-bar summary counter whose buttons filter the page to
+critical-only or warning+critical view.
+
+Files changed
+-------------
+- `frontend/src/admin-monitoring.js` — added helpers (`applyBadge`,
+  `recomputeSummary`, `setSeverityFilter`, `bindSummaryButtons`). Wired
+  central `THRESHOLDS` into each panel refresher via `classifyStatus()`:
+  ingestion tile → p95 vs `ingestion_p95_s`; AI queue-depth widget → last
+  value vs `ai_queue_depth`; AI fallback-chain widget → `(1 - minimax_share)
+  * 100` vs `minimax_fallback_pct`; upstream X-API meter → used-pct vs
+  `x_rate_limit_pct`; polygon/EDGAR/stripe placeholder tiles → fixed
+  `badge--warn` (known-unimplemented). Every `_refresh<Panel>()` now calls
+  `recomputeSummary()` at its tail, and `refreshAllPanels()` also calls it
+  as a safety net.
+  `window.__monitoring__` now exposes `recomputeSummary`, `setSeverityFilter`,
+  `applyBadge`, and a `refreshAll` alias for Playwright tester convenience.
+- `frontend/admin-monitoring.html` — replaced the static `<span>` counter
+  with three `<button>` elements: `[data-severity="crit"]`,
+  `[data-severity="warn"]`, and `[data-role="clear-filter"]` (hidden by
+  default). Number spans tagged `[data-role="crit-count"]` and
+  `[data-role="warn-count"]` for stable Playwright selectors.
+- `frontend/src/styles/admin-monitoring.css` — added `.badge--ok|warn|crit`
+  (an `::after` corner dot using `--green/--yellow/--red`, plus border-tint
+  on warn+crit). `.mon-summary-btn` styles (with aria-pressed active state).
+  `.body-filter--crit` hides `.badge--ok` + `.badge--warn`;
+  `.body-filter--warn` hides only `.badge--ok`.
+- `frontend/src/admin-monitoring-helpers.js` — verified `classifyStatus()`
+  already exported + null-safe. No change.
+
+Commands run
+------------
+- `cd frontend && npm run build` → exit 0, new bundles
+  `admin-monitoring-DhOE_LLZ.js` (78.69 kB / 31.5 kB gzip) and
+  `admin-monitoring-D8yhXZoC.css` (14.72 kB / 3.41 kB gzip).
+- `grep -o 'badge--\(ok\|warn\|crit\)' static/assets/admin-monitoring-*.js |
+  sort -u` → `badge--crit`, `badge--ok`, `badge--warn` all present.
+- `grep -o 'THRESHOLDS\|ingestion_p95_s\|ai_queue_depth\|x_rate_limit_pct\|
+  minimax_fallback_pct' static/assets/admin-monitoring-*.js | sort -u` →
+  all 5 keys present.
+- `/home/haotiant/conda/bin/python -m pytest tests/ --tb=short` → 261
+  passed, 1 skipped, 1 warning — identical to prior US-012 baseline
+  (Python code untouched).
+
+### Environment notes for Tester
+
+- **Mock entry point**: the established pattern from US-009..US-012 is to
+  monkey-patch `SignalAuth.fetch` (as noted in the "Learnings" block above).
+  That still works here — each panel's threshold badges are applied inside
+  `_refresh<Panel>()` after the fetchMetrics round-trip, so if you inject a
+  p95 of 200s for SeekingAlpha via the existing reverse-proxy / fetch
+  interceptor harness, the ingestion tile will pick it up on the next
+  refresh tick and gain `badge--crit`.
+- **Tester-convenience additions** (safer than relying on poll ticks):
+  - `window.__monitoring__.refreshAll()` — alias for `refreshAllPanels()`;
+    call after seeding your mock to force an immediate re-render.
+  - `window.__monitoring__.recomputeSummary()` — returns `{crits, warns}`
+    and updates the counter text. Useful if you mutate badges directly
+    without going through a panel refresh.
+  - `window.__monitoring__.applyBadge(el, 'crit')` — for unit-style direct
+    badge checks; not needed if you're doing end-to-end via fetch mocks.
+  - `window.__monitoring__.setSeverityFilter('crit' | 'warn' | null)` —
+    same effect as clicking the buttons (useful for deterministic filter
+    assertions).
+- **Counter stable selectors** (from the new HTML):
+  - Crit count: `#mon-summary [data-role="crit-count"]`
+  - Warn count: `#mon-summary [data-role="warn-count"]`
+  - Crit button: `#mon-summary [data-severity="crit"]`
+  - Warn button: `#mon-summary [data-severity="warn"]`
+  - Clear button: `#mon-summary [data-role="clear-filter"]`
+- **Assertion for filter visibility**: the CSS hides via
+  `display: none !important` on `.badge--ok` + `.badge--warn` under
+  `.body-filter--crit`. Use `getComputedStyle(el).display === 'none'` or
+  `el.offsetParent === null` rather than checking class presence alone.
+  The badged element itself still carries `badge--warn` / `badge--ok` — it's
+  just not laid out. If your assertion is "only crit tiles visible", use
+  visibility, not class.
+- **Threshold numbers to trigger each state** (useful for mock seeds):
+  - ingestion p95: warn ≥ 60s, crit ≥ 180s.
+  - AI queue depth: warn ≥ 100, crit ≥ 500.
+  - X rate-limit pct (used / 450): warn ≥ 50% (remaining ≤ 225),
+    crit ≥ 80% (remaining ≤ 90).
+  - Minimax fallback pct (`1 - minimax_share` × 100): warn ≥ 20%,
+    crit ≥ 50%. Example: `{bmm:[4], bcl:[3], bbr:[3]}` → 40% → warn.
+
+### Learnings
+
+- **Badge placement matters — tiles have inner dots already**: the
+  ingestion tile has a pre-existing `.ingest-tile__dot` (p50-driven color)
+  and the upstream meter has `meter--ok|warn|danger` classes on the tile
+  root. US-013 adds its own corner dot via `.badge--*::after`, placed
+  top-right so it doesn't collide with existing indicators. Border-tint is
+  additive — both systems can color the same border and it degrades to the
+  more-severe of the two. Worth documenting if we ever consolidate.
+- **`display: none` on filtered elements still leaves classes intact**:
+  the `.body-filter--crit` CSS uses `display: none` (not `visibility:
+  hidden`) so DOM queries like `querySelectorAll('.badge--warn')` still
+  return filtered warn tiles. A Playwright assertion like "only crit tiles
+  remain visible" must check computed style / offsetParent, not a class
+  filter. This is by design — if we change filtering to class-based later,
+  the counter logic (`querySelectorAll('.badge--crit').length`) still works
+  because the badge class stays on the element.
+- **Unit of the non-minimax share**: the fallback-chain badge compares
+  `(1 - shares.minimax) * 100` (a percent) against THRESHOLDS percent
+  values, while the existing yellow banner at US-010 compares
+  `shares.minimax < 0.8` (a fraction). They're consistent (20% fallback ==
+  minimax share 0.8), but it's easy to mis-read one as the other — noting
+  here for any future tuning.
+- **`refreshAllPanels` is synchronous over async panels**: each panel's
+  refresh function is `async`, but `refreshAllPanels()` fires them without
+  awaiting. The immediate `recomputeSummary()` call at its tail will
+  under-count badges on the first tick because fetchMetrics is still in
+  flight. Each panel's own `recomputeSummary()` tail-call catches up. This
+  is acceptable — the counter converges within one poll cycle and
+  mock-based tests call `refreshAll()` then `await` a microtask or use the
+  per-panel `refresh<Panel>()` variants.
+---
