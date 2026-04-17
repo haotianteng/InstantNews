@@ -25,13 +25,16 @@
         "pytest tests/services/test_metrics.py -v exits 0",
         "mypy app/services/metrics.py exits 0"
       ],
-      "status": "REQUIRE_IMPLEMENT",
-      "passes": false,
-      "implementation_notes": null,
-      "files_changed": [],
+      "status": "TEST_PASSED",
+      "passes": true,
+      "implementation_notes": "Implemented app/services/metrics.py (stdlib-only) exposing emit_metric(namespace, metric_name, value, unit='Count', dimensions=None, **extra), emit_metrics(namespace, metrics=[{name,value,unit}], dimensions=None, **extra), and @contextmanager timed(namespace, metric_name, dimensions=None, unit='Milliseconds', **extra). Each helper prints one compact EMF JSON line to stdout using print(..., flush=True) so the ECS awslogs driver auto-parses into CloudWatch metrics with zero SDK calls. Design notes: (1) Dimensions outer array always has length 1 per EMF schema (minItems:1); when no dimensions are passed, the inner DimensionSet is [] which EMF permits (minItems:0) — so empty emissions render as 'Dimensions': [[]]. (2) Dimension VALUES are always coerced to strings via str() because CloudWatch rejects non-string dimension targets; ints/floats/bools all work. (3) Timestamp is int(time.time()*1000), sampled at emit time (not function entry). (4) timed() wraps in try/finally so the metric is emitted even when the block raises, and the exception propagates. (5) timed(unit='Seconds') divides the elapsed ms by 1000 before emission; unit='Microseconds' multiplies by 1000; any other unit emits raw ms. (6) emit_metrics() with an empty metrics list raises ValueError (CloudWatch rejects empty Metrics arrays). Test file tests/services/test_metrics.py — 10 tests, all pytest + capfd-based, covering: basic shape + timestamp range, multi-metric variant, empty-list rejection, timed elapsed >= 45ms for a 50ms sleep, timed emits on exception, timed Seconds unit conversion, dimensions=None and dimensions={} both render [[]], non-string dimension coercion (int/float/bool), and single-compact-line invariant. Self-validation: pytest passed 10/10; mypy --follow-imports=silent exit 0; full regression 236 passed 1 skipped. Commit b326fb4. EMF spec fetched live from docs.aws.amazon.com — confirmed Dimensions is list-of-lists and Timestamp is ms-since-epoch int.",
+      "files_changed": [
+        "app/services/metrics.py",
+        "tests/services/test_metrics.py"
+      ],
       "failure_reason": null,
-      "test_evidence": null,
-      "test_report": null,
+      "test_evidence": "All artifacts at jojo/test_results/US-001/attempt-1/. Assertion 1 stdout (assertion1_smoke.log): one-line EMF JSON with _aws.CloudWatchMetrics[0]={Namespace:'SIG', Dimensions:[['Source']], Metrics:[{Name:'FeedLatency',Unit:'Seconds'}]}, top-level Source='SeekingAlpha', FeedLatency=1.5, exit=0. Assertion 2 (assertion2_heredoc.log): heredoc variant printed 'ok', exit=0. Assertion 3 (assertion3_pytest.log): pytest tests/services/test_metrics.py -v → 10 passed in 0.15s, exit=0. Assertion 4 (assertion4_mypy.log): 'Success: no issues found in 1 source file', exit=0. Regression (regression.log): 236 passed, 1 skipped, 1 warning in 6.56s, exit=0 — matches implementor's reported baseline exactly. Sanity (sanity_shape.log): Timestamp 1776462732790 is int-ms within 60s of now, Dimensions=[['Source']] (list-of-lists), Metrics=[{Name:'FeedLatency',Unit:'Seconds'}], top-level Source + FeedLatency present → SHAPE_OK. Sanity (sanity_roundtrip.log): emit_metrics_multi OK, timed_elapsed OK (Dur=50.06ms), timed_exception_safe OK (exception propagates, metric still emitted), empty_dims_shape OK ([[]] rendered for dimensions=None).",
+      "test_report": "US-001 PASS. All 4 prd-defined assertions pass (smoke one-liner, heredoc structural check, pytest 10/10, mypy scoped to metrics.py). Regression baseline 236 passed + 1 skipped reproduced — no new failures. Sanity checks confirm EMF wire shape matches the spec: _aws.Timestamp is an integer ms-since-epoch within 60s of current time; _aws.CloudWatchMetrics[0] has Namespace/Dimensions[[...]]/Metrics[{Name,Unit}] exactly; dimension values and metric values live at the top level as EMF targets. Exception-safe behavior of timed() confirmed — RuntimeError propagates and the metric line is still emitted. Multi-metric emit_metrics() and empty-dimensions fallback to Dimensions=[[]] both behave as specified. Artifact dir: jojo/test_results/US-001/attempt-1/ (validate.sh + per-assertion logs + summary.log). No flags.",
       "fail_count": 0
     },
     {
@@ -55,10 +58,12 @@
         "Inside admin ECS task: python3 -c \"import boto3; boto3.client('ce').get_cost_and_usage(TimePeriod={'Start':'2026-04-10','End':'2026-04-17'}, Granularity='DAILY', Metrics=['UnblendedCost'])\" exits 0",
         "cd infra && npx cdk synth > /dev/null exits 0"
       ],
-      "status": "REQUIRE_IMPLEMENT",
+      "status": "READY_FOR_TEST",
       "passes": false,
-      "implementation_notes": null,
-      "files_changed": [],
+      "implementation_notes": "Added `aws_iam as iam` to the cdk imports in `infra/stack.py` and attached a single inline `iam.PolicyStatement` to `admin_task.task_role` (the runtime role that boto3 calls from the admin container assume). Statement: Effect=Allow, Actions=[cloudwatch:GetMetricData, cloudwatch:ListMetrics, ce:GetCostAndUsage, ce:GetDimensionValues], Resource=['*']. CE does not support resource-level ARNs so wildcard is required; CloudWatch GetMetricData/ListMetrics also intentionally wildcarded to match the namespaces the dashboard will query (InstantNews/Ingestion, InstantNews/AIPipeline, InstantNews/Twitter, etc.) — narrowing is not useful here because resource-ARN scoping for GetMetricData isn't granular enough to gate per-namespace anyway. Self-validation: (1) `cd infra && npx cdk synth > /tmp/us002_synth.log 2>&1` → exit 0. (2) `cd infra && npx cdk diff` → exit 0 and diff is exactly one IAM Statement addition (AdminTask/TaskRole/DefaultPolicy) on Resource=* with the four listed actions, plus the automatic DependsOn wiring CDK adds to resources that reference the admin task role (AdminService/Service, its SecurityGroup, and its SecurityGroupIngress all gain `AdminTaskTaskRoleDefaultPolicy80ADD05C` alongside the pre-existing `AdminTaskTaskRole229B8B1F`). That DependsOn churn is cosmetic — no resource is replaced, no physical ID changes. Full diff captured at /tmp/us002_diff.log. **DEPLOY DEFERRED**: `cdk deploy` was NOT run from this agent — team lead batches all stack deploys at the end of the dashboard PRD. Post-deploy assertion (boto3 calls from admin task) can only run after that deploy lands; tester should treat that assertion as deferred and validate synth/diff shape only.",
+      "files_changed": [
+        "infra/stack.py"
+      ],
       "failure_reason": null,
       "test_evidence": null,
       "test_report": null,

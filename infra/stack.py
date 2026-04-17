@@ -25,6 +25,7 @@ from aws_cdk import (
     aws_ecs as ecs,
     aws_ecs_patterns as ecs_patterns,
     aws_ecr as ecr,
+    aws_iam as iam,
     aws_rds as rds,
     aws_secretsmanager as secretsmanager,
     aws_route53 as route53,
@@ -340,6 +341,21 @@ class InstantNewsStack(Stack):
             ),
         )
         admin_container.add_port_mappings(ecs.PortMapping(container_port=8000))
+
+        # Admin task needs CloudWatch + Cost Explorer read for monitoring
+        # dashboard (US-002). CE has no resource-level ARN, so scope=*.
+        admin_task.task_role.add_to_policy(
+            iam.PolicyStatement(
+                effect=iam.Effect.ALLOW,
+                actions=[
+                    "cloudwatch:GetMetricData",
+                    "cloudwatch:ListMetrics",
+                    "ce:GetCostAndUsage",
+                    "ce:GetDimensionValues",
+                ],
+                resources=["*"],
+            )
+        )
 
         admin_service = ecs_patterns.ApplicationLoadBalancedFargateService(
             self, "AdminService",
