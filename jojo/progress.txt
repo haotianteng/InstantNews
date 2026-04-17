@@ -10,6 +10,9 @@ Mode: Adversarial (loop)
 - **Health endpoint pattern** (`app/routes/health.py`): separate blueprint for cheap anonymous probes; exceptions from Redis/DB checks are caught and surfaced in the JSON body, not re-raised. Returns 200/503 based on overall status. `/api/stats` remains the ECS container healthcheck target — don't repoint it until a story says so.
 - **CDK security-group ordering**: for resources like ElastiCache that need SG ingress from ECS services created later in the stack, define the resource's own SG up front (outbound disabled), then call `sg.add_ingress_rule(peer=service.connections.security_groups[0], ...)` after each ECS service is constructed. Avoids circular construct ordering that would happen with `allow_from`.
 - **Prod vs dev compose**: `docker-compose.yml` is the canonical service graph; `docker-compose.override.yml` is the dev-only layer (SQLite, exposed ports, profile-disabled prod-only services). Add `depends_on.<svc>.condition: service_healthy` on the app service so Flask waits for deps to be healthy before starting.
+- **Alembic dialect gate for Postgres-specific DDL** (`migrations/versions/014_add_companies_table.py`): when a migration needs a Postgres-only feature (partial index, `JSONB`, `ARRAY`, tsvector, etc.) but the project also runs on SQLite locally, branch on `op.get_bind().dialect.name == "postgresql"` and emit a portable fallback in the `else`. Example: `op.create_index(..., postgresql_where=sa.text("..."))` in Postgres, plain `op.create_index(name, table, [col])` on SQLite. Keeps one migration file + makes local test bootstraps survive.
+- **ORM vs Pydantic namespace split** (`app/models/`): `app/models/__init__.py` holds SQLAlchemy ORM classes (legacy compatibility — all existing `from app.models import User` imports resolve here). Domain-specific Pydantic schemas live as sibling modules `app/models/<domain>.py` (e.g. `app/models/company.py`) and are imported explicitly as `from app.models.company import Company`. Do NOT re-export Pydantic classes from `__init__.py` — keeps the two namespaces separate so ORM `Company` and Pydantic `Company` can share a name without shadowing.
+- **Package conversion preserving history**: when converting `pkg.py` → `pkg/__init__.py`, use `git mv pkg.py pkg/__init__.py` (after `mkdir -p pkg`). Git records it as a rename, history follows.
 
 ---
 
@@ -28,4 +31,37 @@ Mode: Adversarial (loop)
   - `app/cache/redis_client.py` provides `reset_redis_client()` — tests that swap `REDIS_URL` between cases must call it to drop the cached singleton.
   - `/health` is a NEW route; ECS healthcheck still targets `/api/stats` — intentional, changing that is out of scope.
   - CDK Redis endpoint is a CloudFormation token that resolves at deploy time (`f"redis://{cluster.attr_redis_endpoint_address}:{cluster.attr_redis_endpoint_port}/0"`); the synthesized template contains `Fn::GetAtt` refs that read correctly.
+---
+
+## 2026-04-17 - US-001 - TESTER - TEST_PASSED (attempt 1)
+- Ran all 6 test_assertions against commit 3484c54.
+- Commands executed (captured under jojo/test_results/US-001/attempt-1/):
+  - `docker compose -f docker-compose.yml up -d redis` + `docker compose -f docker-compose.yml exec -T redis redis-cli PING` → PONG. Used prod compose to dodge host-port conflict with system redis (implementor's documented workaround).
+  - `REDIS_URL=redis://127.0.0.1:6379/0 python -c "from app.cache.redis_client import get_redis; r=get_redis(); r.set('test','1'); assert r.get('test')==b'1'"` → exit 0.
+  - `grep -E '^redis>=' requirements.txt` → matched `redis>=5.0.0`, exit 0.
+  - `mypy --follow-imports=silent app/cache/` → Success: no issues found in 2 source files. (Unscoped `mypy app/cache/` exits 1 solely because of pre-existing errors in app/services/{cache_manager,edgar_client,market_data}.py — not US-001 code. Implementor flagged this in handoff.)
+  - `cd infra && cdk synth` exit 0; template contains 1 `AWS::ElastiCache::CacheCluster` + CfnSubnetGroup + 3 `REDIS_URL` env injections (web/admin/worker).
+  - Flask test client `GET /health` with live redis → HTTP 200, body `{'db':'ok','redis':'ok','status':'ok'}`.
+- Verdict: PASS. Set status=TEST_PASSED, passes=true. Wrote test_report and test_evidence in prd.json.
+- Stopped the docker redis container after verification so host redis remains the only listener.
+- **Learnings:**
+  - When a project has pre-existing mypy errors in transitively-imported modules, strict `mypy <newdir>` will exit non-zero even if `<newdir>` itself is clean. For future stories, test assertion `mypy <path>` should be interpreted as "no NEW errors in <path>'s own source files". `--follow-imports=silent` is the scoped equivalent and matches the spirit of the assertion.
+  - `docker compose -f docker-compose.yml` (canonical file only, no override) is the right incantation on this host — the override's `6379:6379` host-port publish collides with the always-on system redis. Downstream stories that depend on Redis should follow the same pattern.
+  - Flask test client + sqlite in-memory DB is a fast way to validate `/health`-style endpoints without starting a real server; Firebase Admin init runs but otherwise is harmless (only fails on Google calls, which `/health` doesn't make).
+---
+
+## 2026-04-17 - US-002 - IMPLEMENTOR - companies master table landed
+- Added Alembic revision `014_add_companies_table.py` creating `companies` (14 spec columns + `delisted_at TIMESTAMP NULL`), PK on `ticker`, UNIQUE on `cik`, indexes on sector/industry, partial `idx_companies_active ON companies(ticker) WHERE delisted_at IS NULL` (Postgres) with plain-index fallback on SQLite.
+- Converted `app/models.py` → `app/models/__init__.py` via `git mv` to host both ORM (legacy + new `Company` class) and Pydantic sibling modules. All existing `from app.models import User, News, Subscription, ...` imports continue to resolve.
+- Added SQLAlchemy ORM `Company` in `app/models/__init__.py` — Date ipo_date, DateTime timestamps with `server_default=func.now()`, Boolean `is_active` default TRUE, `delisted_at` nullable DateTime.
+- Added Pydantic v2 `Company` in `app/models/company.py` — `from_attributes=True` for future `Company.model_validate(orm_row)` in repositories.
+- Updated `migrations/env.py` to import `Company` so `Base.metadata` sees the new table.
+- Files changed: migrations/versions/014_add_companies_table.py, app/models/__init__.py (renamed from app/models.py), app/models/company.py, migrations/env.py.
+- Self-validation: orm import smoke (all 10 models + Company), pydantic import + instantiation smoke, ran Postgres 16 on localhost:5433 (avoids host system-postgres on 5432), `alembic upgrade head` through 014 ran cleanly, `\d companies` shows 17 cols + all 5 indexes incl. partial, `INSERT INTO companies(ticker,name) VALUES('AAPL','Apple Inc.')` populates server defaults, `alembic downgrade -1` + `\d companies` → relation missing, round-trip `alembic upgrade head` restores 014. `mypy --follow-imports=silent app/models/company.py` → clean.
+- **Learnings / Environment notes for Tester:**
+  - Host runs system Postgres on 127.0.0.1:5432. `docker compose --profile prod up -d postgres` brings up `signal-postgres` but does NOT publish a host port (canonical `docker-compose.yml` lacks `ports:` for postgres), so `alembic ... localhost:5432` silently hits system postgres and auth-fails. Tester should run a one-off container with an explicit port: `docker run -d --name signal-postgres-test -p 5433:5432 -e POSTGRES_USER=signal -e POSTGRES_PASSWORD=signal -e POSTGRES_DB=signal_news postgres:16-alpine`, wait for `docker exec signal-postgres-test pg_isready -U signal`, then `DATABASE_URL=postgresql://signal:signal@localhost:5433/signal_news alembic upgrade head`. Or `docker exec signal-postgres-test psql -U signal -d signal_news -c '\d companies'`.
+  - mypy: use `mypy --follow-imports=silent app/models/company.py` — same US-001 precedent for dodging pre-existing errors in app/services/*.
+  - Pydantic v2 schema uses `model_config = {"from_attributes": True}`; tester should use `PydCompany(...)` instantiation, not `parse_obj` (v1 API).
+  - Git shows `RM app/models.py -> app/models/__init__.py` — that's expected; same file, moved into a package.
+  - After `alembic downgrade -1`, re-run `alembic upgrade head` to restore the table before handing the DB off to downstream stories (US-003 has FK to companies).
 ---

@@ -1,8 +1,23 @@
-"""SQLAlchemy models for the news database."""
+"""SQLAlchemy models for the news database.
+
+This module is a package (see ``app/models/__init__.py``). All legacy ORM
+models live here so that ``from app.models import User, News, Subscription,
+...`` continues to resolve unchanged after the package conversion.
+
+Domain-specific **Pydantic** schemas live as sibling modules (e.g.
+``app.models.company``) and are intentionally not re-exported from this
+``__init__`` to keep the ORM/Pydantic namespaces separate. Import them
+explicitly from their submodule::
+
+    from app.models.company import Company   # Pydantic schema
+    from app.models import Company           # SQLAlchemy ORM (defined below)
+"""
 
 from sqlalchemy import (
     Boolean,
     Column,
+    Date,
+    DateTime,
     Float,
     ForeignKey,
     Integer,
@@ -11,6 +26,7 @@ from sqlalchemy import (
     Text,
     UniqueConstraint,
     Index,
+    func,
 )
 
 from app.database import Base
@@ -265,3 +281,71 @@ class CompanyDataCache(Base):
         Index("idx_cache_symbol", "symbol"),
         Index("idx_cache_fetched", "fetched_at"),
     )
+
+
+class Company(Base):
+    """Master reference row for a tradable company.
+
+    Mirrors ``migrations/versions/014_add_companies_table.py``. Stable
+    per-ticker data only — time-series metrics live in sibling tables
+    (``company_financials``, ``company_fundamentals``, etc.).
+
+    ``delisted_at`` is nullable — set it when a ticker is delisted so active
+    scans (all scheduled jobs) can filter ``WHERE delisted_at IS NULL``
+    without deleting historical rows. This matches OQ-5 in the PRD.
+    """
+
+    __tablename__ = "companies"
+
+    ticker = Column(String(10), primary_key=True)
+    cik = Column(String(10), unique=True, nullable=True)
+    name = Column(String(255), nullable=False)
+    exchange = Column(String(20), nullable=True)
+    sector = Column(String(100), nullable=True)
+    industry = Column(String(100), nullable=True)
+    country = Column(String(3), nullable=True)
+    currency = Column(String(3), nullable=True)
+    description = Column(Text, nullable=True)
+    website = Column(String(255), nullable=True)
+    employee_count = Column(Integer, nullable=True)
+    founded_year = Column(Integer, nullable=True)
+    ipo_date = Column(Date, nullable=True)
+    is_active = Column(Boolean, nullable=False, server_default="true", default=True)
+    created_at = Column(DateTime, nullable=False, server_default=func.now())
+    updated_at = Column(DateTime, nullable=False, server_default=func.now())
+    delisted_at = Column(DateTime, nullable=True)
+
+    __table_args__ = (
+        Index("idx_companies_sector", "sector"),
+        Index("idx_companies_industry", "industry"),
+        # Partial index idx_companies_active is Postgres-specific and is
+        # created by the Alembic migration under a dialect gate (SQLite
+        # gets a plain index). Declaring it here would emit it through
+        # Base.metadata.create_all for non-Postgres dialects, which is the
+        # desired fallback; however we intentionally do NOT declare it here
+        # because ``create_all`` is only used for SQLite test bootstraps
+        # (tests/conftest.py) where a partial index on a non-populated
+        # table is redundant. The Alembic migration is the source of truth
+        # for index DDL against Postgres.
+    )
+
+    def to_dict(self) -> dict:
+        return {
+            "ticker": self.ticker,
+            "cik": self.cik,
+            "name": self.name,
+            "exchange": self.exchange,
+            "sector": self.sector,
+            "industry": self.industry,
+            "country": self.country,
+            "currency": self.currency,
+            "description": self.description,
+            "website": self.website,
+            "employee_count": self.employee_count,
+            "founded_year": self.founded_year,
+            "ipo_date": self.ipo_date.isoformat() if self.ipo_date else None,
+            "is_active": self.is_active,
+            "created_at": self.created_at.isoformat() if self.created_at else None,
+            "updated_at": self.updated_at.isoformat() if self.updated_at else None,
+            "delisted_at": self.delisted_at.isoformat() if self.delisted_at else None,
+        }
