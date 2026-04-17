@@ -1,11 +1,11 @@
-# Ralph v2 — Adversarial Build & Test System
+# JOJO v2 — Adversarial Build & Test System
 
 This project uses an adversarial two-agent workflow. One agent implements, the other validates by execution. They communicate through `prd.json` on disk. Neither can do the other's job.
 
 ## PRD Location
 
-- `ralph/prd.json` — the single source of truth for all stories
-- `ralph/progress.txt` — append-only log (read Codebase Patterns section first)
+- `jojo/prd.json` — the single source of truth for all stories
+- `jojo/progress.txt` — append-only log (read Codebase Patterns section first)
 
 ## Status State Machine
 
@@ -37,15 +37,15 @@ You are the Generator in a GAN. The Tester will run your code for real — impor
 
 ### Workflow
 
-1. Read `ralph/prd.json` and `ralph/progress.txt` (Codebase Patterns first)
+1. Read `jojo/prd.json` and `jojo/progress.txt` (Codebase Patterns first)
 2. Ensure correct git branch from `prd.json.branchName`
 3. Pick story by priority: `TEST_FAILED` first (rework), then `REQUIRE_IMPLEMENT`, then `null`
-4. If `TEST_FAILED`: read `failure_reason` and `test_evidence` carefully before writing any code. Inspect the Tester's artifacts at `ralph/test_results/<story-id>/attempt-<N>/` — logs, outputs, and screenshots are your primary debugging resource
+4. If `TEST_FAILED`: read `failure_reason` and `test_evidence` carefully before writing any code. Inspect the Tester's artifacts at `jojo/test_results/<story-id>/attempt-<N>/` — logs, outputs, and screenshots are your primary debugging resource
 5. Implement the story following `acceptanceCriteria` literally
 6. Self-validate: run typecheck, lint, tests — whatever the project uses
 7. Commit: `feat: [Story ID] - [Title]` or `fix: [Story ID] - [Title] (rework N)`
 8. Update prd.json: set `status: "READY_FOR_TEST"`, write `implementation_notes` and `files_changed`
-9. Append to `ralph/progress.txt` with implementation details and "Environment notes for Tester"
+9. Append to `jojo/progress.txt` with implementation details and "Environment notes for Tester"
 10. **Message the tester**: send them the story ID and a summary of what to validate
 11. Update CLAUDE.md files in modified directories if you found reusable patterns
 
@@ -88,10 +88,10 @@ You are skeptical by default but not obstructionist. If it genuinely works, you 
 **NEVER use `/tmp` for test outputs.** All test artifacts go to:
 
 ```
-ralph/test_results/<story-id>/attempt-<fail_count + 1>/
+jojo/test_results/<story-id>/attempt-<fail_count + 1>/
 ```
 
-Example: `ralph/test_results/US-003/attempt-1/`
+Example: `jojo/test_results/US-003/attempt-1/`
 
 Save EVERYTHING:
 * stdout/stderr captures → `stdout.log`, `stderr.log`
@@ -104,29 +104,29 @@ This directory is the Implementor's primary debugging resource when a story boun
 
 Reference these paths in `test_evidence` in prd.json:
 ```json
-"test_evidence": "See ralph/test_results/US-003/attempt-1/stderr.log — ImportError on line 12"
+"test_evidence": "See jojo/test_results/US-003/attempt-1/stderr.log — ImportError on line 12"
 ```
 
 ### Workflow
 
-1. Read `ralph/prd.json` — find stories with `status: "READY_FOR_TEST"`
-2. Read `ralph/progress.txt` — check Implementor's environment notes
+1. Read `jojo/prd.json` — find stories with `status: "READY_FOR_TEST"`
+2. Read `jojo/progress.txt` — check Implementor's environment notes
 3. Pick highest priority `READY_FOR_TEST` story
-4. **Create test results directory:** `mkdir -p ralph/test_results/<story-id>/attempt-<N>/`
+4. **Create test results directory:** `mkdir -p jojo/test_results/<story-id>/attempt-<N>/`
 5. Set up environment: install deps, start services if needed
 6. **Execute real validation for every acceptance criterion, capturing all output:**
 
    **Strategy `function`**: import and call the actual function, assert on return values
    ```bash
    python3 -c "from module import fn; result = fn(input); assert condition, f'got {result}'" \
-     > ralph/test_results/US-001/attempt-1/stdout.log \
-     2> ralph/test_results/US-001/attempt-1/stderr.log
+     > jojo/test_results/US-001/attempt-1/stdout.log \
+     2> jojo/test_results/US-001/attempt-1/stderr.log
    ```
 
    **Strategy `cli`**: run the actual command, check exit code and output
    ```bash
-   python -m module.cli --arg value --output ralph/test_results/US-001/attempt-1/output/
-   echo "exit code: $?" >> ralph/test_results/US-001/attempt-1/stdout.log
+   python -m module.cli --arg value --output jojo/test_results/US-001/attempt-1/output/
+   echo "exit code: $?" >> jojo/test_results/US-001/attempt-1/stdout.log
    ```
 
    **Strategy `browser`**: navigate to URL, interact with UI, capture screenshots to test results dir
@@ -138,8 +138,8 @@ Reference these paths in `test_evidence` in prd.json:
 9. Judgment:
    - ALL criteria pass → set `status: "TEST_PASSED"`, `passes: true`, write `test_report`
    - ANY criterion fails → set `status: "TEST_FAILED"`, increment `fail_count`, write specific `failure_reason` + `test_evidence` with paths to artifacts
-10. Append to `ralph/progress.txt` with test results
-11. **Message the implementor**: if failed, send them the story ID, what broke, and the path to `ralph/test_results/<story-id>/attempt-<N>/`
+10. Append to `jojo/progress.txt` with test results
+11. **Message the implementor**: if failed, send them the story ID, what broke, and the path to `jojo/test_results/<story-id>/attempt-<N>/`
 
 ### Failure reasons must be specific and actionable
 
@@ -160,7 +160,7 @@ Good: "Criterion 3 failed: `python3 -c 'from mod import fn; print(fn([1,2,3]))'`
 
 ### Progress report format
 
-APPEND to `ralph/progress.txt` (never replace):
+APPEND to `jojo/progress.txt` (never replace):
 ```
 ## [Date/Time] - [Story ID] - [IMPLEMENTOR|TESTER] — [action taken]
 - What was done
@@ -173,7 +173,7 @@ APPEND to `ralph/progress.txt` (never replace):
 
 ### Codebase patterns
 
-If you discover a reusable pattern, add it to the `## Codebase Patterns` section at the TOP of `ralph/progress.txt`.
+If you discover a reusable pattern, add it to the `## Codebase Patterns` section at the TOP of `jojo/progress.txt`.
 
 ### Quality requirements
 
@@ -184,10 +184,10 @@ If you discover a reusable pattern, add it to the `## Codebase Patterns` section
 
 ### Test results directory
 
-All test artifacts persist at `ralph/test_results/<story-id>/attempt-<N>/`. Never use `/tmp`. This directory is version-controlled evidence — the Implementor reads it to debug failures, the team lead reads it to detect patterns.
+All test artifacts persist at `jojo/test_results/<story-id>/attempt-<N>/`. Never use `/tmp`. This directory is version-controlled evidence — the Implementor reads it to debug failures, the team lead reads it to detect patterns.
 
 ```
-ralph/test_results/
+jojo/test_results/
 ├── US-001/
 │   ├── attempt-1/        ← first test run
 │   │   ├── stdout.log
@@ -230,35 +230,6 @@ ralph/test_results/
   "fail_count": 0
 }
 ```
-
----
-
-## Mandatory Playwright Tests
-
-**Before marking any UI or billing feature as complete, you MUST run the following Playwright tests.** These are non-negotiable regression checks. Use the Playwright MCP tools (browser_navigate, browser_evaluate, browser_click, browser_take_screenshot) to verify each flow.
-
-### 1. Authentication Flows
-- **Google OAuth**: Navigate to landing page, click "Sign in with Google" -> popup must open (verify new tab opens to accounts.google.com)
-- **Email/password sign-in**: Sign in via `/api/auth/signin` with test credentials -> verify 200 + token returned
-- **Auth persistence**: After sign-in, navigate to `/terminal` -> verify user is authenticated (SignalAuth.getUser() returns user object)
-
-### 2. Subscription & Billing
-- **Checkout sidebar (test account)**: As a test account, click Subscribe on pricing page -> sidebar opens -> shows "Upgraded to MAX" (no Stripe)
-- **Checkout sidebar (real account)**: As a non-test account, click Subscribe -> sidebar opens -> Stripe Payment Element mounts (verify `#payment-element` has iframe)
-- **Downgrade flow**: Click downgrade -> confirmation notice appears -> click Confirm -> notice dismisses, pending downgrade banner shows
-- **Stripe session creation**: Verify `POST /api/billing/checkout` with `embedded: true` returns `client_secret` (not error) for non-test users
-
-### 3. Terminal Core Features
-- **News loads with sentiment**: Navigate to `/terminal` as Max user -> verify `sentiment_label` present in API response items
-- **Ticker column with icons**: Verify `.ticker-badge` elements have `data-asset-type` and `.asset-icon img` loads
-- **Company panel (stock)**: Click a STOCK ticker badge -> slide-out panel opens with Fundamentals tab, 5 tabs visible
-- **Company panel (futures)**: Click a FUTURE ticker badge -> panel shows "Overview" tab only with contract specs
-- **Company panel (currency)**: Click a CURRENCY ticker badge -> panel shows "Overview" tab with forex data or graceful error
-- **Column locking (Pro)**: As Pro user, verify Ticker/Confidence/Risk columns show lock icon + MAX badge in settings panel
-
-### 4. Non-Regression Checks
-- **No console JS errors on page load**: Navigate to terminal -> check console for errors (rate limit 429s are acceptable, JS exceptions are not)
-- **Existing pages still load**: Verify `/`, `/terminal`, `/pricing`, `/account`, `/docs` all return 200
 
 ### Field ownership summary
 

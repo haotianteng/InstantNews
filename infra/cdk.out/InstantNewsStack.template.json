@@ -783,6 +783,145 @@
     "aws:cdk:path": "InstantNewsStack/PrivateZone/Resource"
    }
   },
+  "RedisSubnetGroup": {
+   "Type": "AWS::ElastiCache::SubnetGroup",
+   "Properties": {
+    "CacheSubnetGroupName": "instantnews-redis-subnets",
+    "Description": "InstantNews Redis subnet group (private with egress)",
+    "SubnetIds": [
+     {
+      "Ref": "VpcPrivateSubnet1Subnet536B997A"
+     },
+     {
+      "Ref": "VpcPrivateSubnet2Subnet3788AAA1"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "InstantNewsStack/RedisSubnetGroup"
+   }
+  },
+  "RedisSgFB48DCCD": {
+   "Type": "AWS::EC2::SecurityGroup",
+   "Properties": {
+    "GroupDescription": "Allow inbound 6379 from ECS task security groups only",
+    "SecurityGroupEgress": [
+     {
+      "CidrIp": "255.255.255.255/32",
+      "Description": "Disallow all traffic",
+      "FromPort": 252,
+      "IpProtocol": "icmp",
+      "ToPort": 86
+     }
+    ],
+    "VpcId": {
+     "Ref": "Vpc8378EB38"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "InstantNewsStack/RedisSg/Resource"
+   }
+  },
+  "RedisSgfromInstantNewsStackWebServiceSecurityGroup0D20432A6379C2EA8C0D": {
+   "Type": "AWS::EC2::SecurityGroupIngress",
+   "Properties": {
+    "Description": "Allow Redis from web service",
+    "FromPort": 6379,
+    "GroupId": {
+     "Fn::GetAtt": [
+      "RedisSgFB48DCCD",
+      "GroupId"
+     ]
+    },
+    "IpProtocol": "tcp",
+    "SourceSecurityGroupId": {
+     "Fn::GetAtt": [
+      "WebServiceSecurityGroup7A3EB149",
+      "GroupId"
+     ]
+    },
+    "ToPort": 6379
+   },
+   "Metadata": {
+    "aws:cdk:path": "InstantNewsStack/RedisSg/from InstantNewsStackWebServiceSecurityGroup0D20432A:6379"
+   }
+  },
+  "RedisSgfromInstantNewsStackAdminServiceSecurityGroupED352E0263796B83F7DF": {
+   "Type": "AWS::EC2::SecurityGroupIngress",
+   "Properties": {
+    "Description": "Allow Redis from admin service",
+    "FromPort": 6379,
+    "GroupId": {
+     "Fn::GetAtt": [
+      "RedisSgFB48DCCD",
+      "GroupId"
+     ]
+    },
+    "IpProtocol": "tcp",
+    "SourceSecurityGroupId": {
+     "Fn::GetAtt": [
+      "AdminServiceSecurityGroup1797293A",
+      "GroupId"
+     ]
+    },
+    "ToPort": 6379
+   },
+   "Metadata": {
+    "aws:cdk:path": "InstantNewsStack/RedisSg/from InstantNewsStackAdminServiceSecurityGroupED352E02:6379"
+   }
+  },
+  "RedisSgfromInstantNewsStackWorkerServiceSecurityGroup7F465C27637947A51159": {
+   "Type": "AWS::EC2::SecurityGroupIngress",
+   "Properties": {
+    "Description": "Allow Redis from worker service",
+    "FromPort": 6379,
+    "GroupId": {
+     "Fn::GetAtt": [
+      "RedisSgFB48DCCD",
+      "GroupId"
+     ]
+    },
+    "IpProtocol": "tcp",
+    "SourceSecurityGroupId": {
+     "Fn::GetAtt": [
+      "WorkerServiceSecurityGroup254DBA6E",
+      "GroupId"
+     ]
+    },
+    "ToPort": 6379
+   },
+   "Metadata": {
+    "aws:cdk:path": "InstantNewsStack/RedisSg/from InstantNewsStackWorkerServiceSecurityGroup7F465C27:6379"
+   }
+  },
+  "RedisCluster": {
+   "Type": "AWS::ElastiCache::CacheCluster",
+   "Properties": {
+    "CacheNodeType": "cache.t4g.micro",
+    "CacheSubnetGroupName": {
+     "Ref": "RedisSubnetGroup"
+    },
+    "ClusterName": "instantnews-redis",
+    "Engine": "redis",
+    "EngineVersion": "7.1",
+    "NumCacheNodes": 1,
+    "Port": 6379,
+    "VpcSecurityGroupIds": [
+     {
+      "Fn::GetAtt": [
+       "RedisSgFB48DCCD",
+       "GroupId"
+      ]
+     }
+    ]
+   },
+   "DependsOn": [
+    "RedisSubnetGroup"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "InstantNewsStack/RedisCluster"
+   }
+  },
   "WebLogs48A7C011": {
    "Type": "AWS::Logs::LogGroup",
    "Properties": {
@@ -842,6 +981,10 @@
         "Value": "us-east-1"
        },
        {
+        "Name": "MINIMAX_MODEL_ID",
+        "Value": "MiniMax-M2.7"
+       },
+       {
         "Name": "DB_HOST",
         "Value": {
          "Fn::GetAtt": [
@@ -866,6 +1009,31 @@
        {
         "Name": "DB_USER",
         "Value": "signal"
+       },
+       {
+        "Name": "REDIS_URL",
+        "Value": {
+         "Fn::Join": [
+          "",
+          [
+           "redis://",
+           {
+            "Fn::GetAtt": [
+             "RedisCluster",
+             "RedisEndpoint.Address"
+            ]
+           },
+           ":",
+           {
+            "Fn::GetAtt": [
+             "RedisCluster",
+             "RedisEndpoint.Port"
+            ]
+           },
+           "/0"
+          ]
+         ]
+        }
        },
        {
         "Name": "PORT",
@@ -996,6 +1164,20 @@
         }
        },
        {
+        "Name": "POLYGON_API_KEY",
+        "ValueFrom": {
+         "Fn::Join": [
+          "",
+          [
+           {
+            "Ref": "AppSecretsA1997F2A"
+           },
+           ":POLYGON_API_KEY::"
+          ]
+         ]
+        }
+       },
+       {
         "Name": "STRIPE_SECRET_KEY",
         "ValueFrom": {
          "Fn::Join": [
@@ -1061,6 +1243,48 @@
             "Ref": "AppSecretsA1997F2A"
            },
            ":STRIPE_PRICE_MAX::"
+          ]
+         ]
+        }
+       },
+       {
+        "Name": "WECHAT_APP_ID",
+        "ValueFrom": {
+         "Fn::Join": [
+          "",
+          [
+           {
+            "Ref": "AppSecretsA1997F2A"
+           },
+           ":WECHAT_APP_ID::"
+          ]
+         ]
+        }
+       },
+       {
+        "Name": "WECHAT_APP_SECRET",
+        "ValueFrom": {
+         "Fn::Join": [
+          "",
+          [
+           {
+            "Ref": "AppSecretsA1997F2A"
+           },
+           ":WECHAT_APP_SECRET::"
+          ]
+         ]
+        }
+       },
+       {
+        "Name": "APP_JWT_SECRET",
+        "ValueFrom": {
+         "Fn::Join": [
+          "",
+          [
+           {
+            "Ref": "AppSecretsA1997F2A"
+           },
+           ":APP_JWT_SECRET::"
           ]
          ]
         }
@@ -1711,6 +1935,10 @@
         "Value": "us-east-1"
        },
        {
+        "Name": "MINIMAX_MODEL_ID",
+        "Value": "MiniMax-M2.7"
+       },
+       {
         "Name": "DB_HOST",
         "Value": {
          "Fn::GetAtt": [
@@ -1735,6 +1963,31 @@
        {
         "Name": "DB_USER",
         "Value": "signal"
+       },
+       {
+        "Name": "REDIS_URL",
+        "Value": {
+         "Fn::Join": [
+          "",
+          [
+           "redis://",
+           {
+            "Fn::GetAtt": [
+             "RedisCluster",
+             "RedisEndpoint.Address"
+            ]
+           },
+           ":",
+           {
+            "Fn::GetAtt": [
+             "RedisCluster",
+             "RedisEndpoint.Port"
+            ]
+           },
+           "/0"
+          ]
+         ]
+        }
        },
        {
         "Name": "PORT",
@@ -1874,6 +2127,20 @@
         }
        },
        {
+        "Name": "POLYGON_API_KEY",
+        "ValueFrom": {
+         "Fn::Join": [
+          "",
+          [
+           {
+            "Ref": "AppSecretsA1997F2A"
+           },
+           ":POLYGON_API_KEY::"
+          ]
+         ]
+        }
+       },
+       {
         "Name": "STRIPE_SECRET_KEY",
         "ValueFrom": {
          "Fn::Join": [
@@ -1939,6 +2206,48 @@
             "Ref": "AppSecretsA1997F2A"
            },
            ":STRIPE_PRICE_MAX::"
+          ]
+         ]
+        }
+       },
+       {
+        "Name": "WECHAT_APP_ID",
+        "ValueFrom": {
+         "Fn::Join": [
+          "",
+          [
+           {
+            "Ref": "AppSecretsA1997F2A"
+           },
+           ":WECHAT_APP_ID::"
+          ]
+         ]
+        }
+       },
+       {
+        "Name": "WECHAT_APP_SECRET",
+        "ValueFrom": {
+         "Fn::Join": [
+          "",
+          [
+           {
+            "Ref": "AppSecretsA1997F2A"
+           },
+           ":WECHAT_APP_SECRET::"
+          ]
+         ]
+        }
+       },
+       {
+        "Name": "APP_JWT_SECRET",
+        "ValueFrom": {
+         "Fn::Join": [
+          "",
+          [
+           {
+            "Ref": "AppSecretsA1997F2A"
+           },
+           ":APP_JWT_SECRET::"
           ]
          ]
         }
@@ -2408,6 +2717,10 @@
         "Value": "us-east-1"
        },
        {
+        "Name": "MINIMAX_MODEL_ID",
+        "Value": "MiniMax-M2.7"
+       },
+       {
         "Name": "DB_HOST",
         "Value": {
          "Fn::GetAtt": [
@@ -2432,6 +2745,31 @@
        {
         "Name": "DB_USER",
         "Value": "signal"
+       },
+       {
+        "Name": "REDIS_URL",
+        "Value": {
+         "Fn::Join": [
+          "",
+          [
+           "redis://",
+           {
+            "Fn::GetAtt": [
+             "RedisCluster",
+             "RedisEndpoint.Address"
+            ]
+           },
+           ":",
+           {
+            "Fn::GetAtt": [
+             "RedisCluster",
+             "RedisEndpoint.Port"
+            ]
+           },
+           "/0"
+          ]
+         ]
+        }
        },
        {
         "Name": "WORKER_INTERVAL_SECONDS",
@@ -2529,6 +2867,20 @@
             "Ref": "AppSecretsA1997F2A"
            },
            ":ANTHROPIC_API_KEY::"
+          ]
+         ]
+        }
+       },
+       {
+        "Name": "POLYGON_API_KEY",
+        "ValueFrom": {
+         "Fn::Join": [
+          "",
+          [
+           {
+            "Ref": "AppSecretsA1997F2A"
+           },
+           ":POLYGON_API_KEY::"
           ]
          ]
         }
@@ -2870,7 +3222,7 @@
   "CDKMetadata": {
    "Type": "AWS::CDK::Metadata",
    "Properties": {
-    "Analytics": "v2:deflate64:H4sIAAAAAAAA/31S207jMBD9Ft6NdynwAaWwbCXEVgniYV/Q1BnCbF07ssdU3Sj/vrKdJmlheZozx2esuZyZnF1dye9nsPPnqtqca1rLtmRQGwE7/9Kimsn2uVFi8WqeVwuxCmtNqgxrgxy5ERU2MD7BWuPIj9zce6sImKwZxBHcLVcxPALfA+MO9mLl6B0Yx4+XhtEZHAS5kz6bM4N626JhUaIKjnh/72xoUg9fEktTO/T+A3/X05rQ8HNj7kzVWDKpla/JJ3A18iPyzrrN0cAHxTzwm3X0N9FFyKv6/2snUDlZYGM9sXX7G/AoPCqH7LdgoEYn2zLl/RgR5ZCbmaxnEJy+dMJVXra3wLAGj0vjGYxCkS8wLO/25gMxSE9rC4SqwEaTgjiDl+1CB8/o8rwZ/gBXQ7SH39ziKxk6mOOUsYaBDLoJ19eW6N5JZcP1sFSgo+HiJwsb4ngKHdMrKWActrYYudTTmHbCRXNeX8q2t+JP6xmr39Yk6SSbF6isq5KhEyqRO6Ft7WX7YOthUwfcCYKtbAubD5/iympSydQZpX29NMDR9F7Om7TFOPSDheoGdNxvdTI/avBMSluo1klBpn6fyfbzapd7muRTHXlG02sOePKe3TOMNkk7AaMMAluvQJOpZTveJIrTtY6ZHJ4cqA2Zusx142aOiK4TBXobXL77r8BN4E6s9vxmzbdLeXEhr8/+eKJzFwzTFmWR4z9R1UWj6wQAAA=="
+    "Analytics": "v2:deflate64:H4sIAAAAAAAA/31TwU7jMBD9Fu7GuxT4gFJYthJiqwRx2AuaOkM6W9eO7DFVN8q/r2ynSSgsp5l582zNPD/P5OzqSn4/g70/V9X2XNNatiWD2grY+5cW1Uy2z40Si1fzvFqIVVhrUmVYG+SIjVlhA+MTrDWO+IjNvbeKgMmagRyTu+Uqhkfge2Dcw0GsHL0B43jx0jA6gwMhT9JXc2ZQmx0aFiWq4IgP986GJs3wJbA0tUPvP+B3PawJDT835s5UjSWTRvkafAJXIz8i763bvlv4yJgH3lhHfxNchCzV/7udQOVkgY31xNYdbsCj8Kgcst+BgRqdbMtU92vELIc8zESegXDa6YSrvGxvgWENHpfGMxiFIr/AIN7tzQdgoJ6eLRCqAhtNCuIOXrYLHTyjy/vm9Ae4GqI9/PYWX8nQ0RyniDUMZNBNsP5sie6NVDZcn5YKdDRcvGRhQ1xPoWN6JQWMg2qLEUszjWUnXDTn9aVseyv+tJ6x+m1Nok6qeYHKuioZOmUlcidQg2dSoDYo2+ErDLItYqPXoBPa1l62D7Ye+se8EwQ72RY2uyTFldWk0g/IWRL3pQGOP8TLeZMkjwo9WKhuQMfHqE7E6ufTFqp1YpCp32ay/fy0yzNN6imPPKPpOcd80s9WG1ablJ2AkQaBrVegydSyHR8wktPTvkdyeHKgtmTqMp8blXkHdJ0o0Nvgskl+BW4Cd2J14I013y7lxYW8Pvvjic5dMEw7lEWO/wBQljBFGAUAAA=="
    },
    "Metadata": {
     "aws:cdk:path": "InstantNewsStack/CDKMetadata/Default"
@@ -2971,6 +3323,38 @@
     "Fn::GetAtt": [
      "DatabaseReplicaFD06AB0D",
      "Endpoint.Address"
+    ]
+   }
+  },
+  "RedisEndpoint": {
+   "Value": {
+    "Fn::GetAtt": [
+     "RedisCluster",
+     "RedisEndpoint.Address"
+    ]
+   }
+  },
+  "RedisUrl": {
+   "Value": {
+    "Fn::Join": [
+     "",
+     [
+      "redis://",
+      {
+       "Fn::GetAtt": [
+        "RedisCluster",
+        "RedisEndpoint.Address"
+       ]
+      },
+      ":",
+      {
+       "Fn::GetAtt": [
+        "RedisCluster",
+        "RedisEndpoint.Port"
+       ]
+      },
+      "/0"
+     ]
     ]
    }
   },

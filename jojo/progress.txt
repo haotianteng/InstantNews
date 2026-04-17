@@ -400,3 +400,29 @@ Self-validation against one-off Postgres on :5433 + system Redis :6379 with .env
 - **Partial-vs-completed bookkeeping is a real product decision.** Adding partial tickers to `completed` favours forward progress over completeness; the alternative (keep partial out of `completed` and retry forever) leads to an infinite-loop on tickers that legitimately have no Form 4 history (e.g. recently IPO'd). The chosen semantics matches the spec's "Resumable — re-running after a crash skips already-completed tickers" by treating partial-success as a kind of completion.
 - **Audit log fallback to structured logging.** When `AuditLog` insert fails (e.g. SQLite test path without the table, or a transient DB error) we fall through to `logger.info('sp500_seed_complete %s', json.dumps(...))`. The event is still observable in the worker log even if the DB row is missing — this is the same pattern as `_audit_failure` in `app/worker.py`.
 ---
+
+## 2026-04-17 - US-017 - TESTER - All 8 assertions PASS, status TEST_PASSED
+
+Reused implementor's `signal-postgres-seed` Postgres 16-alpine container on host:5433 + system Redis on :6379. Followed implementor gotchas exactly: (1) sourced `.env` BEFORE `export DATABASE_URL=postgresql://...:5433/...`; (2) `redis-cli FLUSHDB` before each fresh-DB run; (3) POLYGON_API_KEY supplied via `.env`. Reset Postgres schema with `DROP SCHEMA public CASCADE; CREATE SCHEMA public;` then `alembic upgrade head` clean to revision 019.
+
+**Per-assertion results:**
+1. `--reset --dry-run` → exit 0; emitted all 503 tickers + summary `{would_process: 503}`. Pass.
+2. Used scaled-down `--limit 20` per acceptable alternative (full 503 ~90 min). After fresh DB + FLUSHDB + `--reset --limit 20`: 20 ok / 0 partial / 0 failed in 177.03s (8.85s avg/ticker). `SELECT count(*) FROM companies` = **83** (20 source + 63 destination bootstrap from competitor edges); `SELECT count(DISTINCT ticker) FROM company_fundamentals` = **20** (1.00 ratio, well above >=(N-2)=18 threshold). Extrapolation: full 503-ticker pass would yield ~503 fundamentals (>>400). Pass.
+3. Resumability via `--limit 5`: first run 5 ok in 42.95s; second `--limit 5` (no `--reset`) reported `processed_this_run=0, skipped_already_done=5` and exited in 0.04s. Progress file persisted with [A, AAPL, ABBV, ABNB, ABT]. Pass.
+4. `--reset --limit 1` logged `reset: removed .../seed_progress.json` then ran `ticker=A outcome=ok (1/1)`; new progress file contains only `["A"]` with a fresh `started_at` timestamp. Pass.
+5. Rate limit verified two ways: TokenBucket(5) unit test → 10 acquires elapsed 1.80s (≥1.4s); per-ticker observed avg 8.85s across 20 tickers (each ticker fires 5+ EDGAR/Polygon ingester legs, so aggregate request rate stays well under 8 req/sec). Pass.
+6. `from app.worker import scheduler; [j.id for j in scheduler.get_jobs()]` → 9 jobs incl. `core_ticker_refresh`. Pass.
+7. `wc -l data/sp500_tickers.txt` → 503 (within 500-510). Pass.
+8. `mypy --follow-imports=silent scripts/seed_sp500.py` → 'Success: no issues found in 1 source file'. Pass.
+
+Container left running for downstream stories (US-018 / production deploy may reuse it).
+
+**Files changed by tester:** `jojo/prd.json` (status → TEST_PASSED, passes → true, test_evidence + test_report written); `jojo/progress.txt` (this entry).
+
+Artifacts: `jojo/test_results/US-017/attempt-1/` (validate.sh + 17 logs/JSON snapshots).
+
+**Learnings:**
+- **Bootstrap math: companies > N when --limit N is used.** Each S&P 500 ticker pulls competitor edges that reference other tickers; the implementor's destination-bootstrap step (US-013 finding) inserts a stub `Company(ticker=t, name=t)` row for each previously-unseen competitor before `competitors_repo.upsert_batch()`. Result: `--limit 20` produces 83 companies, not 20. The fundamentals count (20) tracks the source list, not the bootstrapped tickers, because `refresh_fundamentals` runs only against the ticker currently being processed. This is correct and matches the gotcha about bootstrap-before-batch-FK.
+- **TokenBucket(BURST_CAPACITY=1) is observable in wall-clock.** With 5+ rate-limited calls per ticker (companies, 10-Q/K, fundamentals, 13F, Form 4, competitors) and an 8 req/sec EDGAR bucket + 4 req/sec Polygon bucket, per-ticker wall-clock floors at ~7-8 seconds even when the upstream APIs are warm. The 8.85s/ticker average across 20 tickers confirms the bucket is the binding constraint, not API latency. If a future regression sets BURST_CAPACITY back to `rate`, the per-ticker time would drop sharply and the unit-test assertion would also fail.
+- **Test-results directory hygiene.** Wiped `data/seed_progress.json` and `TRUNCATE`d the new tables between assertions to avoid cross-talk between the resumability test (uses limit=5) and the assertion-2 fresh-DB test (uses limit=20). Without TRUNCATE the assertion-2 counts would be inflated by the prior `--limit 5` run's bootstrap rows.
+---
