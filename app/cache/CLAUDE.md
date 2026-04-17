@@ -12,5 +12,6 @@ Redis client + cache helpers for the company-info layer.
 ## Related
 
 - `/health` endpoint (`app/routes/health.py`) pings the singleton — any changes here should preserve a `.ping()`-compatible surface.
-- Future `BaseRepository` (US-008) will use `get_redis()` for cache-aside.
-- Future `cache_keys.py` module (US-008) will live in this package.
+- `BaseRepository` (`app/repositories/base.py`) uses `get_redis()` for cache-aside. All Redis calls there are wrapped in try/except + log + fallthrough to DB — Redis is non-critical.
+- `cache_keys.py` is the single source of truth for key namespacing AND per-domain TTLs (`TTL` dict). Repo modules import from here; do not hard-code key strings or TTL seconds anywhere else.
+- Ticker normalization: every key builder uppercases the ticker argument. Callers can pass any casing and get the canonical `company:{TICKER}:...` key.
