@@ -59,6 +59,54 @@ def fetch_single_feed_to_db(source_name, url, session_factory, config):
     return source_name, count, new_ids
 
 
+def fetch_social_sources_to_db(session_factory, config):
+    """Fetch Twitter (FM watchlist) + Truth Social (Trump) and store in News table.
+
+    Returns dict: {"Twitter": count, "TruthSocial": count, "_new_ids": [...]}.
+    Safe to call even when TWITTER_BEARER_TOKEN is unset — twitter side silently no-ops.
+    """
+    if not getattr(config, "SOCIAL_SOURCES_ENABLED", True):
+        return {}
+
+    from app.services.diplomatic_watchlist import twitter_handles
+    from app.services.twitter_source import fetch_diplomatic_tweets
+    from app.services.truth_social_source import fetch_truth_social_posts
+
+    now_utc = utc_iso(datetime.now(timezone.utc))
+    results = {}
+    new_ids: list[int] = []
+
+    # Twitter
+    tw_rows: list = []
+    try:
+        handles = twitter_handles()
+        tw_rows = fetch_diplomatic_tweets(
+            getattr(config, "X_API_BEARER_TOKEN", "") or "",
+            handles,
+            max_results=getattr(config, "TWITTER_MAX_RESULTS_PER_RUN", 100),
+        )
+    except Exception:
+        logger.exception("Twitter source fetch failed")
+    if tw_rows:
+        count, ids = _store_items(session_factory, tw_rows, now_utc)
+        results["Twitter"] = count
+        new_ids.extend(ids)
+
+    # Truth Social
+    try:
+        ts_rows = fetch_truth_social_posts(timeout_seconds=config.FETCH_TIMEOUT * 3)
+    except Exception:
+        logger.exception("Truth Social source fetch failed")
+        ts_rows = []
+    if ts_rows:
+        count, ids = _store_items(session_factory, ts_rows, now_utc)
+        results["TruthSocial"] = count
+        new_ids.extend(ids)
+
+    results["_new_ids"] = new_ids
+    return results
+
+
 def cleanup_old_entries(session, max_age_days):
     """Remove entries older than max_age_days."""
     cutoff = utc_iso(datetime.now(timezone.utc) - timedelta(days=max_age_days))
@@ -88,10 +136,32 @@ def refresh_feeds_parallel(session_factory, config):
         threads.append(t)
         t.start()
 
-    deadline = time.time() + 20
+    # Social sources in their own thread (X API + Truth Social CNN mirror)
+    social_results_holder = {}
+
+    def social_worker():
+        try:
+            social_results_holder.update(fetch_social_sources_to_db(session_factory, config))
+        except Exception:
+            logger.exception("Social sources worker failed")
+
+    if getattr(config, "SOCIAL_SOURCES_ENABLED", True):
+        st = Thread(target=social_worker, daemon=True)
+        threads.append(st)
+        st.start()
+
+    deadline = time.time() + 30
     for t in threads:
         remaining = max(0.1, deadline - time.time())
         t.join(timeout=remaining)
+
+    # Merge social counts into per-source status so /api/sources surfaces them
+    if social_results_holder:
+        social_new_ids = social_results_holder.pop("_new_ids", [])
+        with result_lock:
+            for key, count in social_results_holder.items():
+                results[key] = count
+            all_new_ids.extend(social_new_ids)
 
     total_new = sum(results.values())
 

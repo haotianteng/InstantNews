@@ -110,6 +110,7 @@ let state = {
   stats: null,
   filter: {
     sentiment: "all",
+    sourceType: "all", // all | rss | social (diplomatic)
     sources: new Set(), // empty = all selected
     query: "",
     dateFrom: "",
@@ -236,6 +237,9 @@ async function fetchNews() {
     const params = new URLSearchParams({ limit: DEFAULT_LIMIT });
     if (state.filter.dateFrom) params.set("from", state.filter.dateFrom);
     if (state.filter.dateTo) params.set("to", state.filter.dateTo);
+    if (state.filter.sourceType && state.filter.sourceType !== "all") {
+      params.set("source_type", state.filter.sourceType);
+    }
     const res = await SignalAuth.fetch(`${API}/news?${params}`);
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const data = await res.json();
@@ -1248,6 +1252,17 @@ function bindEvents() {
       $$(".sentiment-filter-btn").forEach((b) => b.classList.remove("active"));
       btn.classList.add("active");
       renderNews();
+    });
+  });
+
+  // Source-type filter buttons (All / News / Diplomatic)
+  $$(".source-type-filter-btn").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const value = btn.dataset.sourceType;
+      state.filter.sourceType = value;
+      $$(".source-type-filter-btn").forEach((b) => b.classList.remove("active"));
+      btn.classList.add("active");
+      fetchNews(); // refetch because filter is server-side
     });
   });
 

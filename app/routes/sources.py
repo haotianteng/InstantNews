@@ -39,10 +39,40 @@ def api_sources():
             sources.append({
                 "name": name,
                 "url": url,
+                "source_type": "rss",
                 "last_fetch_items": status.get(name, 0),
                 "total_items": count,
                 "active": True,
             })
+
+        # Social sources — diplomatic watchlist
+        if getattr(config, "SOCIAL_SOURCES_ENABLED", True):
+            from app.services.diplomatic_watchlist import DIPLOMATIC_ACCOUNTS
+
+            for acct in DIPLOMATIC_ACCOUNTS:
+                prefix = "Twitter/@" if acct.platform == "twitter" else "TruthSocial/@"
+                source_name = f"{prefix}{acct.handle}"
+                count = session.query(func.count(News.id)).filter(
+                    News.source == source_name
+                ).scalar()
+                sources.append({
+                    "name": source_name,
+                    "url": (
+                        f"https://x.com/{acct.handle}" if acct.platform == "twitter"
+                        else f"https://truthsocial.com/@{acct.handle}"
+                    ),
+                    "source_type": "social",
+                    "platform": acct.platform,
+                    "country_code": acct.country_code,
+                    "role": acct.role,
+                    "display_name": acct.display_name,
+                    "last_fetch_items": 0,  # not tracked per-handle yet
+                    "total_items": count,
+                    "active": (
+                        bool(getattr(config, "X_API_BEARER_TOKEN", ""))
+                        if acct.platform == "twitter" else True
+                    ),
+                })
     finally:
         session.close()
 

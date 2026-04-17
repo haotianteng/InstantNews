@@ -27,6 +27,7 @@ def api_news():
     try:
         limit = request.args.get("limit", max_limit, type=int)
         source = request.args.get("source", "all")
+        source_type = request.args.get("source_type", "all")
         sentiment = request.args.get("sentiment", "all")
         query = request.args.get("q", "")
         date_from = request.args.get("from", "")
@@ -39,6 +40,14 @@ def api_news():
 
         if source and source != "all":
             q = q.filter(News.source == source)
+        if source_type == "social":
+            q = q.filter(
+                (News.source.like("Twitter/%")) | (News.source.like("TruthSocial/%"))
+            )
+        elif source_type == "rss":
+            q = q.filter(
+                ~(News.source.like("Twitter/%")) & ~(News.source.like("TruthSocial/%"))
+            )
         if sentiment and sentiment != "all":
             q = q.filter(News.sentiment_label == sentiment)
         if query:

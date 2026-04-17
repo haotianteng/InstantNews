@@ -214,6 +214,7 @@ class InstantNewsStack(Stack):
             "MINIMAX_BASE_URL": ecs.Secret.from_secrets_manager(app_secrets, field="MINIMAX_BASE_URL"),
             "ANTHROPIC_API_KEY": ecs.Secret.from_secrets_manager(app_secrets, field="ANTHROPIC_API_KEY"),
             "POLYGON_API_KEY": ecs.Secret.from_secrets_manager(app_secrets, field="POLYGON_API_KEY"),
+            "X_API_BEARER_TOKEN": ecs.Secret.from_secrets_manager(app_secrets, field="X_API_BEARER_TOKEN"),
         }
 
         web_secrets = {

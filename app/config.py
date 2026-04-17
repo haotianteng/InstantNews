@@ -70,20 +70,26 @@ class Config:
     FEEDS = {
         "CNBC": "https://search.cnbc.com/rs/search/combinedcms/view.xml?partnerId=wrss01&id=100003114",
         "CNBC_World": "https://search.cnbc.com/rs/search/combinedcms/view.xml?partnerId=wrss01&id=100727362",
-        "Reuters_Business": "https://www.reutersagency.com/feed/?best-topics=business-finance",
+        "Reuters_Business": "https://news.google.com/rss/search?q=when:24h+site:reuters.com+business&hl=en-US&gl=US&ceid=US:en",
         "MarketWatch": "https://feeds.content.dowjones.io/public/rss/mw_topstories",
         "MarketWatch_Markets": "https://feeds.content.dowjones.io/public/rss/mw_marketpulse",
         "Investing_com": "https://www.investing.com/rss/news.rss",
         "Yahoo_Finance": "https://finance.yahoo.com/news/rssindex",
         "Nasdaq": "https://www.nasdaq.com/feed/rssoutbound?category=Markets",
         "SeekingAlpha": "https://seekingalpha.com/market_currents.xml",
-        "Benzinga": "https://www.benzinga.com/feeds/all",
-        "AP_News": "https://rsshub.app/apnews/topics/business",
-        "Bloomberg_Business": "https://rsshub.app/bloomberg/bbiz",
-        "Bloomberg_Markets": "https://rsshub.app/bloomberg/markets",
+        "Benzinga": "https://www.benzinga.com/feed",
+        "AP_News": "https://news.google.com/rss/search?q=when:24h+site:apnews.com+business&hl=en-US&gl=US&ceid=US:en",
+        "Bloomberg_Business": "https://feeds.bloomberg.com/economics/news.rss",
+        "Bloomberg_Markets": "https://feeds.bloomberg.com/markets/news.rss",
         "BBC_Business": "http://feeds.bbci.co.uk/news/business/rss.xml",
         "Google_News_Business": "https://news.google.com/rss/topics/CAAqJggKIiBDQkFTRWdvSUwyMHZNRGx6TVdZU0FtVnVHZ0pWVXlnQVAB",
     }
+
+    # Diplomatic social sources (Twitter + Truth Social)
+    # Env var name is X_API_BEARER_TOKEN to match .env + AWS Secrets Manager key.
+    X_API_BEARER_TOKEN = _load_secret("X_API_BEARER_TOKEN")
+    SOCIAL_SOURCES_ENABLED = os.environ.get("SOCIAL_SOURCES_ENABLED", "true").lower() == "true"
+    TWITTER_MAX_RESULTS_PER_RUN = int(os.environ.get("TWITTER_MAX_RESULTS_PER_RUN", "100"))
 
 
 class TestConfig(Config):
