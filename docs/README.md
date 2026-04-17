@@ -1,9 +1,14 @@
 # InstNews Documentation
 
+## Start Here (New Session)
+
+**[Development Workflow](development-workflow.md)** — read this first. Covers local dev, deploy flow, current state, and gotchas learned the hard way.
+
 ## For Developers
 
 | Doc | Description |
 |-----|-------------|
+| [**Development Workflow**](development-workflow.md) | Session handoff, local dev setup, gotchas, current state |
 | [**Deployment Guide**](deployment.md) | GitHub Actions CI/CD + CDK deploy, Docker, ECR, ECS, secrets, troubleshooting |
 | [**Terminal Features**](terminal-features.md) | Current feature set: panel, asset icons, live prices, cache, downgrade flow |
 | [**Database Migrations**](database-migrations.md) | Alembic usage, creating migrations, testing against PostgreSQL |
