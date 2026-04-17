@@ -573,3 +573,47 @@ class InstitutionalHolder(Base):
         # Indexes idx_inst_ticker_date and idx_inst_by_value are created
         # with DESC modifiers by the Alembic migration; not duplicated here.
     )
+
+
+class InsiderTransaction(Base):
+    """One insider transaction row (SEC Form 4 / Form 5).
+
+    Mirrors ``migrations/versions/019_add_insider_transactions.py``.
+    Re-ingestion is idempotent via the composite UNIQUE constraint
+    ``uq_insider_txn_idempotent`` — callers do not need app-side dedup.
+    """
+
+    __tablename__ = "insider_transactions"
+
+    id = Column(BigInteger, primary_key=True, autoincrement=True)
+    ticker = Column(String(10), nullable=False)
+    insider_name = Column(String(255), nullable=True)
+    insider_title = Column(String(100), nullable=True)
+    transaction_date = Column(Date, nullable=False)
+    transaction_type = Column(String(20), nullable=True)  # BUY/SELL/OPTION_EXERCISE
+    shares = Column(BigInteger, nullable=True)
+    price_per_share = Column(Numeric(10, 4), nullable=True)
+    total_value = Column(BigInteger, nullable=True)
+    shares_owned_after = Column(BigInteger, nullable=True)
+    filing_date = Column(Date, nullable=True)
+    form_type = Column(String(10), nullable=True)  # Form 4 / Form 5
+    sec_url = Column(String(500), nullable=True)
+
+    __table_args__ = (
+        ForeignKeyConstraint(
+            ["ticker"],
+            ["companies.ticker"],
+            name="fk_insider_ticker",
+            ondelete="RESTRICT",
+        ),
+        UniqueConstraint(
+            "ticker",
+            "insider_name",
+            "transaction_date",
+            "transaction_type",
+            "shares",
+            "form_type",
+            name="uq_insider_txn_idempotent",
+        ),
+        # idx_insider_ticker_date (DESC) created by the Alembic migration.
+    )
