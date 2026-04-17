@@ -16,6 +16,7 @@ explicitly from their submodule::
 from sqlalchemy import (
     BigInteger,
     Boolean,
+    CheckConstraint,
     Column,
     Date,
     DateTime,
@@ -491,4 +492,43 @@ class CompanyFundamentalsHistory(Base):
         # idx_fundamentals_history_ticker_validto (DESC) created by the
         # Alembic migration; not duplicated here for the same reason as
         # CompanyFinancials.
+    )
+
+
+class CompanyCompetitor(Base):
+    """One directional similarity edge between two tickers.
+
+    Mirrors ``migrations/versions/017_add_company_competitors.py``.
+    Composite PK ``(ticker, competitor_ticker)``; CHECK constraint
+    ``ticker != competitor_ticker`` rejects self-references at the DB
+    layer.
+    """
+
+    __tablename__ = "company_competitors"
+
+    ticker = Column(String(10), nullable=False)
+    competitor_ticker = Column(String(10), nullable=False)
+    similarity_score = Column(Numeric(4, 3), nullable=True)
+    source = Column(String(50), nullable=True)
+    updated_at = Column(DateTime, nullable=False, server_default=func.now())
+
+    __table_args__ = (
+        PrimaryKeyConstraint(
+            "ticker", "competitor_ticker", name="pk_company_competitors"
+        ),
+        ForeignKeyConstraint(
+            ["ticker"],
+            ["companies.ticker"],
+            name="fk_competitors_ticker",
+            ondelete="RESTRICT",
+        ),
+        ForeignKeyConstraint(
+            ["competitor_ticker"],
+            ["companies.ticker"],
+            name="fk_competitors_competitor_ticker",
+            ondelete="RESTRICT",
+        ),
+        CheckConstraint(
+            "ticker != competitor_ticker", name="ck_competitors_no_self"
+        ),
     )

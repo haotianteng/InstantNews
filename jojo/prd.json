@@ -180,10 +180,15 @@
         "python3 -c \"from app.models.competitors import Competitor; Competitor(ticker='AAPL', competitor_ticker='MSFT', similarity_score=0.85)\" exits 0",
         "mypy app/models/competitors.py exits 0"
       ],
-      "status": "REQUIRE_IMPLEMENT",
+      "status": "READY_FOR_TEST",
       "passes": false,
-      "implementation_notes": null,
-      "files_changed": [],
+      "implementation_notes": "Added Alembic revision 017 creating company_competitors (directional similarity graph). Composite PK (ticker, competitor_ticker), CHECK constraint rejects self-references, both columns FK to companies.\n\nFiles:\n- migrations/versions/017_add_company_competitors.py: revision='017', down_revision='016'. Creates company_competitors with 5 columns (ticker, competitor_ticker, similarity_score NUMERIC(4,3), source VARCHAR(50), updated_at TIMESTAMP DEFAULT NOW()). PK (ticker, competitor_ticker), TWO FKs each → companies(ticker) ON DELETE RESTRICT, CHECK constraint 'ticker != competitor_ticker' named ck_competitors_no_self. Index idx_competitors_score on (ticker, similarity_score DESC) via sa.text().\n- app/models/competitors.py: Pydantic v2 Competitor with from_attributes=True. similarity_score as Optional[Decimal]; the DB CHECK is the authoritative guard against self-references.\n- app/models/__init__.py: added CheckConstraint to the sqlalchemy import block and CompanyCompetitor ORM class matching the migration.\n- migrations/env.py: appended CompanyCompetitor to noqa F401 import block.\n\nKey decisions:\n- Two separate ForeignKeyConstraint entries (one for ticker, one for competitor_ticker) both pointing at companies(ticker). This mirrors spec §US-005 directly; allows Polygon data to insert rows where either direction might exist.\n- CHECK constraint at DB layer is the contract — callers that construct Pydantic Competitor with equal tickers will only find out at commit time (IntegrityError). Docstring calls this out.\n\nSelf-validation:\n- AST parse OK.\n- Alembic upgrade to 017 clean; `\\d company_competitors` shows all 5 columns, PK (ticker, competitor_ticker), idx_competitors_score btree (ticker, similarity_score DESC), CHECK 'ticker::text <> competitor_ticker::text', both FKs present.\n- Self-reference rejection: `INSERT INTO company_competitors(ticker, competitor_ticker, similarity_score, source) VALUES ('AAPL','AAPL',0.5,'manual')` → 'new row for relation \"company_competitors\" violates check constraint \"ck_competitors_no_self\"'. Confirmed.\n- `alembic downgrade -1` (017→016) clean; `\\d company_competitors` → not found.\n- `mypy --follow-imports=silent app/models/competitors.py` → Success: no issues found in 1 source file.\n\nEnvironment notes for Tester:\n- Same one-off Postgres pattern as earlier stories.\n- Self-reference CHECK test: the INSERT fails immediately with the specific error message above — no transaction rollback needed (each INSERT is its own transaction unless wrapped in BEGIN).\n- The DB stores similarity_score as NUMERIC(4,3), i.e. 0.000 to 9.999 with 3 decimal places. Passing a float 0.85 → stored as 0.850 (fine).",
+      "files_changed": [
+        "migrations/versions/017_add_company_competitors.py",
+        "app/models/__init__.py",
+        "app/models/competitors.py",
+        "migrations/env.py"
+      ],
       "failure_reason": null,
       "test_evidence": null,
       "test_report": null,
