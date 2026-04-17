@@ -93,17 +93,14 @@ class TwitterClient:
     ) -> List[RawTweet]:
         """One API call fetching tweets from up to ~40 usernames via `from:` OR.
 
+        Uses `expansions=author_id` + `user.fields=username` so we get each tweet's
+        author username in the same response — avoids the aggressively rate-limited
+        /users/by/username lookup endpoint.
+
         X v2 caps search query length at 512 chars, so we chunk if needed.
         """
         if not usernames or not self.enabled:
             return []
-
-        # Resolve all author_ids up front so we can map tweet -> username
-        id_to_username: Dict[str, str] = {}
-        for u in usernames:
-            uid = self.resolve_user_id(u)
-            if uid:
-                id_to_username[uid] = u
 
         all_tweets: List[RawTweet] = []
         for chunk in _chunk_by_query_length(usernames, max_chars=450):
@@ -112,6 +109,8 @@ class TwitterClient:
                 "query": query,
                 "max_results": max(10, min(100, max_results)),
                 "tweet.fields": "created_at,public_metrics,text,author_id",
+                "expansions": "author_id",
+                "user.fields": "username",
             }
             if since_id:
                 params["since_id"] = since_id
@@ -126,9 +125,20 @@ class TwitterClient:
                                code, (resp.text or "")[:200])
                 continue
             data = resp.json()
+            # Build id -> username from the expansions.includes.users[] payload
+            id_to_username: Dict[str, str] = {}
+            for u in (data.get("includes") or {}).get("users", []) or []:
+                uid = str(u.get("id", ""))
+                uname = u.get("username", "")
+                if uid and uname:
+                    id_to_username[uid] = uname
+
+            # Fold into persistent cache so subsequent calls also benefit
+            self._user_id_cache.update({v: k for k, v in id_to_username.items()})
+
             for tw in data.get("data", []) or []:
                 author_id = str(tw.get("author_id", ""))
-                username = id_to_username.get(author_id, f"uid:{author_id}")
+                username = id_to_username.get(author_id) or f"uid:{author_id}"
                 all_tweets.append(RawTweet(
                     id=str(tw["id"]),
                     text=tw.get("text", "") or "",
