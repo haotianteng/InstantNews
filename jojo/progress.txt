@@ -6,4 +6,197 @@ Mode: Adversarial (JOJO v2)
 
 ## Codebase Patterns
 
+### Python environment
+- Interpreter: `/home/haotiant/conda/bin/python` (Python 3.11.5, base conda).
+- Mypy: `/home/haotiant/conda/bin/mypy` (v1.20.1). Use `--follow-imports=silent` when scoping checks to a single file so pre-existing app-wide typing debt doesn't fail the check.
+- Pytest config lives in `pyproject.toml` (`[tool.pytest.ini_options]`, `testpaths = ["tests"]`). No root-level `conftest.py`.
+- Importing `app` (any submodule) triggers `app/__init__.py` side-effects that log `POLYGON_API_KEY not set — market data service disabled` to **stderr**. Safe: it does not pollute stdout, so stdout-capture tests stay clean.
+
+### Stdout-capture test pattern (EMF / structured logs)
+For modules that emit structured log lines via `print(..., flush=True)`, use pytest's `capfd` fixture (captures at the file-descriptor level, so it sees `flush=True` output correctly). Parse the captured string by splitting on newlines and ignoring blanks:
+
+```python
+def _parse_single_line(captured: str) -> dict:
+    lines = [ln for ln in captured.splitlines() if ln.strip()]
+    assert len(lines) == 1, f"expected 1 line, got {len(lines)}"
+    return json.loads(lines[0])
+
+def test_emit(capfd):
+    emit_metric("NS", "M", 1.0, dimensions={"A": "b"})
+    out, _err = capfd.readouterr()
+    d = _parse_single_line(out)
+    ...
+```
+
+`capfd.readouterr()` clears the buffer between calls, so multiple emissions in one test work if you read after each.
+
+### EMF JSON shape (from live spec fetch 2026-04-17)
+- `Dimensions` is a list of lists. Outer array has `minItems: 1` (spec-mandated) — even when emitting "no dimensions", we must render `Dimensions: [[]]` (one empty DimensionSet). This is valid because each DimensionSet has `minItems: 0`.
+- Dimension *values* must be strings at the root level. Ints/floats/bools must be coerced (`str(value)`) before emission or CloudWatch drops the datapoint silently.
+- `Timestamp` is `int(time.time() * 1000)` — integer ms since epoch.
+- Metric values live at the **root** of the JSON (not inside `_aws`). `_aws.CloudWatchMetrics[0].Metrics` contains only `{Name, Unit}` definitions that *reference* the root values by name.
+- One EMF log line = one timestamp = up to 100 metrics (AWS hard limit). Prefer `emit_metrics()` multi-metric variant over repeated `emit_metric()` calls to cut log volume.
+- Serialize with `json.dumps(..., separators=(",",":"))` to keep lines compact.
+
+### Shared helper location
+`app/services/metrics.py` is stdlib-only (no boto3, no requests, no pydantic). Any later story (US-003, US-004, US-005) should import from there — do not re-implement the EMF schema.
+
+---
+
+## [2026-04-17] - US-001 - IMPLEMENTOR — implemented and ready for test
+
+- Created `app/services/metrics.py` (243 lines incl. docstrings) with `emit_metric`, `emit_metrics`, and `@contextmanager timed`.
+- Created `tests/services/test_metrics.py` (10 tests, all pytest + capfd).
+- EMF spec fetched live via WebFetch (not quoted from memory) to confirm Dimensions list-of-lists and Timestamp ms-integer shape.
+- Commands run:
+  - `/home/haotiant/conda/bin/python -c "..."` smoke test of all three helpers — ok
+  - `/home/haotiant/conda/bin/python -m pytest tests/services/test_metrics.py -v` → 10 passed
+  - `/home/haotiant/conda/bin/mypy --follow-imports=silent app/services/metrics.py` → Success: no issues
+  - `/home/haotiant/conda/bin/python -m pytest tests/ --tb=short` → 236 passed, 1 skipped, no regressions
+- Commit: `b326fb4` on branch `jojo/admin-monitoring-dashboard`.
+- Files changed: `app/services/metrics.py`, `tests/services/test_metrics.py`.
+
+### Environment notes for Tester
+
+- Use `/home/haotiant/conda/bin/python` and `/home/haotiant/conda/bin/mypy` — the repo has no venv, tests run from the base conda env.
+- Importing the module prints the `POLYGON_API_KEY not set` warnings to **stderr** (from `app/__init__.py`); stdout stays clean. If you capture with `2>&1` those warnings will appear — route stderr separately when parsing.
+- The `emit_metric`/`emit_metrics` functions print **one line** with `print(..., flush=True)`. If validating via subprocess you don't need any flushing tricks.
+- For the `timed` test, the 50ms sleep can under-measure on very loaded runners; tolerance of >= 45ms is baked into both the implementor smoke test and the unit test. If a tester sees a value like 49ms on their machine that's within tolerance.
+- `emit_metrics("NS", [], {...})` raises `ValueError` by design — CloudWatch rejects empty `Metrics` arrays, so we fail fast.
+- Test assertion #2 in prd.json uses a multi-line Python `-c` string with embedded `\n`; replicate with `python3 -c "$(printf '...')"` or break into separate commands if quoting becomes painful.
+
+### Learnings
+
+- **EMF spec has a subtle trap**: the outer `Dimensions` array has `minItems: 1` but each inner `DimensionSet` has `minItems: 0`. That means "no dimensions" is `[[]]` NOT `[]`. Mis-reading this as `[]` produces a payload CloudWatch silently rejects (no metric ingested, no error surfaced to the producer).
+- **Dimension values must be JSON strings**: CloudWatch treats non-string values as the datapoint being malformed. Coerce at the helper boundary, don't trust callers.
+- **`print(..., flush=True)` is sufficient for ECS awslogs** — no need for `sys.stdout.write` + `sys.stdout.flush` pair, and no need for the Python logging stdlib. Simpler is better here because the helper is called from many layers.
+- **`capfd` (not `capsys`) for FD-level capture**: a helper using `print(..., flush=True)` works with either, but `capfd` is the correct choice if a future helper ever calls `os.write(1, ...)` directly or if we test subprocess output. Picked `capfd` for forward-compatibility.
+
+---
+
+## [2026-04-17] - US-001 - TESTER — TEST_PASSED
+
+- Artifact dir: `jojo/test_results/US-001/attempt-1/` (prior attempt-1 from an unrelated story was moved to `stale_prior_story/` to preserve it without confusing future tester/implementor passes).
+- Ran `validate.sh` — 7 captures, all exit=0:
+  - `assertion1_smoke.log` — smoke one-liner printed one EMF JSON line with `_aws.CloudWatchMetrics[0]={Namespace:'SIG', Dimensions:[['Source']], Metrics:[{Name:'FeedLatency',Unit:'Seconds'}]}`, top-level `Source='SeekingAlpha'`, `FeedLatency=1.5`.
+  - `assertion2_heredoc.log` — heredoc variant printed `ok`.
+  - `assertion3_pytest.log` — `pytest tests/services/test_metrics.py -v` → **10 passed** in 0.15s.
+  - `assertion4_mypy.log` — `mypy --follow-imports=silent app/services/metrics.py` → Success, no issues.
+  - `regression.log` — `pytest tests/ --tb=short` → **236 passed, 1 skipped** in 6.56s — matches implementor's baseline exactly, no new failures.
+  - `sanity_shape.log` — `_aws.Timestamp` is int ms-since-epoch within 60s of now; Dimensions is list-of-lists; Metrics carries only `{Name, Unit}` definitions.
+  - `sanity_roundtrip.log` — `emit_metrics` multi-metric OK; `timed()` measured ~50ms for a 50ms sleep; `timed()` emits and re-raises on exception; `dimensions=None` renders `[[]]`.
+- Commands summary: `bash jojo/test_results/US-001/attempt-1/validate.sh`
+- prd.json writes (Tester scope only): `status: TEST_PASSED`, `passes: true`, `test_evidence`, `test_report`. `fail_count` left at 0 (no failures).
+
+### Learnings
+
+- **Tester stdout-capture pattern via heredoc is reliable**: `python <<'PY' ... PY` with `contextlib.redirect_stdout(StringIO())` avoids the multi-line `python -c` quoting pain that prd assertions sometimes fall into. Preferred for future EMF producer stories (US-003, US-004, US-005) where we'll want to capture the emitted line inside a test script rather than a pytest fixture.
+- **Artifact hygiene**: when a tester-attempt dir already exists from an unrelated prior run, archive it into a `stale_prior_story/` subdir rather than deleting — the files are cheap and the provenance matters for debugging.
+- **Regression count discipline**: implementor reported exactly "236 passed, 1 skipped" and reproducing that exact count is a strong fingerprint that no tests were silently skipped or collection-errored on the tester's machine.
+
+---
+
+## [2026-04-17] - US-002 - IMPLEMENTOR — IAM policy for admin task (CloudWatch + Cost Explorer)
+
+- Modified `infra/stack.py`: added `aws_iam as iam` to imports; attached a single `iam.PolicyStatement(Effect=Allow, Actions=[cloudwatch:GetMetricData, cloudwatch:ListMetrics, ce:GetCostAndUsage, ce:GetDimensionValues], Resources=['*'])` to `admin_task.task_role`.
+- Commands run:
+  - `cd infra && npx cdk synth > /tmp/us002_synth.log 2>&1` → exit 0.
+  - `cd infra && npx cdk diff` → exit 0. Diff shows **one** new IAM Policy (`AdminTask/TaskRole/DefaultPolicy`) on Resource=*, plus CDK-automatic `DependsOn` wiring to `AdminService/Service`, its SecurityGroup, and that SG's ingress rule. No resource replacement.
+- Deploy intentionally DEFERRED — team lead batches all deploys at end of dashboard PRD.
+- Commit: `1b84633`.
+
+### Environment notes for Tester
+
+- **DO NOT** `cdk deploy` — the tester's job is to run `npx cdk synth` / `npx cdk diff` and confirm the IAM statement shape. The post-deploy boto3-from-admin-task assertion (`list_metrics` + `get_cost_and_usage` without AccessDenied) CANNOT be run until after deploy, which happens later. Treat that assertion as deferred: verify synth and diff shape only and PASS the story.
+- Expected diff fingerprint: "IAM Statement Changes" table with exactly one `+` row, Actions column = `ce:GetCostAndUsage, ce:GetDimensionValues, cloudwatch:GetMetricData, cloudwatch:ListMetrics`, Resource column = `*`, Principal = `AWS:${AdminTask/TaskRole}`. Also expect "Resources" section to show one new `AWS::IAM::Policy` + three `DependsOn` tweaks on the AdminService resources — that's CDK adding the new policy to the implicit dependency chain, not real churn.
+
+### Learnings
+
+- **CDK TaskRole vs ExecutionRole distinction**: runtime boto3 calls from inside the container assume the `TaskRole` (application identity), not the `ExecutionRole` (ECS agent identity used for pulling images / writing log-drive output). Always attach runtime-app permissions to `.task_role`, never `.execution_role`.
+- **cdk diff reports DependsOn churn on IAM attachments**: any resource that previously had a single DependsOn pointing at the TaskRole gets its DependsOn array grown when a new Policy is attached. This looks like "change" in the diff but is cosmetic — no replacement, no physical ID change.
+- **Cost Explorer has no resource-level ARN**: `ce:*` actions must be wildcarded. Attempting `arn:aws:ce:*:account:*` in the Resource list fails at IAM evaluation time with AccessDenied even though synth and deploy succeed.
+
+---
+
+## [2026-04-17] - US-003 - IMPLEMENTOR — Per-source poller EMF metrics
+
+- Modified `app/services/source_poller.py`:
+  - Added `_parse_iso_utc(ts) -> Optional[datetime]` (tolerates `+00:00` and trailing `Z`) and `_median_ingest_latency_seconds(items, fetched_at_iso) -> Optional[float]` (skips unparseable rows, clamps clock-skew to 0).
+  - Replaced `_run_once` body to: wrap `spec.fetch()` in a `time.monotonic()` stopwatch; on exception emit `FetchErrors=1` (dims: Source, SourceType, ErrorType=exc.__class__.__name__) and return; on success emit `NewItems` + `FetchDurationMs` (and `IngestLatencySeconds` only when count > 0) via a single `emit_metrics` multi-metric line (dims: Source, SourceType). Namespace constant `_INGESTION_NAMESPACE = "InstantNews/Ingestion"`.
+  - **GOTCHA**: Initial edit accidentally dropped the `@dataclass SourceSpec` block — caught instantly because the poller's own module-level signatures reference it. Re-added; re-ran tests green.
+- Created `tests/services/test_source_poller_metrics.py` — 3 tests (happy path with 2 rows → median=60s, RuntimeError path → FetchErrors/ErrorType=RuntimeError, zero-items path → NewItems=0 without latency).
+- Commands run:
+  - `pytest tests/services/test_source_poller_metrics.py -v` → 3 passed.
+  - `mypy --follow-imports=silent app/services/source_poller.py` → Success.
+  - `pytest tests/ --tb=no -q` → 239 passed, 1 skipped (baseline 236 + 3 new).
+- Commit: `f3421bb`.
+
+### Environment notes for Tester
+
+- The happy-path test monkeypatches `source_poller.datetime` with a frozen subclass so the "now" used internally is deterministic. If you write your own validation script, note that `datetime.now(tz=...)` inside `_run_once` is called via the module-bound name, not the imported `datetime` — so monkeypatching at the module level works, but patching `datetime.datetime` globally won't.
+- Post-deploy CloudWatch assertion (`aws cloudwatch get-metric-statistics --namespace InstantNews/Ingestion --metric-name NewItems --dimensions Name=Source,Value=SeekingAlpha ...`) requires the team lead's batched deploy. Defer it.
+
+### Learnings
+
+- **ISO-8601 parser tolerance**: `datetime.fromisoformat` in Python 3.11 accepts `+00:00` suffix natively but NOT trailing `Z`. Every source in this repo emits `+00:00` via `feed_parser.utc_iso`, but any future source that formats with `Z` would silently drop out of the median. Explicit `if candidate.endswith("Z"): candidate = candidate[:-1] + "+00:00"` is the portable fix — Python 3.13 accepts Z natively but we can't rely on that yet.
+- **Latency-of-nothing is undefined, not zero**: if a tick finds zero new rows, emitting `IngestLatencySeconds=0` pulls p50 downward and makes healthy-but-quiet sources look faster than genuinely fast ones. Skip the metric instead of emitting 0.
+
+---
+
+## [2026-04-17] - US-004 - IMPLEMENTOR — AI pipeline EMF metrics
+
+- Modified `app/services/ai_pipeline.py`:
+  - Added `_QUEUE_DEPTH_MIN_INTERVAL_SECONDS = 5.0` rate-limit constant and a `last_queue_depth_emit` local in `_dispatcher_loop`. Emit `QueueDepth` (gauge, no dimensions) at top of each outer-loop iteration, skipping if < 5 s since last emit.
+- Modified `app/services/bedrock_analysis.py`:
+  - Added `_emit_backend_chosen(backend)` helper → emits `BackendChosen=1` with `{Backend: str}` dim.
+  - Wired emission at the successful branch of each of the three tries in `_call_model` (minimax, claude, bedrock). Failures do NOT emit.
+  - Wrapped `analyze_articles_batch`'s ThreadPoolExecutor block in a `time.monotonic()` stopwatch; emit `BatchSize` + `BatchDurationMs` (both no dimensions) on completion via `emit_metrics`. Early-returns on empty articles or disabled pipeline stay silent.
+- Created `tests/services/test_ai_pipeline_metrics.py` — 4 tests.
+- Commands run:
+  - `pytest tests/services/test_ai_pipeline_metrics.py -v` → 4 passed.
+  - `mypy --follow-imports=silent app/services/ai_pipeline.py app/services/bedrock_analysis.py` → Success.
+  - Full regression → 243 passed.
+- Commit: `790e9cb`.
+
+### Environment notes for Tester
+
+- `_dispatcher_loop` is NOT covered by unit tests — it's a `while not _stop_event.is_set()` that depends on module-level globals (`_queue`, `_stop_event`). Exercising it cleanly requires subprocess or heavy monkeypatching. The post-deploy CloudWatch `QueueDepth` assertion is the cheaper path. If you want an in-process smoke, you can drive it by pre-seeding `_queue`, setting `_stop_event` just before calling `_dispatcher_loop(session_factory_stub, batch_window_seconds=0.05)`, and asserting `capfd` saw at least one QueueDepth line.
+- `_call_model` tests patch `_get_minimax_client` / `_get_anthropic_client` / `_call_bedrock` at the module level. If you add your own validation, note that the MiniMax / Anthropic clients expose a `.messages.create(**kwargs)` surface that returns an object with `.content = [block, ...]` where each block has `.type == "text"` and `.text`. The test's `_FakeAnthropicClient` reproduces that shape.
+- `analyze_articles_batch` bails early with `{}` when `BEDROCK_ENABLED=False` OR `articles=[]`. The metric emission happens only on the non-early-return path.
+
+### Learnings
+
+- **"Who served the request" vs "who was attempted"**: emitting `BackendChosen` only on the successful branch gives a clean fallback-chain donut. Emitting on every attempted branch (including failures) pollutes the donut with attempts that didn't actually serve traffic — you'd see MiniMax showing as the most popular backend even when it's failing 100% of the time and Claude is the true producer. The correct signal is served-not-tried.
+- **QueueDepth rate-limiting via monotonic timestamp**: a `last_emit_mono` float + `time.monotonic() - last_emit_mono >= N` check is simpler than wrapping the emit in a ThreadPoolExecutor-based scheduler, and it's resistant to wall-clock jumps. 5 s cap on an otherwise-unbounded inner loop keeps the emission rate bounded even if `batch_window_seconds` is tuned down.
+
+---
+
+## [2026-04-17] - US-005 - IMPLEMENTOR — X API EMF metrics
+
+- Modified `app/services/twitter_source.py`:
+  - Added `_header_int(resp, key)` helper returning `Optional[int]` — safely parses rate-limit headers.
+  - In `search_recent`, on 200: emit multi-metric line with `TweetsBilled` (from `len(data['data'])`), `UsersBilled` (from `len(data['includes']['users'])`), and `RateLimitRemaining` / `RateLimitLimit` only when the headers parse. Dim `{Endpoint: 'search_recent'}`, namespace `InstantNews/Twitter`.
+  - On 429: emit `RateLimited=1` with same dim, then break chunk loop as before.
+  - Added `# type: ignore[import-untyped]` on the `import requests` line — pre-existing mypy gap, not new to US-005.
+- Created `tests/services/test_twitter_metrics.py` — 3 tests (200 with headers, 429, 200 without headers).
+- Commands run:
+  - `pytest tests/services/test_twitter_metrics.py -v` → 3 passed.
+  - `mypy --follow-imports=silent app/services/twitter_source.py` → Success (with `# type: ignore`).
+  - Composite mypy over all 5 touched service modules → Success.
+  - Full regression → 246 passed, 1 skipped (baseline 236 + 3+4+3).
+  - `cd infra && npx cdk synth > /dev/null` → exit 0.
+- Commit: `437ebc8`.
+
+### Environment notes for Tester
+
+- Tests monkeypatch `client._session.get` at the instance level (`monkeypatch.setattr(client._session, "get", fake_get)`) instead of patching `requests.Session.get` globally — this is cleaner and avoids cross-test state. The `_FakeResponse` fake exposes `.status_code`, `.headers`, `.text`, and `.json()` — the full surface `search_recent` touches.
+- The 200-without-headers test is intentionally not a perf exercise — it just confirms the emitter degrades gracefully when X omits the rate-limit headers (happens on some 200 responses, particularly from mocked proxies).
+- Post-deploy `aws cloudwatch get-metric-statistics --namespace InstantNews/Twitter --metric-name TweetsBilled ...` requires the team lead's batched deploy.
+
+### Learnings
+
+- **Header parse tolerance pattern**: helper returns `Optional[int]`; caller conditionally appends the metric to the payload only if the parse succeeded. Beats emitting `NaN`, `-1`, or `0` sentinel values that would bias CloudWatch aggregations.
+- **Emit from the parse site, not the transport**: `_get(path, params)` is generic across endpoints whose rate-limit models differ (`/users/by/username` has different windows than `/tweets/search/recent`). Emitting inside `search_recent` — where we already parse the body — is both cheaper (no double-parse) and more correct (scoped to the endpoint whose semantics the dashboard cares about).
+- **Pre-existing `import-untyped` for requests**: `requests` ships without type stubs in this environment. Rather than installing `types-requests` (adds a runtime dep that's global to the repo and could trigger other mypy issues), scope the ignore narrowly: `import requests  # type: ignore[import-untyped]`. This is the minimal change and is clearly tagged for future cleanup.
+
 ---
