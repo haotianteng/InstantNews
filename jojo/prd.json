@@ -89,10 +89,13 @@
         "Post-deploy: aws cloudwatch get-metric-statistics --namespace InstantNews/Ingestion --metric-name NewItems --dimensions Name=Source,Value=SeekingAlpha --start-time $(date -u -d '-10 min' +%FT%TZ) --end-time $(date -u +%FT%TZ) --period 60 --statistics Sum returns >= 1 datapoint",
         "mypy app/services/source_poller.py exits 0"
       ],
-      "status": "REQUIRE_IMPLEMENT",
+      "status": "READY_FOR_TEST",
       "passes": false,
-      "implementation_notes": null,
-      "files_changed": [],
+      "implementation_notes": "Modified `app/services/source_poller._run_once` to emit one multi-metric EMF line per successful tick and a single `FetchErrors=1` line on fetch exceptions. Added two module-private helpers: `_parse_iso_utc(ts)` accepts both `...+00:00` and trailing-`Z` ISO-8601 forms (every source in this repo emits the former via feed_parser.utc_iso, but EDGAR/others may produce Z — handle both) and returns `Optional[datetime]`; `_median_ingest_latency_seconds(items, fetched_at_iso)` skips rows with unparseable published timestamps, clamps negative deltas (clock skew) to 0, and returns `None` if no parseable rows remain. Metric emission rules: (a) successful tick with >= 1 new row emits `NewItems` (Count), `FetchDurationMs` (Milliseconds), and `IngestLatencySeconds` (Seconds) in ONE emit_metrics() call with dimensions `{Source: spec.name, SourceType: spec.label}`; (b) successful tick with zero items emits `NewItems=0` + `FetchDurationMs` only — latency is omitted (undefined for no rows) rather than emitting 0 so the dashboard's p50/p95 aggregations aren't polluted; (c) fetch exception emits one `FetchErrors=1` (Count) line with dimensions `{Source, SourceType, ErrorType}` where ErrorType is `exc.__class__.__name__`, and _store_items is NOT called. Wall-time `FetchDurationMs` uses `time.monotonic()` deltas *1000 around spec.fetch() (manual approach — `timed()` context manager couldn't be used because the value feeds into a later emit_metrics() call, not its own emit). Namespace is constant `InstantNews/Ingestion`. Per-source interval machinery in `start_source_thread` untouched. Restored the `@dataclass SourceSpec` block — it was accidentally dropped during the initial edit and caught immediately by the unit tests (module-level AttributeError on import). Self-validation: `pytest tests/services/test_source_poller_metrics.py -v` → 3 passed (happy path 2 rows + median=60s, RuntimeError path emits FetchErrors with ErrorType=RuntimeError, zero-items path emits NewItems=0 without latency). `mypy --follow-imports=silent app/services/source_poller.py` → Success, no issues. Full regression `pytest tests/ --tb=no -q` → 239 passed, 1 skipped (236 baseline + 3 new). No Post-deploy assertion run — CloudWatch list-metrics assertion requires the deferred cdk deploy.",
+      "files_changed": [
+        "app/services/source_poller.py",
+        "tests/services/test_source_poller_metrics.py"
+      ],
       "failure_reason": null,
       "test_evidence": null,
       "test_report": null,
