@@ -237,6 +237,92 @@ a { color: inherit; text-decoration: none; }
   background: var(--bg-surface-2);
 }
 
+/* ── Ingestion tiles (US-009) ────────────────────────────────────────── */
+.ingest-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: var(--sp-2);
+}
+
+.ingest-tile {
+  background: var(--bg-surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: var(--sp-2) var(--sp-3);
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-1);
+  cursor: pointer;
+  transition: border-color 120ms, background-color 120ms;
+  min-width: 0;
+}
+.ingest-tile:hover { background: var(--bg-surface-3); border-color: var(--border-emphasis); }
+.ingest-tile[data-status="warn"] { border-color: var(--yellow-border); }
+.ingest-tile[data-status="crit"] { border-color: var(--red-border); }
+
+.ingest-tile__head {
+  display: flex; align-items: center; justify-content: space-between; gap: var(--sp-1);
+  min-width: 0;
+}
+.ingest-tile__name {
+  font-size: 11.5px; color: var(--text-primary); font-weight: 500;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  min-width: 0; flex: 1;
+}
+.ingest-tile__badge {
+  display: inline-block; padding: 1px 6px; border-radius: 999px;
+  font-size: 9.5px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em;
+  background: var(--bg-surface-3); color: var(--text-secondary);
+  border: 1px solid var(--border);
+}
+.ingest-tile__badge--social { color: var(--blue); border-color: var(--blue); }
+.ingest-tile__badge--rss { color: var(--text-secondary); }
+
+.ingest-tile__stats { display: flex; align-items: center; gap: var(--sp-2); }
+.ingest-tile__dot {
+  width: 8px; height: 8px; border-radius: 50%; display: inline-block;
+  background: var(--green);
+  box-shadow: 0 0 0 1px var(--green-border);
+}
+.ingest-tile[data-status="warn"] .ingest-tile__dot { background: var(--yellow); box-shadow: 0 0 0 1px var(--yellow-border); }
+.ingest-tile[data-status="crit"] .ingest-tile__dot { background: var(--red); box-shadow: 0 0 0 1px var(--red-border); }
+
+.ingest-tile__p50 { font-size: 13px; color: var(--text-primary); font-weight: 500; }
+.ingest-tile__p95 { font-size: 10.5px; color: var(--text-muted); }
+.ingest-tile__spark { height: 24px; color: var(--green); }
+.ingest-tile[data-status="warn"] .ingest-tile__spark { color: var(--yellow); }
+.ingest-tile[data-status="crit"] .ingest-tile__spark { color: var(--red); }
+
+/* ── Drawer (US-009 pinned source) ──────────────────────────────────── */
+.mon-drawer {
+  position: fixed; top: var(--topbar-height); right: 0; bottom: 0;
+  width: 0; max-width: 560px;
+  background: var(--bg-surface);
+  border-left: 1px solid var(--border);
+  transition: width 160ms ease-out;
+  overflow: hidden;
+  z-index: 20;
+}
+.mon-drawer--open { width: min(560px, 70vw); }
+.mon-drawer__head {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: var(--sp-2) var(--sp-3); border-bottom: 1px solid var(--border-muted);
+}
+.mon-drawer__title {
+  font-size: 13px; font-weight: 600; color: var(--text-primary);
+  max-width: 440px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.mon-drawer__close {
+  color: var(--text-secondary); font-size: 20px; line-height: 1;
+  padding: 0 var(--sp-1);
+}
+.mon-drawer__close:hover { color: var(--text-primary); }
+.mon-drawer__body { padding: var(--sp-3); }
+.mon-drawer__loading,
+.mon-drawer__empty,
+.mon-drawer__error { color: var(--text-muted); font-size: 12px; padding: var(--sp-4) 0; }
+.mon-drawer__error { color: var(--red); }
+
 /* ── Scrollbar ───────────────────────────────────────────────────────── */
 ::-webkit-scrollbar { width: 6px; height: 6px; }
 ::-webkit-scrollbar-track { background: var(--bg-primary); }
