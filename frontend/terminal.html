@@ -83,7 +83,7 @@
         </button>
 
         <button class="btn-header" id="btn-refresh">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <svg class="btn-refresh-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M21 12a9 9 0 11-6.219-8.56"/>
             <path d="M22 3v6h-6"/>
           </svg>
@@ -186,21 +186,29 @@
             <label class="date-range-label" for="date-to">To</label>
             <input type="date" class="date-input" id="date-to">
           </div>
-          <button class="btn-clear-dates" id="btn-clear-dates">
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
-              <line x1="18" y1="6" x2="6" y2="18"/>
-              <line x1="6" y1="6" x2="18" y2="18"/>
-            </svg>
-            Clear dates
-          </button>
+          <div class="apply-row">
+            <button class="btn-apply" id="btn-apply-filters">Apply</button>
+            <button class="btn-clear-dates" id="btn-clear-dates">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                <line x1="18" y1="6" x2="6" y2="18"/>
+                <line x1="6" y1="6" x2="18" y2="18"/>
+              </svg>
+              Clear
+            </button>
+          </div>
+          <div class="apply-hint" id="apply-hint"></div>
         </div>
       </div>
 
-      <!-- Duplicates Toggle -->
+      <!-- Duplicates + Tradable toggles -->
       <div class="sidebar-section">
         <label class="source-item">
           <input type="checkbox" id="hide-duplicates">
           <span>Hide duplicates</span>
+        </label>
+        <label class="source-item">
+          <input type="checkbox" id="tradable-only">
+          <span>Tradable only <span class="hint">⚡</span></span>
         </label>
       </div>
 

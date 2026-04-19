@@ -16,6 +16,12 @@ def _current_tier():
     return "free"
 
 
+# Absolute safety cap on a single /api/news response regardless of tier
+# or date-range override. Keeps accidental runaway queries (e.g. a user
+# dragging a year-wide range) from blowing up the response payload.
+HARD_LIMIT_ITEMS = 2000
+
+
 @news_bp.route("/api/news")
 def api_news():
     session_factory = current_app.config["SESSION_FACTORY"]
@@ -32,9 +38,18 @@ def api_news():
         query = request.args.get("q", "")
         date_from = request.args.get("from", "")
         date_to = request.args.get("to", "")
+        before = request.args.get("before", "", type=str)  # cursor: News.id < before
 
-        # Cap limit to tier maximum
-        limit = max(1, min(limit, max_limit))
+        # Cap limit to tier maximum, but when an explicit date range is set,
+        # allow up to 5x the tier limit (still hard-capped at HARD_LIMIT_ITEMS).
+        # This is what unblocks "look at news from last Tuesday" — the default
+        # 200-row cap otherwise truncates the query before the date window
+        # even reaches the client.
+        if (date_from or date_to) and has_feature(tier, "date_range_filter"):
+            effective_cap = min(max_limit * 5, HARD_LIMIT_ITEMS)
+        else:
+            effective_cap = max_limit
+        limit = max(1, min(limit, effective_cap))
 
         q = session.query(News)
 
@@ -72,13 +87,25 @@ def api_news():
             cutoff = utc_iso(datetime.now(timezone.utc) - timedelta(days=history_days))
             q = q.filter(News.published >= cutoff)
 
+        # Cursor pagination: ?before=<news_id> returns items strictly older than
+        # that id. Combined with ORDER BY published DESC, id DESC, this lets
+        # the frontend load older pages on scroll-down without duplicates.
+        if before:
+            try:
+                before_id = int(before)
+                q = q.filter(News.id < before_id)
+            except (TypeError, ValueError):
+                pass
+
         q = q.order_by(News.published.desc(), News.id.desc()).limit(limit)
         rows = q.all()
         items = [_shape_item(r.to_dict(), tier) for r in rows]
     finally:
         session.close()
 
-    return jsonify({"count": len(items), "items": items})
+    # Cursor for the next older page: id of the last item in this response.
+    next_before = items[-1]["id"] if items else None
+    return jsonify({"count": len(items), "items": items, "next_before": next_before})
 
 
 def _shape_item(item, tier):

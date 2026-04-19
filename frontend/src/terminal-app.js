@@ -116,7 +116,14 @@ let state = {
     dateFrom: "",
     dateTo: "",
     hideDuplicates: false,
+    tradableOnly: false,
   },
+  // Cursor pagination (scroll-down loads older)
+  nextBefore: null,
+  loadingMore: false,
+  noMoreHistory: false,
+  // true while a date-range or search is being applied explicitly; auto-refresh pauses
+  rangeActive: false,
   refreshInterval: 5000,
   refreshTimer: null,
   lastRefresh: null,
@@ -162,11 +169,29 @@ const $$ = (sel) => [...document.querySelectorAll(sel)];
 // ---------------------------------------------------------------------------
 
 function formatTime(dateStr) {
+  // Same calendar day  -> HH:MM:SS
+  // Prior days this year -> "Mon DD · HH:MM"
+  // Prior years -> "YYYY-MM-DD · HH:MM"
   if (!dateStr) return "--:--:--";
   try {
     const d = new Date(dateStr);
     if (isNaN(d.getTime())) return "--:--:--";
-    return d.toLocaleTimeString("en-US", { hour12: false, hour: "2-digit", minute: "2-digit", second: "2-digit" });
+    const now = new Date();
+    const sameDay = d.getFullYear() === now.getFullYear()
+      && d.getMonth() === now.getMonth()
+      && d.getDate() === now.getDate();
+    if (sameDay) {
+      return d.toLocaleTimeString("en-US", { hour12: false, hour: "2-digit", minute: "2-digit", second: "2-digit" });
+    }
+    const hm = d.toLocaleTimeString("en-US", { hour12: false, hour: "2-digit", minute: "2-digit" });
+    if (d.getFullYear() === now.getFullYear()) {
+      const md = d.toLocaleDateString("en-US", { month: "short", day: "2-digit" });
+      return `${md} · ${hm}`;
+    }
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, "0");
+    const dd = String(d.getDate()).padStart(2, "0");
+    return `${y}-${m}-${dd} · ${hm}`;
   } catch {
     return "--:--:--";
   }
@@ -233,8 +258,15 @@ function formatMarketCap(val) {
 // ---------------------------------------------------------------------------
 
 async function fetchNews() {
+  const refreshBtn = document.getElementById("btn-refresh");
+  if (refreshBtn) refreshBtn.classList.add("refreshing");
   try {
-    const params = new URLSearchParams({ limit: DEFAULT_LIMIT });
+    // When an explicit date range is set we need a larger limit so the server
+    // doesn't silently drop older items (the DEFAULT 200 is ordered by
+    // published DESC and truncates before reaching the requested date window).
+    const hasRange = !!(state.filter.dateFrom || state.filter.dateTo);
+    const limit = hasRange ? Math.max(DEFAULT_LIMIT * 5, 1000) : DEFAULT_LIMIT;
+    const params = new URLSearchParams({ limit });
     if (state.filter.dateFrom) params.set("from", state.filter.dateFrom);
     if (state.filter.dateTo) params.set("to", state.filter.dateTo);
     if (state.filter.sourceType && state.filter.sourceType !== "all") {
@@ -266,6 +298,8 @@ async function fetchNews() {
       state.newIds = newIds;
       state.items = data.items;
       state.totalFetched = data.count;
+      state.nextBefore = data.next_before || null;
+      state.noMoreHistory = !data.next_before || (data.items.length < limit);
 
       // Calculate items/second
       const elapsed = (Date.now() - state.startTime) / 1000;
@@ -283,6 +317,44 @@ async function fetchNews() {
     if (state.items.length === 0) {
       renderEmpty("Unable to connect to API. Retrying...");
     }
+  } finally {
+    if (refreshBtn) refreshBtn.classList.remove("refreshing");
+  }
+}
+
+// Load older news (cursor pagination for infinite scroll, fix 8).
+// Append-only; does not disturb the list of items already rendered or auto-refresh.
+async function loadMoreNews() {
+  if (state.loadingMore || state.noMoreHistory || !state.nextBefore) return;
+  state.loadingMore = true;
+  try {
+    const params = new URLSearchParams({ limit: DEFAULT_LIMIT, before: state.nextBefore });
+    if (state.filter.dateFrom) params.set("from", state.filter.dateFrom);
+    if (state.filter.dateTo) params.set("to", state.filter.dateTo);
+    if (state.filter.sourceType && state.filter.sourceType !== "all") {
+      params.set("source_type", state.filter.sourceType);
+    }
+    const res = await SignalAuth.fetch(`${API}/news?${params}`);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+    if (data.items && data.items.length > 0) {
+      for (const item of data.items) {
+        if (!state.seenIds.has(item.id)) {
+          state.seenIds.add(item.id);
+          state.items.push(item);
+        }
+      }
+      state.nextBefore = data.next_before || null;
+      state.noMoreHistory = !data.next_before || (data.items.length < DEFAULT_LIMIT);
+      renderNews();
+    } else {
+      state.noMoreHistory = true;
+      renderNews();
+    }
+  } catch (err) {
+    // silent; sentinel will retry on next scroll trigger
+  } finally {
+    state.loadingMore = false;
   }
 }
 
@@ -426,6 +498,10 @@ function getFilteredItems() {
     }
     // Duplicate filter
     if (state.filter.hideDuplicates && item.duplicate) {
+      return false;
+    }
+    // Tradable-only filter
+    if (state.filter.tradableOnly && item.tradeable !== true) {
       return false;
     }
     return true;
@@ -1059,9 +1135,36 @@ function renderNews() {
     return `<tr class="${rowClass}" data-id="${item.id}">${cells}</tr>`;
   });
 
-  container.innerHTML = rows.join("");
+  // Append a sentinel row so IntersectionObserver can trigger loadMoreNews (fix 8).
+  let sentinelHtml = "";
+  if (state.noMoreHistory) {
+    sentinelHtml = `<tr class="load-more-row"><td colspan="${colCount}"><div class="load-more-sentinel">end of history</div></td></tr>`;
+  } else {
+    const label = state.loadingMore ? '<span class="spinner"></span> loading older…' : 'scroll for more';
+    sentinelHtml = `<tr class="load-more-row"><td colspan="${colCount}"><div class="load-more-sentinel" id="load-more-sentinel">${label}</div></td></tr>`;
+  }
+
+  container.innerHTML = rows.join("") + sentinelHtml;
+  _wireLoadMoreSentinel();
   updateSentimentFilters();
   updateItemCount();
+}
+
+// Register an IntersectionObserver on the load-more sentinel to fetch older pages.
+let _loadMoreObserver = null;
+function _wireLoadMoreSentinel() {
+  const sentinel = document.getElementById("load-more-sentinel");
+  if (!sentinel) return;
+  if (!_loadMoreObserver) {
+    _loadMoreObserver = new IntersectionObserver((entries) => {
+      for (const e of entries) {
+        if (e.isIntersecting) loadMoreNews();
+      }
+    }, { root: null, rootMargin: "400px", threshold: 0 });
+  } else {
+    _loadMoreObserver.disconnect();
+  }
+  _loadMoreObserver.observe(sentinel);
 }
 
 function renderSkeleton() {
@@ -1095,46 +1198,177 @@ function renderEmpty(message) {
     </tr>`;
 }
 
+// Classify a source name into a group for hierarchical rendering.
+function sourceGroup(name) {
+  if (name.startsWith("Twitter/@")) return "twitter";
+  if (name.startsWith("TruthSocial/@")) return "truth";
+  return "rss";
+}
+
+const SOURCE_GROUPS = [
+  { id: "rss",     label: "News (RSS)",    defaultCollapsed: false },
+  { id: "twitter", label: "Twitter (Diplomatic)", defaultCollapsed: true  },
+  { id: "truth",   label: "Truth Social",  defaultCollapsed: true  },
+];
+
+function _collapsedKey(id) { return `signal_sources_collapsed_${id}`; }
+function _isGroupCollapsed(id, dflt) {
+  const v = localStorage.getItem(_collapsedKey(id));
+  if (v === "1") return true;
+  if (v === "0") return false;
+  return !!dflt;
+}
+function _setGroupCollapsed(id, collapsed) {
+  localStorage.setItem(_collapsedKey(id), collapsed ? "1" : "0");
+}
+
+function _displayName(name) {
+  // Twitter/@SecRubio -> @SecRubio; TruthSocial/@realDonaldTrump -> @realDonaldTrump
+  if (name.startsWith("Twitter/")) return name.slice("Twitter/".length);
+  if (name.startsWith("TruthSocial/")) return name.slice("TruthSocial/".length);
+  return name.replace(/_/g, " ");
+}
+
 function renderSources() {
   const container = $("#source-list");
   if (!container) return;
 
-  if (!state.sources.length) {
-    // Show all feed names from a static list
+  // Build source list (fallback to hardcoded RSS when /api/sources hasn't loaded)
+  let sources = state.sources;
+  if (!sources.length) {
     const feedNames = [
       "CNBC", "CNBC_World", "Reuters_Business", "MarketWatch", "MarketWatch_Markets",
       "Investing_com", "Yahoo_Finance", "Nasdaq", "SeekingAlpha", "Benzinga",
       "AP_News", "Bloomberg_Business", "Bloomberg_Markets",
       "BBC_Business", "Google_News_Business"
     ];
-    container.innerHTML = feedNames.map((name) => `
-      <label class="source-item">
-        <input type="checkbox" checked data-source="${name}">
-        <span>${name.replace(/_/g, " ")}</span>
-        <span class="source-count">--</span>
-      </label>`).join("");
-  } else {
-    container.innerHTML = state.sources.map((s) => `
-      <label class="source-item">
-        <input type="checkbox" checked data-source="${s.name}">
-        <span>${s.name.replace(/_/g, " ")}</span>
-        <span class="source-count">${s.total_items}</span>
-      </label>`).join("");
+    sources = feedNames.map((name) => ({ name, total_items: null }));
   }
 
-  // Bind change events
-  container.querySelectorAll('input[type="checkbox"]').forEach((cb) => {
+  // Group by source group id
+  const grouped = { rss: [], twitter: [], truth: [] };
+  for (const s of sources) {
+    const g = sourceGroup(s.name);
+    grouped[g].push(s);
+  }
+
+  // All Select/Deselect toolbar + grouped checkboxes
+  const toolbarHtml = `
+    <div class="source-toolbar">
+      <button type="button" class="source-toolbar-btn" id="src-select-all">All</button>
+      <button type="button" class="source-toolbar-btn" id="src-select-none">None</button>
+    </div>
+  `;
+
+  const groupsHtml = SOURCE_GROUPS.map((g) => {
+    const items = grouped[g.id] || [];
+    if (!items.length) return "";
+    const collapsed = _isGroupCollapsed(g.id, g.defaultCollapsed);
+    const childrenHtml = items.map((s) => `
+      <label class="source-item source-item--child">
+        <input type="checkbox" checked data-source="${escapeHtml(s.name)}">
+        <span>${escapeHtml(_displayName(s.name))}</span>
+        <span class="source-count">${s.total_items == null ? "--" : s.total_items}</span>
+      </label>
+    `).join("");
+    const count = items.length;
+    return `
+      <div class="source-group" data-group="${g.id}" ${collapsed ? 'data-collapsed="1"' : ''}>
+        <label class="source-group-header">
+          <input type="checkbox" class="source-group-parent" data-group-parent="${g.id}" checked>
+          <button type="button" class="source-group-caret" aria-label="toggle">
+            <span class="caret">${collapsed ? "▸" : "▾"}</span>
+          </button>
+          <span class="source-group-label">${escapeHtml(g.label)}</span>
+          <span class="source-group-count">${count}</span>
+        </label>
+        <div class="source-group-children">${childrenHtml}</div>
+      </div>
+    `;
+  }).join("");
+
+  container.innerHTML = toolbarHtml + groupsHtml;
+
+  // Child checkbox change -> recompute parent tri-state + filter
+  container.querySelectorAll('input[type="checkbox"][data-source]').forEach((cb) => {
     cb.addEventListener("change", () => {
+      _recomputeAllParentStates();
       updateSourceFilter();
       renderNews();
     });
+  });
+
+  // Parent checkbox -> toggle all children in that group
+  container.querySelectorAll('input[data-group-parent]').forEach((pcb) => {
+    pcb.addEventListener("change", (e) => {
+      const gid = pcb.dataset.groupParent;
+      const want = pcb.checked;
+      container.querySelectorAll(`.source-group[data-group="${gid}"] input[type="checkbox"][data-source]`).forEach((cb) => {
+        cb.checked = want;
+      });
+      pcb.indeterminate = false;
+      updateSourceFilter();
+      renderNews();
+    });
+  });
+
+  // Caret -> collapse/expand group
+  container.querySelectorAll(".source-group-caret").forEach((btn) => {
+    btn.addEventListener("click", (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      const group = btn.closest(".source-group");
+      if (!group) return;
+      const gid = group.dataset.group;
+      const nowCollapsed = group.getAttribute("data-collapsed") !== "1";
+      if (nowCollapsed) group.setAttribute("data-collapsed", "1");
+      else group.removeAttribute("data-collapsed");
+      const caret = btn.querySelector(".caret");
+      if (caret) caret.textContent = nowCollapsed ? "▸" : "▾";
+      _setGroupCollapsed(gid, nowCollapsed);
+    });
+  });
+
+  // Select All / Select None
+  const selectAllBtn = container.querySelector("#src-select-all");
+  const selectNoneBtn = container.querySelector("#src-select-none");
+  if (selectAllBtn) selectAllBtn.addEventListener("click", () => _setAllSources(true));
+  if (selectNoneBtn) selectNoneBtn.addEventListener("click", () => _setAllSources(false));
+
+  _recomputeAllParentStates();
+}
+
+function _setAllSources(checked) {
+  $$('#source-list input[type="checkbox"][data-source]').forEach((cb) => { cb.checked = checked; });
+  $$('#source-list input[data-group-parent]').forEach((pcb) => { pcb.checked = checked; pcb.indeterminate = false; });
+  updateSourceFilter();
+  renderNews();
+}
+
+function _recomputeAllParentStates() {
+  $$('.source-group').forEach((group) => {
+    const gid = group.dataset.group;
+    const parent = group.querySelector('input[data-group-parent]');
+    const children = Array.from(group.querySelectorAll('input[type="checkbox"][data-source]'));
+    if (!parent || !children.length) return;
+    const checkedCount = children.filter((c) => c.checked).length;
+    if (checkedCount === 0) {
+      parent.checked = false;
+      parent.indeterminate = false;
+    } else if (checkedCount === children.length) {
+      parent.checked = true;
+      parent.indeterminate = false;
+    } else {
+      parent.checked = false;
+      parent.indeterminate = true;
+    }
   });
 }
 
 function updateSourceFilter() {
   const unchecked = new Set();
   const allChecked = [];
-  $$('#source-list input[type="checkbox"]').forEach((cb) => {
+  $$('#source-list input[type="checkbox"][data-source]').forEach((cb) => {
     if (!cb.checked) {
       unchecked.add(cb.dataset.source);
     } else {
@@ -1279,28 +1513,86 @@ function bindEvents() {
     });
   }
 
-  // Date range inputs
+  // Date range + Apply button (fix 7) — no auto-refetch on date change.
+  // The Apply button validates max range, pauses auto-refresh while the
+  // range is active, and triggers a single fetchNews. Clear restores
+  // live mode.
   const dateFrom = $("#date-from");
   const dateTo = $("#date-to");
-  if (dateFrom) {
-    dateFrom.addEventListener("change", (e) => {
-      state.filter.dateFrom = e.target.value;
-      fetchNews();
-    });
-  }
-  if (dateTo) {
-    dateTo.addEventListener("change", (e) => {
-      state.filter.dateTo = e.target.value;
-      fetchNews();
-    });
-  }
+  const applyBtn = $("#btn-apply-filters");
+  const applyHint = $("#apply-hint");
   const clearDateBtn = $("#btn-clear-dates");
+
+  function _maxRangeDays() {
+    const tier = (state.userTier || "free").toLowerCase();
+    if (tier === "free") return 7;
+    if (tier === "plus") return 14;
+    return 30; // pro, max
+  }
+
+  function _validateDateRange() {
+    if (!dateFrom || !dateTo) return { ok: true };
+    const f = dateFrom.value;
+    const t = dateTo.value;
+    if (!f && !t) return { ok: true };
+    if (f && t && f > t) return { ok: false, msg: "From date must be before To" };
+    const maxDays = _maxRangeDays();
+    if (f && t) {
+      const diffMs = new Date(t) - new Date(f);
+      const diffDays = diffMs / (1000 * 60 * 60 * 24);
+      if (diffDays > maxDays) {
+        return { ok: false, msg: `Range too wide (max ${maxDays} days on your plan). Use the API for larger queries.` };
+      }
+    }
+    return { ok: true };
+  }
+
+  function _showApplyHint(text, isErr = false) {
+    if (!applyHint) return;
+    applyHint.textContent = text || "";
+    applyHint.classList.toggle("apply-err", !!isErr);
+  }
+
+  function _applyFilters() {
+    const v = _validateDateRange();
+    if (!v.ok) { _showApplyHint(v.msg, true); return; }
+    state.filter.dateFrom = dateFrom ? dateFrom.value : "";
+    state.filter.dateTo = dateTo ? dateTo.value : "";
+    state.filter.query = searchInput ? searchInput.value.trim() : state.filter.query;
+    const hasRange = !!(state.filter.dateFrom || state.filter.dateTo);
+    state.rangeActive = hasRange;
+    // Pause or resume the auto-refresh polling timer based on whether a date-range filter is active.
+    if (state.refreshTimer) { clearInterval(state.refreshTimer); state.refreshTimer = null; }
+    if (!hasRange) {
+      state.refreshTimer = setInterval(() => { fetchNews(); }, state.refreshInterval);
+    }
+    // Reset cursor pagination state — a new server query establishes a new page
+    state.nextBefore = null;
+    state.noMoreHistory = false;
+    _showApplyHint(hasRange ? `Range active — auto-refresh paused. Max ${_maxRangeDays()} days.` : "");
+    fetchNews();
+  }
+
+  if (applyBtn) applyBtn.addEventListener("click", _applyFilters);
+  // Pressing Enter in search input also applies
+  if (searchInput) {
+    searchInput.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") { e.preventDefault(); _applyFilters(); }
+    });
+  }
   if (clearDateBtn) {
     clearDateBtn.addEventListener("click", () => {
       state.filter.dateFrom = "";
       state.filter.dateTo = "";
+      state.rangeActive = false;
       if (dateFrom) dateFrom.value = "";
       if (dateTo) dateTo.value = "";
+      _showApplyHint("");
+      // Resume auto-refresh
+      if (state.refreshTimer) clearInterval(state.refreshTimer);
+      state.refreshTimer = setInterval(() => { fetchNews(); }, state.refreshInterval);
+      state.nextBefore = null;
+      state.noMoreHistory = false;
       fetchNews();
     });
   }
@@ -1310,6 +1602,15 @@ function bindEvents() {
   if (hideDupsCb) {
     hideDupsCb.addEventListener("change", (e) => {
       state.filter.hideDuplicates = e.target.checked;
+      renderNews();
+    });
+  }
+
+  // Tradable-only toggle (fix 3)
+  const tradableCb = $("#tradable-only");
+  if (tradableCb) {
+    tradableCb.addEventListener("change", (e) => {
+      state.filter.tradableOnly = e.target.checked;
       renderNews();
     });
   }

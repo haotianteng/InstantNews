@@ -470,6 +470,157 @@
   color: var(--text-muted);
 }
 
+/* Hierarchical sources (fixes 4 + 5) */
+.source-toolbar {
+  display: flex;
+  gap: 4px;
+  padding: 4px 0 6px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 4px;
+}
+.source-toolbar-btn {
+  flex: 1;
+  padding: 4px 6px;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  background: var(--bg-primary);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background 0.12s, color 0.12s;
+}
+.source-toolbar-btn:hover {
+  color: var(--text-primary);
+  background: var(--bg-secondary);
+}
+.source-group {
+  display: block;
+  margin-bottom: 2px;
+}
+.source-group-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 2px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-primary);
+  cursor: pointer;
+  border-radius: 3px;
+}
+.source-group-header:hover { background: var(--bg-secondary); }
+.source-group-caret {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 14px;
+  height: 14px;
+  padding: 0;
+  background: transparent;
+  border: 0;
+  color: var(--text-secondary);
+  cursor: pointer;
+  font-size: 10px;
+}
+.source-group-caret:hover { color: var(--text-primary); }
+.source-group-label { flex: 1; }
+.source-group-count {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  color: var(--text-muted);
+}
+.source-group-children {
+  padding-left: 16px;
+  border-left: 1px dotted var(--border);
+  margin-left: 8px;
+}
+.source-group[data-collapsed="1"] .source-group-children { display: none; }
+.source-item--child { padding: 3px 4px; font-size: 11px; }
+/* Tri-state parent checkbox (indeterminate) */
+.source-group-parent:indeterminate {
+  background: var(--yellow);
+  border-color: var(--yellow);
+}
+.source-group-parent:indeterminate::after {
+  content: "";
+  position: absolute;
+  inset: 5px 3px;
+  background: var(--bg-primary);
+  border: 0;
+  transform: none;
+}
+
+/* Tradable-only hint */
+.source-item .hint {
+  color: var(--yellow);
+  font-size: 11px;
+  margin-left: 2px;
+}
+
+/* Refresh button spinner (fix 6) */
+@keyframes btn-refresh-spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+#btn-refresh.refreshing .btn-refresh-icon {
+  animation: btn-refresh-spin 0.9s linear infinite;
+  transform-origin: 50% 50%;
+}
+#btn-refresh.refreshing {
+  color: var(--green);
+  border-color: var(--green);
+}
+
+/* Apply button (fix 7) */
+.apply-row {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  margin-top: 6px;
+}
+.btn-apply {
+  flex: 1;
+  padding: 6px 10px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--bg-primary);
+  background: var(--green);
+  border: 1px solid var(--green);
+  border-radius: 4px;
+  cursor: pointer;
+  transition: opacity 0.12s;
+}
+.btn-apply:hover { opacity: 0.9; }
+.btn-apply:disabled { opacity: 0.5; cursor: not-allowed; }
+.apply-hint {
+  font-size: 10px;
+  color: var(--text-muted);
+  margin-top: 4px;
+}
+.apply-err {
+  color: var(--red);
+}
+
+/* Load-more sentinel (fix 8) */
+.load-more-sentinel {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 12px;
+  font-size: 11px;
+  color: var(--text-muted);
+}
+.load-more-sentinel .spinner {
+  width: 10px;
+  height: 10px;
+  border: 1.5px solid var(--border);
+  border-top-color: var(--green);
+  border-radius: 50%;
+  animation: btn-refresh-spin 0.8s linear infinite;
+  margin-right: 6px;
+}
+
 /* Refresh interval */
 .interval-select {
   width: 100%;
